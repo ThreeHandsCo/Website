@@ -3,80 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Intro</title>
+    <title>Three Hands Co</title>
     <style>
         * {
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            box-sizing: border-box;
         }
+        
         body {
             background: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
         }
-        #video-container, #content-container {
-            position: absolute;
-            width: 100vw;
+
+        #video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            z-index: 1;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
         }
+
+        #video-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         #content-container {
-            display: none;
-            flex-direction: column;
-            text-align: center;
-            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
         }
-        #content-container img {
-            max-width: 80%;
-            height: auto;
-            margin-bottom: 20px;
+
+        #content-container.visible {
+            opacity: 1;
         }
-        a {
+
+        .platform-link {
             color: white;
-            font-size: 24px;
             text-decoration: none;
-            background: #222;
-            padding: 10px 20px;
-            border-radius: 5px;
+            background: transparent;
+            border: 2px solid white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 160px;
         }
-        a:hover {
-            background: #444;
+
+        .platform-link:hover {
+            background: white;
+            color: black;
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 768px) {
+            #content-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .platform-link {
+                font-size: 20px;
+                padding: 15px 30px;
+                min-width: 140px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="video-container">
-        <video id="intro-video" autoplay>
+        <video id="intro-video" autoplay muted playsinline>
             <source src="intro.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
-
-    <!-- <div id="content-container">
-        <img src="image.jpg" alt="Your Image">
-        <a href="https://example.com">Click Here</a>
-    </div> -->
+    
+    <div id="content-container">
+        <a href="#" class="platform-link">Steam</a>
+        <a href="https://threehandgames.itch.io/" class="platform-link">Itch.io</a>
+        <a href="#" class="platform-link">Bluesky</a>
+    </div>
 
     <script>
-        const video = document.getElementById("intro-video");
-        const videoContainer = document.getElementById("video-container");
-        const contentContainer = document.getElementById("content-container");
+        const video = document.getElementById('intro-video');
+        const videoContainer = document.getElementById('video-container');
+        const contentContainer = document.getElementById('content-container');
 
-        video.onended = () => {
-            videoContainer.style.display = "none";  // Hide video
-            contentContainer.style.display = "flex";  // Show content
-        };
+        // Ensure video plays
+        video.play().catch(function(error) {
+            console.log("Video play failed:", error);
+            // If video fails to play, show content immediately
+            showContent();
+        });
+
+        // Function to show content and hide video
+        function showContent() {
+            videoContainer.classList.add('hidden');
+            contentContainer.classList.add('visible');
+        }
+
+        // When video ends, show content
+        video.addEventListener('ended', showContent);
+
+        // Backup: If video fails to load, show content
+        video.addEventListener('error', showContent);
     </script>
 </body>
 </html>
