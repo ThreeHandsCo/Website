@@ -44,6 +44,13 @@
             background: black;
         }
 
+        .logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 40px;
+            border: 3px solid white;
+        }
+
         #content-container {
             position: fixed;
             top: 0;
@@ -109,16 +116,14 @@
             animation: glow 1.5s ease-in-out infinite alternate;
         }
 
-        @keyframes glow {
+                    @keyframes glow {
             from {
-                box-shadow: 0 0 10px #fff,
-                           0 0 20px #fff,
-                           0 0 30px #fff;
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
+                           0 0 10px rgba(255, 255, 255, 0.3);
             }
             to {
-                box-shadow: 0 0 20px #fff,
-                           0 0 30px #fff,
-                           0 0 40px #fff;
+                box-shadow: 0 0 8px rgba(255, 255, 255, 0.6),
+                           0 0 15px rgba(255, 255, 255, 0.4);
             }
         }
 
@@ -161,6 +166,7 @@
     </div>
     
     <div id="content-container">
+        <img src="logo.png" alt="Logo" class="logo">
         <div class="buttons-container">
             <a href="#" class="platform-link">Steam</a>
             <a href="https://threehandgames.itch.io" class="platform-link">Itch.io</a>
