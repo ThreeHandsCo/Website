@@ -44,11 +44,11 @@
             background: black;
         }
 
-        .logo {
-            width: 150px;
-            height: 150px;
+        .header-video {
+            width: 400px;
+            height: 225px;
             margin-bottom: 40px;
-            border: 3px solid white;
+            background: black;
         }
 
         #content-container {
@@ -166,7 +166,15 @@
     </div>
     
     <div id="content-container">
-        <img src="logo.png" alt="Logo" class="logo">
+        <video 
+            class="header-video" 
+            muted 
+            loop
+            playsinline 
+            preload="auto"
+            defaultMuted>
+            <source src="headerHDR.mp4" type="video/mp4">
+        </video>
         <div class="buttons-container">
             <a href="#" class="platform-link">Steam</a>
             <a href="https://threehandgames.itch.io" class="platform-link">Itch.io</a>
@@ -186,8 +194,10 @@
             
             if (window.matchMedia('(dynamic-range: high)').matches) {
                 video.src = 'introHDR.mp4';
+                document.querySelector('.header-video').src = 'headerHDR.mp4';
             } else {
                 video.src = 'introSDR.mp4';
+                document.querySelector('.header-video').src = 'headerSDR.mp4';
             }
 
             function startVideo() {
@@ -195,8 +205,10 @@
                     console.log("Video play failed:", error);
                     document.body.addEventListener('click', function() {
                         video.play();
+                        document.querySelector('.header-video').play();
                     }, { once: true });
                 });
+                document.querySelector('.header-video').play().catch(console.error);
             }
 
             function showContent() {
