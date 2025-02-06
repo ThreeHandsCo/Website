@@ -38,6 +38,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            background: black; /* Added for smoother loading */
         }
 
         #content-container {
@@ -94,7 +95,12 @@
 </head>
 <body>
     <div id="video-container">
-        <video id="intro-video" autoplay muted playsinline>
+        <video 
+            id="intro-video" 
+            muted 
+            playsinline 
+            preload="auto"
+            defaultMuted>
             <source src="intro.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -107,28 +113,44 @@
     </div>
 
     <script>
-        const video = document.getElementById('intro-video');
-        const videoContainer = document.getElementById('video-container');
-        const contentContainer = document.getElementById('content-container');
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('intro-video');
+            const videoContainer = document.getElementById('video-container');
+            const contentContainer = document.getElementById('content-container');
 
-        // Ensure video plays
-        video.play().catch(function(error) {
-            console.log("Video play failed:", error);
-            // If video fails to play, show content immediately
-            showContent();
+            // Function to start video with error handling
+            function startVideo() {
+                video.play().catch(function(error) {
+                    console.log("Video play failed:", error);
+                    // Add a click-to-play fallback if autoplay fails
+                    document.body.addEventListener('click', function() {
+                        video.play();
+                    }, { once: true });
+                });
+            }
+
+            // Function to show content and hide video
+            function showContent() {
+                videoContainer.classList.add('hidden');
+                contentContainer.classList.add('visible');
+            }
+
+            // Load handlers
+            video.addEventListener('loadedmetadata', function() {
+                startVideo();
+            });
+
+            // When video ends, show content
+            video.addEventListener('ended', showContent);
+
+            // Backup: If video fails to load, show content
+            video.addEventListener('error', showContent);
+
+            // Start video if it's already loaded
+            if (video.readyState >= 2) {
+                startVideo();
+            }
         });
-
-        // Function to show content and hide video
-        function showContent() {
-            videoContainer.classList.add('hidden');
-            contentContainer.classList.add('visible');
-        }
-
-        // When video ends, show content
-        video.addEventListener('ended', showContent);
-
-        // Backup: If video fails to load, show content
-        video.addEventListener('error', showContent);
     </script>
 </body>
 </html>
