@@ -77,10 +77,28 @@
             margin-bottom: 40px;
         }
 
-        .iframes-container {
+        .widgets-container {
             display: flex;
             flex-direction: column;
             gap: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .widgets-container.visible {
+            opacity: 1;
+        }
+
+        .steam-widgets,
+        .itch-widgets {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .steam-widgets.visible,
+        .itch-widgets.visible {
+            display: flex;
         }
 
         .platform-link {
@@ -97,6 +115,13 @@
             letter-spacing: 2px;
             image-rendering: pixelated;
             position: relative;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .platform-link.active {
+            background: white;
+            color: black;
         }
 
         .platform-link::before {
@@ -116,7 +141,7 @@
             animation: glow 1.5s ease-in-out infinite alternate;
         }
 
-                    @keyframes glow {
+        @keyframes glow {
             from {
                 box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
                            0 0 10px rgba(255, 255, 255, 0.3);
@@ -146,7 +171,7 @@
                 min-width: 160px;
             }
 
-            .iframes-container {
+            .widgets-container {
                 transform: scale(0.8);
             }
         }
@@ -176,13 +201,18 @@
             <source src="headerHDR.mp4" type="video/mp4">
         </video>
         <div class="buttons-container">
-            <a href="#" class="platform-link">Steam</a>
-            <a href="https://threehandgames.itch.io" class="platform-link">Itch.io</a>
-            <a href="#" class="platform-link">Other</a>
+            <button class="platform-link" data-platform="steam">Steam</button>
+            <button class="platform-link" data-platform="itch">Itch.io</button>
         </div>
-        <div class="iframes-container">
-            <iframe frameborder="0" src="https://itch.io/embed/2861591?linkback=true&border_width=0&bg_color=000000&fg_color=ffffff&link_color=ffffff&border_color=000000" width="550" height="165"><a href="https://threehandgames.itch.io/vr">Vortex Rain by ThreeHandGames</a></iframe>
-            <iframe frameborder="0" src="https://itch.io/embed/3150845?bg_color=000000&fg_color=bababa&link_color=ffffff&border_color=000000" width="552" height="167"><a href="https://threehandgames.itch.io/emo">EMO by ThreeHandGames</a></iframe>
+        <div class="widgets-container">
+            <div class="steam-widgets">
+                <!-- Add your Steam widget here -->
+                <iframe src="https://store.steampowered.com/widget/1234567/" frameborder="0" width="550" height="190"></iframe>
+            </div>
+            <div class="itch-widgets">
+                <iframe frameborder="0" src="https://itch.io/embed/2861591?linkback=true&border_width=0&bg_color=000000&fg_color=ffffff&link_color=ffffff&border_color=000000" width="550" height="165"><a href="https://threehandgames.itch.io/vr">Vortex Rain by ThreeHandGames</a></iframe>
+                <iframe frameborder="0" src="https://itch.io/embed/3150845?bg_color=000000&fg_color=bababa&link_color=ffffff&border_color=000000" width="552" height="167"><a href="https://threehandgames.itch.io/emo">EMO by ThreeHandGames</a></iframe>
+            </div>
         </div>
     </div>
 
@@ -191,6 +221,8 @@
             const video = document.getElementById('intro-video');
             const videoContainer = document.getElementById('video-container');
             const contentContainer = document.getElementById('content-container');
+            const widgetsContainer = document.querySelector('.widgets-container');
+            const platformButtons = document.querySelectorAll('.platform-link');
             
             if (window.matchMedia('(dynamic-range: high)').matches) {
                 video.src = 'introHDR.mp4';
@@ -215,6 +247,37 @@
                 videoContainer.classList.add('hidden');
                 contentContainer.classList.add('visible');
             }
+
+            function showPlatformWidgets(platform) {
+                const steamWidgets = document.querySelector('.steam-widgets');
+                const itchWidgets = document.querySelector('.itch-widgets');
+                
+                // Reset all buttons
+                platformButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Hide all widgets first
+                steamWidgets.classList.remove('visible');
+                itchWidgets.classList.remove('visible');
+                
+                // Show selected platform widgets
+                if (platform === 'steam') {
+                    steamWidgets.classList.add('visible');
+                    document.querySelector('[data-platform="steam"]').classList.add('active');
+                } else if (platform === 'itch') {
+                    itchWidgets.classList.add('visible');
+                    document.querySelector('[data-platform="itch"]').classList.add('active');
+                }
+                
+                // Show widgets container
+                widgetsContainer.classList.add('visible');
+            }
+
+            // Add click event listeners to platform buttons
+            platformButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    showPlatformWidgets(button.dataset.platform);
+                });
+            });
 
             video.addEventListener('loadedmetadata', function() {
                 startVideo();
