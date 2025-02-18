@@ -172,6 +172,14 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
             animation: pulse 2s ease-in-out infinite;
             margin-bottom: 40px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .blurb:hover {
+            transform: scale(1.1);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
         }
 
         @keyframes pulse {
@@ -221,7 +229,7 @@
             defaultMuted>
             <source src="headerHDR.mp4" type="video/mp4">
         </video>
-        <div class="blurb">PEAK - Coming Soon</div>
+        <a href="https://store.steampowered.com/app/3506430" class="blurb">PEAK - Coming Soon</a>
         <div class="buttons-container">
             <button class="platform-link" data-platform="steam">Steam</button>
             <button class="platform-link" data-platform="itch">Itch.io</button>
