@@ -160,18 +160,14 @@
         }
 
         .blurb {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
             text-align: center;
             color: white;
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
-            z-index: 2;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
             animation: pulse 2s ease-in-out infinite;
+            margin-bottom: 40px;
         }
 
         @keyframes pulse {
@@ -221,6 +217,7 @@
             defaultMuted>
             <source src="headerHDR.mp4" type="video/mp4">
         </video>
+        <div class="blurb">PEAK - Coming Soon</div>
         <div class="buttons-container">
             <button class="platform-link" data-platform="steam">Steam</button>
             <button class="platform-link" data-platform="itch">Itch.io</button>
@@ -234,7 +231,6 @@
                 <iframe frameborder="0" src="https://itch.io/embed/3150845?bg_color=000000&fg_color=bababa&link_color=ffffff&border_color=000000" width="552" height="167"><a href="https://threehandgames.itch.io/emo">EMO by ThreeHandGames</a></iframe>
             </div>
         </div>
-        <div class="blurb">PEAK - Coming Soon</div>
     </div>
 
     <script>
