@@ -115,9 +115,111 @@
             gap: 20px;
         }
 
+        .steam-widgets {
+            width: min(646px, calc(100vw - 40px));
+        }
+
+        .itch-widgets {
+            width: min(560px, calc(100vw - 40px));
+        }
+
+        .embed-shell {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: #050505;
+            isolation: isolate;
+        }
+
+        .steam-widgets .embed-shell {
+            max-width: 646px;
+            height: 190px;
+        }
+
+        .itch-widgets .embed-shell {
+            max-width: 560px;
+            height: 175px;
+        }
+
+        .embed-shell iframe {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: block;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+
+        .embed-shell.embed-visible iframe {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .embed-loading {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #b8c0c8;
+            background: #050505;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-align: center;
+            transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+        }
+
+        .embed-loading::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.07) 45%, transparent 65%);
+            transform: translateX(-100%);
+            animation: embed-loading-sweep 1.8s ease-in-out infinite;
+        }
+
+        .embed-loading span {
+            position: relative;
+            z-index: 1;
+            animation: embed-loading-pulse 1.8s ease-in-out infinite;
+        }
+
+        .embed-shell.embed-visible .embed-loading {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        @keyframes embed-loading-sweep {
+            to { transform: translateX(100%); }
+        }
+
+        @keyframes embed-loading-pulse {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 0.9; }
+        }
+
         .steam-widgets.visible,
         .itch-widgets.visible {
             display: flex;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .embed-shell iframe,
+            .embed-loading {
+                transition-duration: 0.01ms;
+            }
+
+            .embed-loading::before,
+            .embed-loading span {
+                animation: none;
+            }
         }
 
         .platform-link {
@@ -359,19 +461,19 @@
         <div class="widgets-container">
             <div class="steam-widgets">
                 <iframe title="Sklesh on Steam" src="https://store.steampowered.com/widget/4617070/" frameborder="0" width="646" height="190"></iframe>
-                <iframe title="PEAK on Steam" loading="lazy" src="https://store.steampowered.com/widget/3506430/" frameborder="0" width="646" height="190"></iframe>
+                <iframe title="PEAK on Steam" loading="lazy" data-src="https://store.steampowered.com/widget/3506430/" frameborder="0" width="646" height="190"></iframe>
             </div>
             <div class="itch-widgets">
                 <!-- Games featured on threehands.itch.io -->
                 <iframe title="One Second to Midnight on itch.io" frameborder="0" src="https://itch.io/embed/4823129?border_width=0&amp;bg_color=000000&amp;fg_color=A7A9E8&amp;link_color=A7A9E8&amp;border_color=000000" width="560" height="175"><a href="https://threehands.itch.io/one-second-to-midnight">One Second to Midnight by ThreeHands</a></iframe>
-                <iframe title="WEED WEED on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4826672?border_width=0&amp;bg_color=000000&amp;fg_color=B7D94C&amp;link_color=B7D94C&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/weed-weed">WEED WEED by p3rv3rt</a></iframe>
-                <iframe title="BOKU NO BULLET HELL on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4823253?border_width=0&amp;bg_color=000000&amp;fg_color=4DA3FF&amp;link_color=4DA3FF&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/boku-no-bullet-hell">BOKU NO BULLET HELL by Hxydn</a></iframe>
-                <iframe title="TWISTER I BARELY KNOW HER on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4719904?border_width=0&amp;bg_color=000000&amp;fg_color=B8C0C8&amp;link_color=B8C0C8&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/twister-i-barely-know-her">TWISTER I BARELY KNOW HER by Hxydn</a></iframe>
-                <iframe title="FTROYL on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4487185?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/ftroyl">FTROYL by p3rv3rt</a></iframe>
-                <iframe title="I Got Reincarnated As A Chud And I Can Level Up To A Chad! on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4244245?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/i-got-reincarnated-as-a-chud-and-i-can-level-up-to-a-chad">I Got Reincarnated As A Chud And I Can Level Up To A Chad! by ooglewoogleblpbhbh</a></iframe>
-                <iframe title="Lou's Ordinary Life on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3783549?border_width=0&amp;bg_color=000000&amp;fg_color=D6D22E&amp;link_color=D6D22E&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/lous-ordinary-life">Lou's Ordinary Life by ooglewoogleblpbhbh</a></iframe>
-                <iframe title=":3iscuit's Bodega on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3848700?border_width=0&amp;bg_color=000000&amp;fg_color=F4D6A0&amp;link_color=F4D6A0&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/3iscuitsbodega">:3iscuit's Bodega by Hxydn</a></iframe>
-                <iframe title="U:\GEN.EXE on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3769396?border_width=0&amp;bg_color=000000&amp;fg_color=00FF00&amp;link_color=00FF00&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/ugenexe">U:\GEN.EXE by Hxydn</a></iframe>
+                <iframe title="WEED WEED on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/4826672?border_width=0&amp;bg_color=000000&amp;fg_color=B7D94C&amp;link_color=B7D94C&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/weed-weed">WEED WEED by p3rv3rt</a></iframe>
+                <iframe title="BOKU NO BULLET HELL on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/4823253?border_width=0&amp;bg_color=000000&amp;fg_color=4DA3FF&amp;link_color=4DA3FF&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/boku-no-bullet-hell">BOKU NO BULLET HELL by Hxydn</a></iframe>
+                <iframe title="TWISTER I BARELY KNOW HER on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/4719904?border_width=0&amp;bg_color=000000&amp;fg_color=B8C0C8&amp;link_color=B8C0C8&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/twister-i-barely-know-her">TWISTER I BARELY KNOW HER by Hxydn</a></iframe>
+                <iframe title="FTROYL on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/4487185?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/ftroyl">FTROYL by p3rv3rt</a></iframe>
+                <iframe title="I Got Reincarnated As A Chud And I Can Level Up To A Chad! on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/4244245?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/i-got-reincarnated-as-a-chud-and-i-can-level-up-to-a-chad">I Got Reincarnated As A Chud And I Can Level Up To A Chad! by ooglewoogleblpbhbh</a></iframe>
+                <iframe title="Lou's Ordinary Life on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/3783549?border_width=0&amp;bg_color=000000&amp;fg_color=D6D22E&amp;link_color=D6D22E&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/lous-ordinary-life">Lou's Ordinary Life by ooglewoogleblpbhbh</a></iframe>
+                <iframe title=":3iscuit's Bodega on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/3848700?border_width=0&amp;bg_color=000000&amp;fg_color=F4D6A0&amp;link_color=F4D6A0&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/3iscuitsbodega">:3iscuit's Bodega by Hxydn</a></iframe>
+                <iframe title="U:\GEN.EXE on itch.io" loading="lazy" frameborder="0" data-src="https://itch.io/embed/3769396?border_width=0&amp;bg_color=000000&amp;fg_color=00FF00&amp;link_color=00FF00&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/ugenexe">U:\GEN.EXE by Hxydn</a></iframe>
             </div>
         </div>
         <footer class="site-footer">
@@ -380,6 +482,82 @@
     </div>
 
     <script>
+        const widgetGroups = Array.from(document.querySelectorAll('.steam-widgets, .itch-widgets'));
+
+        function startEmbedLoad(frame) {
+            if (!frame.hasAttribute('src') && frame.dataset.src) {
+                frame.src = frame.dataset.src;
+            }
+        }
+
+        const embedLoadObserver = 'IntersectionObserver' in window
+            ? new IntersectionObserver(function(entries, observer) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    const frame = entry.target.querySelector('iframe[data-src]');
+                    if (frame) startEmbedLoad(frame);
+                    observer.unobserve(entry.target);
+                });
+            }, { rootMargin: '600px 0px' })
+            : null;
+
+        function observeLazyEmbeds(group) {
+            group.querySelectorAll('iframe[data-src]:not([src])').forEach(function(frame) {
+                if (embedLoadObserver) {
+                    embedLoadObserver.observe(frame.closest('.embed-shell'));
+                } else {
+                    startEmbedLoad(frame);
+                }
+            });
+        }
+
+        function revealReadyEmbeds(group) {
+            const readyShells = Array.from(group.querySelectorAll('.embed-shell.embed-ready'));
+
+            readyShells.forEach(function(shell, index) {
+                window.setTimeout(function() {
+                    if (group.classList.contains('visible') && shell.classList.contains('embed-ready')) {
+                        shell.classList.add('embed-visible');
+                    }
+                }, Math.min(index, 5) * 80);
+            });
+        }
+
+        widgetGroups.forEach(function(group) {
+            const provider = group.classList.contains('steam-widgets') ? 'Steam' : 'itch.io';
+
+            Array.from(group.querySelectorAll('iframe')).forEach(function(frame, index) {
+                const shell = document.createElement('div');
+                const loader = document.createElement('div');
+                const loaderText = document.createElement('span');
+
+                shell.className = 'embed-shell';
+                shell.dataset.embedIndex = index;
+                loader.className = 'embed-loading';
+                loader.setAttribute('aria-hidden', 'true');
+                loaderText.textContent = 'LOADING ' + provider.toUpperCase() + '...';
+                loader.appendChild(loaderText);
+
+                frame.before(shell);
+                shell.appendChild(frame);
+                shell.appendChild(loader);
+                frame.setAttribute('tabindex', '-1');
+
+                frame.addEventListener('load', function() {
+                    shell.classList.add('embed-ready');
+                    frame.removeAttribute('tabindex');
+
+                    if (group.classList.contains('visible')) {
+                        window.setTimeout(function() {
+                            if (group.classList.contains('visible')) {
+                                shell.classList.add('embed-visible');
+                            }
+                        }, Math.min(index, 5) * 80);
+                    }
+                });
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('intro-video');
             const videoContainer = document.getElementById('video-container');
@@ -490,14 +668,31 @@
                 // Hide all widgets first
                 steamWidgets.classList.remove('visible');
                 itchWidgets.classList.remove('visible');
+                widgetGroups.forEach(function(group) {
+                    group.querySelectorAll('.embed-shell').forEach(function(shell) {
+                        shell.classList.remove('embed-visible');
+                    });
+                });
                 
                 // Show selected platform widgets
                 if (platform === 'steam') {
                     steamWidgets.classList.add('visible');
                     document.querySelector('[data-platform="steam"]').classList.add('active');
+                    window.requestAnimationFrame(function() {
+                        window.requestAnimationFrame(function() {
+                            observeLazyEmbeds(steamWidgets);
+                            revealReadyEmbeds(steamWidgets);
+                        });
+                    });
                 } else if (platform === 'itch') {
                     itchWidgets.classList.add('visible');
                     document.querySelector('[data-platform="itch"]').classList.add('active');
+                    window.requestAnimationFrame(function() {
+                        window.requestAnimationFrame(function() {
+                            observeLazyEmbeds(itchWidgets);
+                            revealReadyEmbeds(itchWidgets);
+                        });
+                    });
                 }
                 
                 // Show widgets container
