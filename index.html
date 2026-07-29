@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js" integrity="sha384-5E8B0pTlZZJMabWpC0fyYf6OUpe15jJij34BqBAh4NXoHAlLNOjCPRrwtOXOQFAn" crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -51,6 +52,14 @@
             width: 400px;
             height: 225px;
             margin-bottom: 40px;
+            background: black;
+        }
+
+        .featured-trailer {
+            width: min(646px, calc(100vw - 40px));
+            height: auto;
+            aspect-ratio: 16 / 9;
+            object-fit: contain;
             background: black;
         }
 
@@ -214,6 +223,12 @@
         }
 
         @media (max-width: 768px) {
+            .header-video {
+                width: calc(100vw - 40px);
+                height: auto;
+                aspect-ratio: 16 / 9;
+            }
+
             .buttons-container {
                 flex-direction: column;
                 gap: 30px;
@@ -226,7 +241,27 @@
             }
 
             .widgets-container {
-                transform: scale(0.8);
+                width: 100%;
+                transform: none;
+            }
+
+            .steam-widgets,
+            .itch-widgets {
+                width: 100%;
+                align-items: center;
+            }
+
+            .steam-widgets iframe,
+            .itch-widgets iframe {
+                width: 100%;
+            }
+
+            .steam-widgets iframe {
+                max-width: 646px;
+            }
+
+            .itch-widgets iframe {
+                max-width: 560px;
             }
         }
     </style>
@@ -254,7 +289,16 @@
             defaultMuted>
             <source src="headerHDR.mp4" type="video/mp4">
         </video>
-        <a href="https://store.steampowered.com/app/3506430" target="_blank" rel="noopener" class="blurb">PEAK - Out Now</a>
+        <video
+            id="sklesh-trailer"
+            class="featured-trailer"
+            controls
+            playsinline
+            preload="metadata"
+            poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
+            <a href="https://store.steampowered.com/app/4617070/Sklesh/">Watch the Sklesh trailer on Steam</a>
+        </video>
+        <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="blurb">SKLESH OUT NOW</a>
         <div class="buttons-container">
             <button class="platform-link" data-platform="steam">Steam</button>
             <button class="platform-link" data-platform="itch">Itch.io</button>
@@ -262,7 +306,8 @@
         </div>
         <div class="widgets-container">
             <div class="steam-widgets">
-                <iframe src="https://store.steampowered.com/widget/3506430/" frameborder="0" width="646" height="190"></iframe>
+                <iframe title="Sklesh on Steam" src="https://store.steampowered.com/widget/4617070/" frameborder="0" width="646" height="190"></iframe>
+                <iframe title="PEAK on Steam" loading="lazy" src="https://store.steampowered.com/widget/3506430/" frameborder="0" width="646" height="190"></iframe>
             </div>
             <div class="itch-widgets">
                 <!-- Games featured on threehands.itch.io -->
@@ -289,29 +334,81 @@
             const contentContainer = document.getElementById('content-container');
             const widgetsContainer = document.querySelector('.widgets-container');
             const platformButtons = document.querySelectorAll('button.platform-link');
+            const headerVideo = document.querySelector('.header-video');
+            const skleshTrailer = document.getElementById('sklesh-trailer');
+            const skleshTrailerSource = 'https://video.akamai.steamstatic.com/store_trailers/4617070/1487669050/ee5ce0cfddebaaa617dc21e62fb7ca8700fdf8cc/1776811423/hls_264_master.m3u8?t=1776816847';
+            let introState = 'pending';
+            let introPlayAttempted = false;
+            let contentVisible = false;
+            let skleshHls = null;
             
             if (window.matchMedia('(dynamic-range: high)').matches) {
                 video.src = 'introHDR.mp4';
-                document.querySelector('.header-video').src = 'headerHDR.mp4';
+                headerVideo.src = 'headerHDR.mp4';
             } else {
                 video.src = 'introSDR.mp4';
-                document.querySelector('.header-video').src = 'headerSDR.mp4';
-            }
-
-            function startVideo() {
-                video.play().catch(function(error) {
-                    console.log("Video play failed:", error);
-                    document.body.addEventListener('click', function() {
-                        video.play();
-                        document.querySelector('.header-video').play();
-                    }, { once: true });
-                });
-                document.querySelector('.header-video').play().catch(console.error);
+                headerVideo.src = 'headerSDR.mp4';
             }
 
             function showContent() {
+                if (contentVisible) return;
+                contentVisible = true;
                 videoContainer.classList.add('hidden');
                 contentContainer.classList.add('visible');
+
+                const headerPlayback = headerVideo.play();
+                if (headerPlayback !== undefined) {
+                    headerPlayback.catch(function() {});
+                }
+            }
+
+            function markIntroPlaying() {
+                if (introState === 'pending') {
+                    introState = 'playing';
+                }
+            }
+
+            function showAutoplayFallback(error) {
+                if (error && error.name === 'AbortError') return;
+                if (introState !== 'pending') return;
+                introState = 'fallback';
+                showContent();
+            }
+
+            function startVideo() {
+                if (introPlayAttempted || introState !== 'pending') return;
+                introPlayAttempted = true;
+
+                let introPlayback;
+                try {
+                    introPlayback = video.play();
+                } catch (error) {
+                    showAutoplayFallback(error);
+                    return;
+                }
+
+                if (introPlayback !== undefined) {
+                    introPlayback.then(markIntroPlaying).catch(showAutoplayFallback);
+                }
+            }
+
+            function initializeSkleshTrailer() {
+                if (window.Hls && Hls.isSupported()) {
+                    skleshHls = new Hls();
+                    skleshHls.loadSource(skleshTrailerSource);
+                    skleshHls.attachMedia(skleshTrailer);
+                    skleshHls.on(Hls.Events.ERROR, function(_event, data) {
+                        if (!data.fatal) return;
+                        if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                            skleshHls.recoverMediaError();
+                        } else {
+                            skleshHls.destroy();
+                            skleshHls = null;
+                        }
+                    });
+                } else if (skleshTrailer.canPlayType('application/vnd.apple.mpegurl')) {
+                    skleshTrailer.src = skleshTrailerSource;
+                }
             }
 
             function showPlatformWidgets(platform) {
@@ -345,14 +442,20 @@
                 });
             });
 
-            video.addEventListener('loadedmetadata', function() {
-                startVideo();
-            });
+            initializeSkleshTrailer();
+
+            video.addEventListener('playing', markIntroPlaying, { once: true });
+            video.addEventListener('loadedmetadata', startVideo, { once: true });
 
             video.addEventListener('ended', showContent);
-            video.addEventListener('error', showContent);
+            video.addEventListener('error', function() {
+                if (!video.error || video.error.code !== 1) {
+                    introState = 'fallback';
+                    showContent();
+                }
+            });
 
-            if (video.readyState >= 2) {
+            if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
                 startVideo();
             }
         });
