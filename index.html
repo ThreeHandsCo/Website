@@ -10,6 +10,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script>
+        document.addEventListener('load', function(event) {
+            if (event.target instanceof HTMLIFrameElement && event.target.hasAttribute('src')) {
+                event.target.dataset.embedLoaded = 'true';
+            }
+        }, true);
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js" integrity="sha384-5E8B0pTlZZJMabWpC0fyYf6OUpe15jJij34BqBAh4NXoHAlLNOjCPRrwtOXOQFAn" crossorigin="anonymous"></script>
     <style>
         * {
@@ -443,9 +450,9 @@
             autoplay
             muted
             loop
-            controls
             playsinline
             preload="metadata"
+            aria-label="Sklesh trailer"
             poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
             <a href="https://store.steampowered.com/app/4617070/Sklesh/">Watch the Sklesh trailer on Steam</a>
         </video>
@@ -543,7 +550,7 @@
                 shell.appendChild(loader);
                 frame.setAttribute('tabindex', '-1');
 
-                frame.addEventListener('load', function() {
+                function markEmbedReady() {
                     shell.classList.add('embed-ready');
                     frame.removeAttribute('tabindex');
 
@@ -554,7 +561,13 @@
                             }
                         }, Math.min(index, 5) * 80);
                     }
-                });
+                }
+
+                frame.addEventListener('load', markEmbedReady);
+
+                if (frame.dataset.embedLoaded === 'true') {
+                    markEmbedReady();
+                }
             });
         });
 
@@ -628,9 +641,20 @@
 
             function startSkleshTrailer() {
                 skleshTrailer.muted = true;
-                const trailerPlayback = skleshTrailer.play();
+                skleshTrailer.controls = false;
+                let trailerPlayback;
+
+                try {
+                    trailerPlayback = skleshTrailer.play();
+                } catch (_error) {
+                    skleshTrailer.controls = true;
+                    return;
+                }
+
                 if (trailerPlayback !== undefined) {
-                    trailerPlayback.catch(function() {});
+                    trailerPlayback.catch(function() {
+                        skleshTrailer.controls = true;
+                    });
                 }
             }
 
