@@ -223,6 +223,31 @@
         }
 
         @media (max-width: 768px) {
+            html,
+            body {
+                min-height: 100%;
+            }
+
+            body {
+                overflow-y: hidden;
+            }
+
+            body.content-visible {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #content-container {
+                position: relative;
+                top: auto;
+                left: auto;
+                min-height: 100vh;
+                min-height: 100svh;
+                height: auto;
+                overflow-y: visible;
+                touch-action: pan-y;
+            }
+
             .header-video {
                 width: calc(100vw - 40px);
                 height: auto;
@@ -353,6 +378,7 @@
             function showContent() {
                 if (contentVisible) return;
                 contentVisible = true;
+                document.body.classList.add('content-visible');
                 videoContainer.classList.add('hidden');
                 contentContainer.classList.add('visible');
 
