@@ -196,6 +196,26 @@
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
         }
 
+        .release-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .release-status .blurb {
+            margin-bottom: 0;
+        }
+
+        .coming-soon {
+            color: #b8c0c8;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(184, 192, 200, 0.5);
+        }
+
         @keyframes pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
@@ -317,13 +337,19 @@
         <video
             id="sklesh-trailer"
             class="featured-trailer"
+            autoplay
+            muted
+            loop
             controls
             playsinline
             preload="metadata"
             poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
             <a href="https://store.steampowered.com/app/4617070/Sklesh/">Watch the Sklesh trailer on Steam</a>
         </video>
-        <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="blurb">SKLESH OUT NOW</a>
+        <div class="release-status">
+            <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="blurb">SKLESH OUT NOW</a>
+            <p class="coming-soon">Coming Soon to iOS</p>
+        </div>
         <div class="buttons-container">
             <button class="platform-link" data-platform="steam">Steam</button>
             <button class="platform-link" data-platform="itch">Itch.io</button>
@@ -366,6 +392,7 @@
             let introPlayAttempted = false;
             let contentVisible = false;
             let skleshHls = null;
+            let skleshTrailerInitialized = false;
             
             if (window.matchMedia('(dynamic-range: high)').matches) {
                 video.src = 'introHDR.mp4';
@@ -386,6 +413,8 @@
                 if (headerPlayback !== undefined) {
                     headerPlayback.catch(function() {});
                 }
+
+                initializeSkleshTrailer();
             }
 
             function markIntroPlaying() {
@@ -418,9 +447,21 @@
                 }
             }
 
+            function startSkleshTrailer() {
+                skleshTrailer.muted = true;
+                const trailerPlayback = skleshTrailer.play();
+                if (trailerPlayback !== undefined) {
+                    trailerPlayback.catch(function() {});
+                }
+            }
+
             function initializeSkleshTrailer() {
+                if (skleshTrailerInitialized) return;
+                skleshTrailerInitialized = true;
+
                 if (window.Hls && Hls.isSupported()) {
                     skleshHls = new Hls();
+                    skleshHls.on(Hls.Events.MANIFEST_PARSED, startSkleshTrailer);
                     skleshHls.loadSource(skleshTrailerSource);
                     skleshHls.attachMedia(skleshTrailer);
                     skleshHls.on(Hls.Events.ERROR, function(_event, data) {
@@ -434,6 +475,7 @@
                     });
                 } else if (skleshTrailer.canPlayType('application/vnd.apple.mpegurl')) {
                     skleshTrailer.src = skleshTrailerSource;
+                    startSkleshTrailer();
                 }
             }
 
@@ -467,8 +509,6 @@
                     showPlatformWidgets(button.dataset.platform);
                 });
             });
-
-            initializeSkleshTrailer();
 
             video.addEventListener('playing', markIntroPlaying, { once: true });
             video.addEventListener('loadedmetadata', startVideo, { once: true });
