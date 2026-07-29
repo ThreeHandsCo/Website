@@ -168,13 +168,6 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
-        .contact-link {
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-transform: lowercase;
-            white-space: nowrap;
-        }
-
         .blurb {
             text-align: center;
             color: white;
@@ -200,6 +193,26 @@
             100% { opacity: 0.7; }
         }
 
+        .site-footer {
+            padding: 20px 20px 40px;
+            text-align: center;
+        }
+
+        .site-footer a {
+            color: #b8c0c8;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-decoration: none;
+            text-transform: lowercase;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        .site-footer a:hover {
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+        }
+
         @media (max-width: 768px) {
             .buttons-container {
                 flex-direction: column;
@@ -210,10 +223,6 @@
                 font-size: 14px;
                 padding: 15px;
                 min-width: 160px;
-            }
-
-            .contact-link {
-                font-size: 10px;
             }
 
             .widgets-container {
@@ -250,7 +259,6 @@
             <button class="platform-link" data-platform="steam">Steam</button>
             <button class="platform-link" data-platform="itch">Itch.io</button>
             <a href="https://www.reddit.com/r/PeakIdle/" target="_blank" rel="noopener" class="platform-link">Reddit</a>
-            <a href="mailto:info@threehands.dev" class="platform-link contact-link" aria-label="Email Three Hands at info@threehands.dev">info@threehands.dev</a>
         </div>
         <div class="widgets-container">
             <div class="steam-widgets">
@@ -258,17 +266,20 @@
             </div>
             <div class="itch-widgets">
                 <!-- Games featured on threehands.itch.io -->
-                <iframe title="One Second to Midnight on itch.io" frameborder="0" src="https://itch.io/embed/4823129?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://threehands.itch.io/one-second-to-midnight">One Second to Midnight by ThreeHands</a></iframe>
-                <iframe title="WEED WEED on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4826672?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/weed-weed">WEED WEED by p3rv3rt</a></iframe>
-                <iframe title="BOKU NO BULLET HELL on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4823253?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/boku-no-bullet-hell">BOKU NO BULLET HELL by Hxydn</a></iframe>
-                <iframe title="TWISTER I BARELY KNOW HER on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4719904?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/twister-i-barely-know-her">TWISTER I BARELY KNOW HER by Hxydn</a></iframe>
+                <iframe title="One Second to Midnight on itch.io" frameborder="0" src="https://itch.io/embed/4823129?border_width=0&amp;bg_color=000000&amp;fg_color=A7A9E8&amp;link_color=A7A9E8&amp;border_color=000000" width="560" height="175"><a href="https://threehands.itch.io/one-second-to-midnight">One Second to Midnight by ThreeHands</a></iframe>
+                <iframe title="WEED WEED on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4826672?border_width=0&amp;bg_color=000000&amp;fg_color=B7D94C&amp;link_color=B7D94C&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/weed-weed">WEED WEED by p3rv3rt</a></iframe>
+                <iframe title="BOKU NO BULLET HELL on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4823253?border_width=0&amp;bg_color=000000&amp;fg_color=4DA3FF&amp;link_color=4DA3FF&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/boku-no-bullet-hell">BOKU NO BULLET HELL by Hxydn</a></iframe>
+                <iframe title="TWISTER I BARELY KNOW HER on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4719904?border_width=0&amp;bg_color=000000&amp;fg_color=B8C0C8&amp;link_color=B8C0C8&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/twister-i-barely-know-her">TWISTER I BARELY KNOW HER by Hxydn</a></iframe>
                 <iframe title="FTROYL on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4487185?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://p3rv3rt.itch.io/ftroyl">FTROYL by p3rv3rt</a></iframe>
                 <iframe title="I Got Reincarnated As A Chud And I Can Level Up To A Chad! on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/4244245?border_width=0&amp;bg_color=000000&amp;fg_color=FFFFFF&amp;link_color=FFFFFF&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/i-got-reincarnated-as-a-chud-and-i-can-level-up-to-a-chad">I Got Reincarnated As A Chud And I Can Level Up To A Chad! by ooglewoogleblpbhbh</a></iframe>
-                <iframe title="Lou's Ordinary Life on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3783549?border_width=0&amp;bg_color=000000&amp;fg_color=B8860B&amp;link_color=B8860B&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/lous-ordinary-life">Lou's Ordinary Life by ooglewoogleblpbhbh</a></iframe>
-                <iframe title=":3iscuit's Bodega on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3848700?border_width=0&amp;bg_color=000000&amp;fg_color=A52A2A&amp;link_color=A52A2A&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/3iscuitsbodega">:3iscuit's Bodega by Hxydn</a></iframe>
-                <iframe title="U:\GEN.EXE on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3769396?border_width=0&amp;bg_color=000000&amp;fg_color=00ff00&amp;link_color=00ff00&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/ugenexe">U:\GEN.EXE by Hxydn</a></iframe>
+                <iframe title="Lou's Ordinary Life on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3783549?border_width=0&amp;bg_color=000000&amp;fg_color=D6D22E&amp;link_color=D6D22E&amp;border_color=000000" width="560" height="175"><a href="https://ooglewoogleblpbhbh.itch.io/lous-ordinary-life">Lou's Ordinary Life by ooglewoogleblpbhbh</a></iframe>
+                <iframe title=":3iscuit's Bodega on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3848700?border_width=0&amp;bg_color=000000&amp;fg_color=F4D6A0&amp;link_color=F4D6A0&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/3iscuitsbodega">:3iscuit's Bodega by Hxydn</a></iframe>
+                <iframe title="U:\GEN.EXE on itch.io" loading="lazy" frameborder="0" src="https://itch.io/embed/3769396?border_width=0&amp;bg_color=000000&amp;fg_color=00FF00&amp;link_color=00FF00&amp;border_color=000000" width="560" height="175"><a href="https://hxydn.itch.io/ugenexe">U:\GEN.EXE by Hxydn</a></iframe>
             </div>
         </div>
+        <footer class="site-footer">
+            <a href="mailto:info@threehands.dev" aria-label="Email Three Hands at info@threehands.dev">info@threehands.dev</a>
+        </footer>
     </div>
 
     <script>
