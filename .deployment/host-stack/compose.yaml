@@ -1,0 +1,78 @@
+name: threehands-website
+
+services:
+  site-sync:
+    image: registry.k8s.io/git-sync/git-sync:v4.7.1
+    container_name: threehands-site-sync
+    user: "0:0"
+    command:
+      - --repo=git@github.com:ThreeHandsCo/Website.git
+      - --ref=main
+      - --root=/data/root
+      - --link=current
+      - --period=30s
+      - --depth=1
+      - --submodules=off
+      - --ssh-key-file=/etc/git-secret/ssh
+      - --ssh-known-hosts=true
+      - --ssh-known-hosts-file=/etc/git-secret/known_hosts
+      - --init-max-failures=-1
+      - --max-failures=-1
+      - --verbose=1
+    volumes:
+      - site-data:/data
+      - ./secrets/github_deploy_key:/etc/git-secret/ssh:ro
+      - ./secrets/github_known_hosts:/etc/git-secret/known_hosts:ro
+    restart: unless-stopped
+
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: threehands-tailscale
+    hostname: threehands-website
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_AUTH_ONCE: "true"
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_SERVE_CONFIG: /config/serve.json
+      TS_USERSPACE: "false"
+      TS_ENABLE_HEALTH_CHECK: "true"
+      TS_LOCAL_ADDR_PORT: 127.0.0.1:9002
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - ./config:/config:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  website:
+    image: nginx:1.28-alpine
+    container_name: threehands-website
+    network_mode: service:tailscale
+    depends_on:
+      site-sync:
+        condition: service_started
+      tailscale:
+        condition: service_healthy
+    volumes:
+      - site-data:/data:ro
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  site-data:
+  tailscale-state:

@@ -1,2 +1,7 @@
 
 .DS_Store
+
+# Host-only deployment credentials. Only templates and documentation belong in Git.
+.deployment/host-stack/.env
+.deployment/host-stack/secrets/*
+!.deployment/host-stack/secrets/README.md
