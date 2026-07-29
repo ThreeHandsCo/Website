@@ -663,7 +663,15 @@
                 skleshTrailerInitialized = true;
 
                 if (window.Hls && Hls.isSupported()) {
-                    skleshHls = new Hls();
+                    skleshHls = new Hls({
+                        capLevelToPlayerSize: true,
+                        ignoreDevicePixelRatio: true,
+                        startLevel: 0,
+                        maxBufferLength: 10,
+                        maxMaxBufferLength: 20,
+                        maxBufferSize: 8000000,
+                        backBufferLength: 5
+                    });
                     skleshHls.on(Hls.Events.MANIFEST_PARSED, startSkleshTrailer);
                     skleshHls.loadSource(skleshTrailerSource);
                     skleshHls.attachMedia(skleshTrailer);
