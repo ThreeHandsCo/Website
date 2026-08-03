@@ -1,0 +1,8 @@
+[Unit]
+Description=Verify and recover the public Three Hands website origin
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/baba/threehands-website/scripts/funnel-watchdog.sh
+TimeoutStartSec=7min

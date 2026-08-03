@@ -570,3 +570,58 @@ A future migration to a conventional public reverse proxy, CDN, or static host
 that can terminate TLS directly for `threehands.dev` would remove the mask
 layer. Do not point `threehands.dev` directly at the Funnel host and expect a
 valid custom-domain certificate without first changing the hosting/TLS design.
+
+## 15. Automatic public-endpoint recovery
+
+The Tailscale container's built-in health endpoint verifies its local daemon,
+not end-to-end Funnel TLS. After a host reboot, the local endpoint can report
+healthy while public Funnel requests still fail or time out.
+
+The host therefore runs a systemd watchdog from:
+
+```text
+/home/baba/threehands-website/scripts/funnel-watchdog.sh
+```
+
+Every three minutes, after a two-minute boot delay, it performs five requests
+against the real public `/healthz` endpoint. Four must succeed. When the series
+is degraded, the watchdog:
+
+1. restarts only the Tailscale service;
+2. waits for Tailscale's local health check;
+3. recreates Nginx so its shared network namespace is valid;
+4. waits for Nginx health;
+5. gives Funnel 30 seconds to register;
+6. repeats the five public probes.
+
+A nonblocking lock prevents overlapping recovery runs. Output and failures are
+recorded in the system journal.
+
+Install or restore it from the canonical templates:
+
+```sh
+install -d -m 755 /home/baba/threehands-website/scripts
+install -m 755 .deployment/host-stack/scripts/funnel-watchdog.sh /home/baba/threehands-website/scripts/funnel-watchdog.sh
+install -d -m 755 /home/baba/.config/systemd/user
+install -m 644 .deployment/host-stack/systemd/threehands-website-watchdog.service /home/baba/.config/systemd/user/threehands-website-watchdog.service
+install -m 644 .deployment/host-stack/systemd/threehands-website-watchdog.timer /home/baba/.config/systemd/user/threehands-website-watchdog.timer
+systemctl --user daemon-reload
+systemctl --user enable --now threehands-website-watchdog.timer
+```
+
+The current `baba` account has systemd lingering enabled, so its user timer
+starts at boot without an interactive login. On a replacement host, verify
+`loginctl show-user baba --property=Linger`; an administrator can enable it with
+`sudo loginctl enable-linger baba`.
+
+Inspect it with:
+
+```sh
+systemctl --user status threehands-website-watchdog.timer
+journalctl --user -u threehands-website-watchdog.service
+```
+
+This watchdog is a safety net for the current Funnel architecture. The planned
+Cloudflare Tunnel migration removes the GitHub Pages iframe and Tailscale
+Funnel from the primary request path; its connector must have an equivalent
+end-to-end readiness check before cutover.
