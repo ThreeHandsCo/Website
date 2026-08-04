@@ -23,5 +23,10 @@ host configuration are stored beside that runbook.
 - Steam and itch.io embeds use controlled lazy loading and load-event fades.
   Replacing `data-src` with `src` on every embed will make them all contend for
   bandwidth again.
+- Itch embed foreground/link colors come from the generated
+  `assets/itch-embed-colors.js` file. Run
+  `python3 .build/tools/generate_itch_colors.py --check` before editing embeds;
+  the generator fingerprints public cover art and preserves the approved visual
+  baseline for the current thumbnails.
 - Deployment material lives under `.deployment/`. Nginx rejects dot-paths, so
   these files are not served by the Funnel origin.

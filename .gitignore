@@ -1,6 +1,10 @@
 
 .DS_Store
 
+# Local Python bytecode from development-only generators.
+__pycache__/
+*.py[cod]
+
 # Host-only deployment credentials. Only templates and documentation belong in Git.
 .deployment/host-stack/.env
 .deployment/host-stack/secrets/*
