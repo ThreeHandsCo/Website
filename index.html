@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Three Hands Co</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -85,7 +88,13 @@
             opacity: 0;
             transition: opacity 0.5s ease-in;
             overflow-y: auto;
+            /* Keep controls clear of iPhone hardware while the video reaches every edge. */
             padding: 40px 0;
+            padding:
+                calc(40px + env(safe-area-inset-top, 0px))
+                env(safe-area-inset-right, 0px)
+                calc(40px + env(safe-area-inset-bottom, 0px))
+                env(safe-area-inset-left, 0px);
         }
 
         #content-container.visible {
