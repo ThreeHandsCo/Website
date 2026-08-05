@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Three Hands Co</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -28,20 +25,27 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        html {
+            min-height: 100%;
+            background: black;
+        }
         
         body {
             background: black;
             min-height: 100vh;
+            min-height: 100lvh;
             overflow-x: hidden;
             font-family: 'Press Start 2P', cursive;
         }
 
         #video-container {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100vh;
+            height: 100lvh;
             z-index: 1;
             opacity: 1;
             transition: opacity 0.5s ease-out;
@@ -75,11 +79,12 @@
         }
 
         #content-container {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100vh;
+            height: 100lvh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -88,13 +93,7 @@
             opacity: 0;
             transition: opacity 0.5s ease-in;
             overflow-y: auto;
-            /* Keep controls clear of iPhone hardware while the video reaches every edge. */
             padding: 40px 0;
-            padding:
-                calc(40px + env(safe-area-inset-top, 0px))
-                env(safe-area-inset-right, 0px)
-                calc(40px + env(safe-area-inset-bottom, 0px))
-                env(safe-area-inset-left, 0px);
         }
 
         #content-container.visible {
@@ -363,11 +362,6 @@
         }
 
         @media (max-width: 768px) {
-            html,
-            body {
-                min-height: 100%;
-            }
-
             body {
                 overflow-y: hidden;
             }
@@ -382,7 +376,7 @@
                 top: auto;
                 left: auto;
                 min-height: 100vh;
-                min-height: 100svh;
+                min-height: 100lvh;
                 height: auto;
                 overflow-y: visible;
                 touch-action: pan-y;
