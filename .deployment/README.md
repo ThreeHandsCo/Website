@@ -384,6 +384,12 @@ git push origin main
 Within approximately 30 seconds, `git-sync` should report the new remote hash
 and move the `current` symlink. No Compose restart is needed for static content.
 
+The GitHub Actions workflow at `.github/workflows/website.yml` runs the offline
+site checks for every pull request and every push to `main`. After a push to
+`main`, it waits for the public origin and the custom-domain mask to respond.
+The workflow does not replace `git-sync`. The host still deploys content by
+polling `main`.
+
 Verify the exact deployed revision:
 
 ```sh
