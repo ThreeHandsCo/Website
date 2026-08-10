@@ -1,0 +1,131 @@
+name: Website checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate static site
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Verify generated itch configuration
+        run: python3 .build/tools/generate_itch_colors.py --check
+
+      - name: Make sure that required site files exist
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          required = (
+              "index.html",
+              "assets/itch-embed-colors.js",
+              "site.webmanifest",
+              "ThreeHandsLogoAnimation.gif",
+              "favicon-16x16.png",
+              "favicon-32x32.png",
+              "headerHDR.mp4",
+              "headerSDR.mp4",
+              "introHDR.mp4",
+              "introSDR.mp4",
+          )
+          missing = [path for path in required if not Path(path).is_file()]
+          if missing:
+              raise SystemExit(f"Missing required site files: {', '.join(missing)}")
+          PY
+
+      - name: Serve and request the static site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/website-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          sleep 1
+          python3 - <<'PY'
+          from urllib.request import urlopen
+
+          for path in ("/", "/index.html", "/assets/itch-embed-colors.js", "/site.webmanifest"):
+              with urlopen(f"http://127.0.0.1:4173{path}", timeout=10) as response:
+                  if response.status != 200:
+                      raise SystemExit(f"Unexpected HTTP status for {path}: {response.status}")
+          PY
+
+  preview:
+    name: Package pull request preview
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Upload preview files
+        id: upload-preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-preview-pr-${{ github.event.pull_request.number }}
+          path: |
+            index.html
+            assets
+            site.webmanifest
+            ThreeHandsLogoAnimation.gif
+            favicon-16x16.png
+            favicon-32x32.png
+            headerHDR.mp4
+            headerSDR.mp4
+            introHDR.mp4
+            introSDR.mp4
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Add preview download link
+        env:
+          PREVIEW_URL: ${{ steps.upload-preview.outputs.artifact-url }}
+        run: |
+          printf 'Download the static preview package: [%s](%s)\n' "$PREVIEW_URL" "$PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+
+  production:
+    name: Confirm production is reachable
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Wait for the host to sync main
+        env:
+          ORIGIN_URL: https://threehands-website.tail220731.ts.net
+        run: |
+          set -eu
+          for attempt in $(seq 1 12); do
+            response="$(curl --fail --silent --show-error --location --max-time 15 "$ORIGIN_URL/healthz" || true)"
+            if [ "$response" = "ok" ]; then
+              printf 'The production origin is healthy after %s attempt(s).\n' "$attempt"
+              exit 0
+            fi
+            sleep 10
+          done
+          printf 'The production origin did not become healthy within 120 seconds.\n' >&2
+          exit 1
+
+      - name: Request the public site
+        run: curl --fail --silent --show-error --location --max-time 20 --output /dev/null https://threehands.dev/
