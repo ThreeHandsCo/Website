@@ -367,7 +367,8 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
 
-        @media (max-width: 768px) {
+        /* iPhone landscape is wider than 768px. Keep Safari on the page scroller. */
+        @media (max-width: 1024px), (hover: none) and (pointer: coarse) {
             body {
                 overflow-y: hidden;
             }
