@@ -461,6 +461,14 @@
             .embed-cursor-overlay {
                 display: block;
             }
+
+            /* Forced re-evaluation: Chromium sometimes keeps the system cursor
+               after the pointer leaves and re-enters the window. Toggling this
+               class makes the browser re-read the cursor under the pointer. */
+            body.force-cursor-refresh,
+            body.force-cursor-refresh * {
+                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto !important;
+            }
         }
     </style>
 </head>
@@ -686,6 +694,27 @@
                 }
             });
         });
+
+        // Keep the Windows cursor after the pointer leaves and re-enters the window.
+        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+            let cursorRefreshScheduled = false;
+
+            function forceCursorRefresh() {
+                if (cursorRefreshScheduled) return;
+                cursorRefreshScheduled = true;
+                document.body.classList.add('force-cursor-refresh');
+                window.requestAnimationFrame(function() {
+                    document.body.classList.remove('force-cursor-refresh');
+                    cursorRefreshScheduled = false;
+                });
+            }
+
+            window.addEventListener('mouseenter', forceCursorRefresh);
+            window.addEventListener('focus', forceCursorRefresh);
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) forceCursorRefresh();
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('intro-video');
