@@ -840,8 +840,8 @@
                 });
             });
 
-            // Custom cursor follower for cross-origin itch frames.
-            // The browser shows the embedded document's cursor inside the iframe; we overlay a follower so the Windows cursor remains visible over itch.
+            // Custom cursor follower for cross-origin frames (itch + Steam).
+            // The browser shows the embedded document's cursor inside the iframe; we overlay a follower so the Windows cursor remains visible.
             if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
                 const follower = document.createElement('div');
                 follower.id = 'custom-cursor-follower';
@@ -849,10 +849,10 @@
                 document.body.appendChild(follower);
 
                 document.addEventListener('mousemove', function(event) {
-                    const overItch = !!event.target.closest('.itch-widgets');
+                    const overEmbed = !!event.target.closest('.embed-shell, .steam-widgets, .itch-widgets');
                     follower.style.left = event.clientX + 'px';
                     follower.style.top = event.clientY + 'px';
-                    if (overItch) {
+                    if (overEmbed) {
                         follower.classList.add('custom-cursor-visible');
                     } else {
                         follower.classList.remove('custom-cursor-visible');
