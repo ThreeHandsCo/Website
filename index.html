@@ -454,30 +454,11 @@
             inset: 0;
             z-index: 3;
             display: none;
-            pointer-events: none;
             cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .embed-cursor-overlay {
-                display: block;
-            }
-        }
-
-        #custom-cursor-follower {
-            position: fixed;
-            width: 32px;
-            height: 32px;
-            background: url('/assets/windows-3.1-cursor.svg') 0 0 no-repeat;
-            background-size: 32px 32px;
-            pointer-events: none;
-            z-index: 9999;
-            display: none;
-            transform: translate(-1px, -1px);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            #custom-cursor-follower.custom-cursor-visible {
                 display: block;
             }
         }
@@ -643,11 +624,50 @@
                 shell.appendChild(frame);
                 shell.appendChild(loader);
 
-                // Best-effort Windows cursor over the shell.
-                // Cross-origin itch frames control their own cursor; this keeps the custom cursor on the shell and loader.
-                const cursorOverlay = document.createElement('div');
+                // Keep the Windows cursor over cross-origin frames.
+                // The iframe's document controls its own cursor, so we cover it with a same-origin link that shows the custom cursor and forwards clicks.
+                let overlayHref = null;
+                let overlayLabel = null;
+                const fallbackLink = frame.querySelector('a');
+                if (fallbackLink && fallbackLink.href) {
+                    overlayHref = fallbackLink.href;
+                    overlayLabel = fallbackLink.textContent.trim() || fallbackLink.href;
+                } else if (frame.src && frame.src.indexOf('store.steampowered.com/widget/') !== -1) {
+                    const match = frame.src.match(/widget\/(\d+)/);
+                    if (match) {
+                        overlayHref = 'https://store.steampowered.com/app/' + match[1] + '/';
+                        overlayLabel = 'Open Steam store page ' + match[1];
+                    }
+                } else if (frame.src && frame.src.indexOf('itch.io/embed/') !== -1) {
+                    const match = frame.src.match(/embed\/(\d+)/);
+                    if (match) {
+                        overlayHref = 'https://itch.io/embed/' + match[1];
+                        overlayLabel = 'Open itch.io embed ' + match[1];
+                    }
+                } else if (frame.dataset.src && frame.dataset.src.indexOf('store.steampowered.com/widget/') !== -1) {
+                    const match = frame.dataset.src.match(/widget\/(\d+)/);
+                    if (match) {
+                        overlayHref = 'https://store.steampowered.com/app/' + match[1] + '/';
+                        overlayLabel = 'Open Steam store page ' + match[1];
+                    }
+                } else if (frame.dataset.src && frame.dataset.src.indexOf('itch.io/embed/') !== -1) {
+                    const match = frame.dataset.src.match(/embed\/(\d+)/);
+                    if (match) {
+                        overlayHref = 'https://itch.io/embed/' + match[1];
+                        overlayLabel = 'Open itch.io embed ' + match[1];
+                    }
+                }
+
+                const cursorOverlay = document.createElement(overlayHref ? 'a' : 'div');
                 cursorOverlay.className = 'embed-cursor-overlay';
-                cursorOverlay.setAttribute('aria-hidden', 'true');
+                if (overlayHref) {
+                    cursorOverlay.href = overlayHref;
+                    cursorOverlay.target = '_blank';
+                    cursorOverlay.rel = 'noopener';
+                    cursorOverlay.setAttribute('aria-label', overlayLabel);
+                } else {
+                    cursorOverlay.setAttribute('aria-hidden', 'true');
+                }
                 shell.appendChild(cursorOverlay);
 
                 frame.setAttribute('tabindex', '-1');
@@ -839,30 +859,6 @@
                     showPlatformWidgets(button.dataset.platform);
                 });
             });
-
-            // Custom cursor follower for cross-origin frames (itch + Steam).
-            // The browser shows the embedded document's cursor inside the iframe; we overlay a follower so the Windows cursor remains visible.
-            if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-                const follower = document.createElement('div');
-                follower.id = 'custom-cursor-follower';
-                follower.setAttribute('aria-hidden', 'true');
-                document.body.appendChild(follower);
-
-                document.addEventListener('mousemove', function(event) {
-                    const overEmbed = !!event.target.closest('.embed-shell, .steam-widgets, .itch-widgets');
-                    follower.style.left = event.clientX + 'px';
-                    follower.style.top = event.clientY + 'px';
-                    if (overEmbed) {
-                        follower.classList.add('custom-cursor-visible');
-                    } else {
-                        follower.classList.remove('custom-cursor-visible');
-                    }
-                });
-
-                document.addEventListener('mouseleave', function() {
-                    follower.classList.remove('custom-cursor-visible');
-                });
-            }
 
             video.addEventListener('playing', markIntroPlaying, { once: true });
             video.addEventListener('loadedmetadata', startVideo, { once: true });
