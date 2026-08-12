@@ -628,33 +628,27 @@
                 // The iframe's document controls its own cursor, so we cover it with a same-origin link that shows the custom cursor and forwards clicks.
                 let overlayHref = null;
                 let overlayLabel = null;
-                const fallbackLink = frame.querySelector('a');
-                if (fallbackLink && fallbackLink.href) {
-                    overlayHref = fallbackLink.href;
-                    overlayLabel = fallbackLink.textContent.trim() || fallbackLink.href;
-                } else if (frame.src && frame.src.indexOf('store.steampowered.com/widget/') !== -1) {
-                    const match = frame.src.match(/widget\/(\d+)/);
-                    if (match) {
-                        overlayHref = 'https://store.steampowered.com/app/' + match[1] + '/';
-                        overlayLabel = 'Open Steam store page ' + match[1];
-                    }
-                } else if (frame.src && frame.src.indexOf('itch.io/embed/') !== -1) {
-                    const match = frame.src.match(/embed\/(\d+)/);
-                    if (match) {
-                        overlayHref = 'https://itch.io/embed/' + match[1];
-                        overlayLabel = 'Open itch.io embed ' + match[1];
-                    }
-                } else if (frame.dataset.src && frame.dataset.src.indexOf('store.steampowered.com/widget/') !== -1) {
-                    const match = frame.dataset.src.match(/widget\/(\d+)/);
-                    if (match) {
-                        overlayHref = 'https://store.steampowered.com/app/' + match[1] + '/';
-                        overlayLabel = 'Open Steam store page ' + match[1];
-                    }
-                } else if (frame.dataset.src && frame.dataset.src.indexOf('itch.io/embed/') !== -1) {
-                    const match = frame.dataset.src.match(/embed\/(\d+)/);
-                    if (match) {
-                        overlayHref = 'https://itch.io/embed/' + match[1];
-                        overlayLabel = 'Open itch.io embed ' + match[1];
+
+                // Iframes are raw-text elements, so the no-JS fallback anchor is only in innerHTML.
+                const fallbackMatch = frame.innerHTML.match(/href="([^"]+)"/i);
+                if (fallbackMatch) {
+                    overlayHref = fallbackMatch[1];
+                    const labelMatch = frame.innerHTML.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
+                    overlayLabel = (labelMatch ? labelMatch[1].trim() : '') || overlayHref;
+                } else {
+                    const frameSource = frame.src || frame.dataset.src || '';
+                    if (frameSource.indexOf('store.steampowered.com/widget/') !== -1) {
+                        const match = frameSource.match(/widget\/(\d+)/);
+                        if (match) {
+                            overlayHref = 'https://store.steampowered.com/app/' + match[1] + '/';
+                            overlayLabel = 'Open Steam store page ' + match[1];
+                        }
+                    } else if (frameSource.indexOf('itch.io/embed/') !== -1) {
+                        const match = frameSource.match(/embed\/(\d+)/);
+                        if (match) {
+                            overlayHref = 'https://itch.io/embed/' + match[1];
+                            overlayLabel = 'Open itch.io embed ' + match[1];
+                        }
                     }
                 }
 
