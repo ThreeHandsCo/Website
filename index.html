@@ -430,6 +430,19 @@
                 max-width: 560px;
             }
         }
+
+        /* Windows 1.x–3.1 default arrow: monochrome 32×32 cursor, hotspot 0,0. */
+        @media (hover: hover) and (pointer: fine) {
+            html,
+            body,
+            body * {
+                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
+            }
+
+            .platform-link {
+                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
+            }
+        }
     </style>
 </head>
 <body>
