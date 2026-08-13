@@ -435,11 +435,11 @@
            Two byte-distinct variants force Chromium to re-read the native cursor
            after a window or tab return. There is no DOM follower. */
         :root {
-            --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACYSURBVFjD7ZZBDsAgCAQX0v9/mV40tdYW08h6YY5qZMCICgDDhYCMAoCZwczQyfAEKjsktB9gS+hokCmhbxMsCf2aZEiotyBawhWIlpgSiJSYFmhdVgoc3gKR2O7sClSPKIHHEfQZU29BDR5d9ltMjJ9jK5n3csvN2gq0mwurCloCu9F29AFKFf40oqXMpLj1z5gkSZKEcwLVBTcU8NatiwAAABB0RVh0Y29tbWVudABjdXJzb3ItYWaOZmAAAABRdEVYdHN2Zzpjb21tZW50ACBDb21wYWN0IFdpbmRvd3MgMS544oCTMy4xIGFycm93IGJpdG1hcDogMzLDlzMyIGNhbnZhcywgaG90c3BvdCAwLDAuIJgV1fkAAAAASUVORK5CYII=") 0 0, auto;
+            --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACQSURBVFjD7ZZBCoAwDAQ3i///crxUqbG2HtpEJAMF2wg7rggCgJYVAgFAVRElweMiSoL1JkKC9sBbgq1DTwk+Dbwk2Bt6SHB0w2qJocBqia03FJGbCwDBRG4NNELFrKlcBBrhyzkFSrjUIm5fQR2OBTW/acCGilcL9H5iyyhcSwP2NU1t4POE/rIlSZIk/2cHS9I1Fe321T4AAAARdEVYdGNvbW1lbnQAYmxvY2t5LWEzc9eBsgAAAABJRU5ErkJggg==") 0 0, auto;
         }
 
         :root.cursor-variant-b {
-            --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACYSURBVFjD7ZZBDsAgCAQX0v9/mV40tdYW08h6YY5qZMCICgDDhYCMAoCZwczQyfAEKjsktB9gS+hokCmhbxMsCf2aZEiotyBawhWIlpgSiJSYFmhdVgoc3gKR2O7sClSPKIHHEfQZU29BDR5d9ltMjJ9jK5n3csvN2gq0mwurCloCu9F29AFKFf40oqXMpLj1z5gkSZKEcwLVBTcU8NatiwAAABB0RVh0Y29tbWVudABjdXJzb3ItYv+HN9oAAABRdEVYdHN2Zzpjb21tZW50ACBDb21wYWN0IFdpbmRvd3MgMS544oCTMy4xIGFycm93IGJpdG1hcDogMzLDlzMyIGNhbnZhcywgaG90c3BvdCAwLDAuIJgV1fkAAAAASUVORK5CYII=") 0 0, auto;
+            --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACQSURBVFjD7ZZBCoAwDAQ3i///crxUqbG2HtpEJAMF2wg7rggCgJYVAgFAVRElweMiSoL1JkKC9sBbgq1DTwk+Dbwk2Bt6SHB0w2qJocBqia03FJGbCwDBRG4NNELFrKlcBBrhyzkFSrjUIm5fQR2OBTW/acCGilcL9H5iyyhcSwP2NU1t4POE/rIlSZIk/2cHS9I1Fe321T4AAAARdEVYdGNvbW1lbnQAYmxvY2t5LWIzWPrScQAAAABJRU5ErkJggg==") 0 0, auto;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -689,43 +689,33 @@
         });
 
         // Chromium can keep a stale cursor after a window or tab return.
-        // Swap between two identical raster cursor files to force a native refresh.
+        // Swap between two visually identical but byte-distinct cursors to force a refresh.
+        // This variant reasserts aggressively on every return event and on mouse moves.
         if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
             (function() {
                 const root = document.documentElement;
                 let variantB = false;
-                let refreshQueued = false;
-                let refreshNeeded = true;
+                let lastRefresh = 0;
 
                 function refreshCursor() {
-                    if (refreshQueued) return;
-                    refreshQueued = true;
-                    window.requestAnimationFrame(function() {
-                        variantB = !variantB;
-                        root.classList.toggle('cursor-variant-b', variantB);
-                        refreshNeeded = false;
-                        refreshQueued = false;
-                    });
-                }
-
-                function markCursorStale() {
-                    refreshNeeded = true;
+                    const now = Date.now();
+                    if (now - lastRefresh < 80) return;
+                    lastRefresh = now;
+                    variantB = !variantB;
+                    root.classList.toggle('cursor-variant-b', variantB);
                 }
 
                 document.documentElement.addEventListener('mouseenter', refreshCursor);
-                document.documentElement.addEventListener('mouseleave', markCursorStale);
-                document.addEventListener('mousemove', function() {
-                    if (refreshNeeded) refreshCursor();
-                }, { passive: true });
+                document.addEventListener('mousemove', refreshCursor, { passive: true });
                 document.addEventListener('visibilitychange', function() {
-                    if (document.hidden) {
-                        markCursorStale();
-                    } else {
-                        refreshCursor();
-                    }
+                    if (!document.hidden) refreshCursor();
                 });
                 window.addEventListener('focus', refreshCursor);
                 window.addEventListener('pageshow', refreshCursor);
+                window.addEventListener('blur', function() {
+                    // Mark for refresh on next enter
+                    lastRefresh = 0;
+                });
                 refreshCursor();
             })();
         }
