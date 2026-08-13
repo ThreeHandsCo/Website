@@ -431,23 +431,22 @@
             }
         }
 
-        /* Windows 1.x–3.1 default arrow: monochrome 32×32 cursor, hotspot 0,0.
-           The native cursor is hidden on fine pointers and replaced with the
-           DOM follower below. A DOM follower always reappears after the pointer
-           leaves and returns to the window; CSS cursors can fail to re-apply. */
+        /* Windows 1.x–3.1 default arrow: raster 32×32 cursor, hotspot 0,0.
+           Two byte-distinct variants force Chromium to re-read the native cursor
+           after a window or tab return. There is no DOM follower. */
+        :root {
+            --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACdSURBVFjD7ZZBDsAgCARZ0v9/mV5KY9QWm8jag3syaGREBSAiJpfM7iFN6o7NTACsASgjwIbQ2sCG0J6RCaFPEywIfZtkQGi0IBsiBMiGGALIhBgGcM2GONgOPwOI5NaI5grqE1N/gTtipmJIpxwDaMLes02NQLk5tRZ4LxCJngd+UYwYes0DdRQyHmGYiLIb1eVXsAE2wAbYAMsBTlw5TTnmUsVfAAAAEHRFWHRjb21tZW50AGN1cnNvci1hZo5mYAAAAFF0RVh0c3ZnOmNvbW1lbnQAIENvbXBhY3QgV2luZG93cyAxLnjigJMzLjEgYXJyb3cgYml0bWFwOiAzMsOXMzMiBjYW52YXMsIGhvdHNwb3QgMCwwLiCYFdX5AAAAAElFTkSuQmCC") 0 0, auto;
+        }
+
+        :root.cursor-variant-b {
+            --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACdSURBVFjD7ZZBDsAgCARZ0v9/mV5KY9QWm8jag3syaGREBSAiJpfM7iFN6o7NTACsASgjwIbQ2sCG0J6RCaFPEywIfZtkQGi0IBsiBMiGGALIhBgGcM2GONgOPwOI5NaI5grqE1N/gTtipmJIpxwDaMLes02NQLk5tRZ4LxCJngd+UYwYes0DdRQyHmGYiLIb1eVXsAE2wAbYAMsBTlw5TTnmUsVfAAAAEHRFWHRjb21tAGN1cnNvci1i/4c32gAAAFF0RVh0c3ZnOmNvbW1lbnQAIENvbXBhY3QgV2luZG93cyAxLnjigJMzLjEgYXJyb3cgYml0bWFwOiAzMsOXMzMiBjYW52YXMsIGhvdHNwb3QgMCwwLiCYFdX5AAAAAElFTkSuQmCC") 0 0, auto;
+        }
+
         @media (hover: hover) and (pointer: fine) {
             html,
             body,
             body * {
-                cursor: none !important;
-            }
-
-            /* Chromium can forget cursor:none after the pointer leaves and returns
-               to the window or tab, showing the system cursor next to the follower.
-               Toggling this class forces the browser to re-read the cursor state. */
-            body.force-cursor-none,
-            body.force-cursor-none * {
-                cursor: none !important;
+                cursor: var(--windows-cursor) !important;
             }
         }
 
@@ -464,26 +463,6 @@
             }
         }
 
-        #windows-cursor-follower {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 32px;
-            height: 32px;
-            pointer-events: none;
-            z-index: 2147483647;
-            display: none;
-            background: url('/assets/windows-3.1-cursor.svg') 0 0 no-repeat;
-            background-size: 32px 32px;
-            transform: translate3d(-1px, -1px, 0);
-            will-change: transform;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            #windows-cursor-follower.visible {
-                display: block;
-            }
-        }
     </style>
 </head>
 <body>
@@ -709,65 +688,45 @@
             });
         });
 
-        // DOM cursor follower. The native cursor is hidden by CSS, so the follower
-        // element is the only cursor. It reappears on the next mouse move after the
-        // pointer leaves and returns to the window or tab.
+        // Chromium can keep a stale cursor after a window or tab return.
+        // Swap between two identical raster cursor files to force a native refresh.
         if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
             (function() {
-                const follower = document.createElement('div');
-                follower.id = 'windows-cursor-follower';
-                follower.setAttribute('aria-hidden', 'true');
-                document.body.appendChild(follower);
+                const root = document.documentElement;
+                let variantB = false;
+                let refreshQueued = false;
+                let refreshNeeded = true;
 
-                let visible = false;
-                let refreshTimer = null;
-
-                function showFollower(x, y) {
-                    follower.style.transform = 'translate3d(' + (x - 1) + 'px, ' + (y - 1) + 'px, 0)';
-                    if (!visible) {
-                        visible = true;
-                        follower.classList.add('visible');
-                    }
+                function refreshCursor() {
+                    if (refreshQueued) return;
+                    refreshQueued = true;
+                    window.requestAnimationFrame(function() {
+                        variantB = !variantB;
+                        root.classList.toggle('cursor-variant-b', variantB);
+                        refreshNeeded = false;
+                        refreshQueued = false;
+                    });
                 }
 
-                function hideFollower() {
-                    visible = false;
-                    follower.classList.remove('visible');
+                function markCursorStale() {
+                    refreshNeeded = true;
                 }
 
-                // Chromium can forget cursor:none after the pointer leaves and returns,
-                // leaving the system cursor next to the follower. Toggling a class with
-                // cursor:none forces the browser to re-read the cursor state.
-                function reassertHiddenCursor() {
-                    if (refreshTimer) return;
-                    document.body.classList.add('force-cursor-none');
-                    refreshTimer = window.setTimeout(function() {
-                        document.body.classList.remove('force-cursor-none');
-                        refreshTimer = null;
-                    }, 100);
-                }
-
-                document.addEventListener('mousemove', function(event) {
-                    showFollower(event.clientX, event.clientY);
-                    reassertHiddenCursor();
+                document.documentElement.addEventListener('mouseenter', refreshCursor);
+                document.documentElement.addEventListener('mouseleave', markCursorStale);
+                document.addEventListener('mousemove', function() {
+                    if (refreshNeeded) refreshCursor();
                 }, { passive: true });
-
-                document.addEventListener('mouseenter', function(event) {
-                    showFollower(event.clientX, event.clientY);
-                    reassertHiddenCursor();
-                });
-
-                document.addEventListener('mouseleave', hideFollower);
                 document.addEventListener('visibilitychange', function() {
                     if (document.hidden) {
-                        hideFollower();
+                        markCursorStale();
                     } else {
-                        reassertHiddenCursor();
+                        refreshCursor();
                     }
                 });
-
-                window.addEventListener('focus', reassertHiddenCursor);
-                window.addEventListener('pageshow', reassertHiddenCursor);
+                window.addEventListener('focus', refreshCursor);
+                window.addEventListener('pageshow', refreshCursor);
+                refreshCursor();
             })();
         }
 
