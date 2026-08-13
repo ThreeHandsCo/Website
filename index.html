@@ -441,6 +441,14 @@
             body * {
                 cursor: none !important;
             }
+
+            /* Chromium can forget cursor:none after the pointer leaves and returns
+               to the window or tab, showing the system cursor next to the follower.
+               Toggling this class forces the browser to re-read the cursor state. */
+            body.force-cursor-none,
+            body.force-cursor-none * {
+                cursor: none !important;
+            }
         }
 
         .embed-cursor-overlay {
@@ -712,6 +720,7 @@
                 document.body.appendChild(follower);
 
                 let visible = false;
+                let refreshTimer = null;
 
                 function showFollower(x, y) {
                     follower.style.transform = 'translate3d(' + (x - 1) + 'px, ' + (y - 1) + 'px, 0)';
@@ -726,18 +735,39 @@
                     follower.classList.remove('visible');
                 }
 
+                // Chromium can forget cursor:none after the pointer leaves and returns,
+                // leaving the system cursor next to the follower. Toggling a class with
+                // cursor:none forces the browser to re-read the cursor state.
+                function reassertHiddenCursor() {
+                    if (refreshTimer) return;
+                    document.body.classList.add('force-cursor-none');
+                    refreshTimer = window.setTimeout(function() {
+                        document.body.classList.remove('force-cursor-none');
+                        refreshTimer = null;
+                    }, 100);
+                }
+
                 document.addEventListener('mousemove', function(event) {
                     showFollower(event.clientX, event.clientY);
+                    reassertHiddenCursor();
                 }, { passive: true });
 
                 document.addEventListener('mouseenter', function(event) {
                     showFollower(event.clientX, event.clientY);
+                    reassertHiddenCursor();
                 });
 
                 document.addEventListener('mouseleave', hideFollower);
                 document.addEventListener('visibilitychange', function() {
-                    if (document.hidden) hideFollower();
+                    if (document.hidden) {
+                        hideFollower();
+                    } else {
+                        reassertHiddenCursor();
+                    }
                 });
+
+                window.addEventListener('focus', reassertHiddenCursor);
+                window.addEventListener('pageshow', reassertHiddenCursor);
             })();
         }
 
