@@ -431,21 +431,15 @@
             }
         }
 
-        /* Windows 1.x–3.1 default arrow: monochrome 32×32 cursor, hotspot 0,0. */
+        /* Windows 1.x–3.1 default arrow: monochrome 32×32 cursor, hotspot 0,0.
+           The native cursor is hidden on fine pointers and replaced with the
+           DOM follower below. A DOM follower always reappears after the pointer
+           leaves and returns to the window; CSS cursors can fail to re-apply. */
         @media (hover: hover) and (pointer: fine) {
             html,
             body,
             body * {
-                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
-            }
-
-            .platform-link {
-                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
-            }
-
-            .embed-shell,
-            .embed-shell iframe {
-                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
+                cursor: none !important;
             }
         }
 
@@ -454,20 +448,32 @@
             inset: 0;
             z-index: 3;
             display: none;
-            cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .embed-cursor-overlay {
                 display: block;
             }
+        }
 
-            /* Forced re-evaluation: Chromium sometimes keeps the system cursor
-               after the pointer leaves and re-enters the window. Toggling this
-               class makes the browser re-read the cursor under the pointer. */
-            body.force-cursor-refresh,
-            body.force-cursor-refresh * {
-                cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto !important;
+        #windows-cursor-follower {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 32px;
+            height: 32px;
+            pointer-events: none;
+            z-index: 2147483647;
+            display: none;
+            background: url('/assets/windows-3.1-cursor.svg') 0 0 no-repeat;
+            background-size: 32px 32px;
+            transform: translate3d(-1px, -1px, 0);
+            will-change: transform;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            #windows-cursor-follower.visible {
+                display: block;
             }
         }
     </style>
@@ -695,25 +701,44 @@
             });
         });
 
-        // Keep the Windows cursor after the pointer leaves and re-enters the window.
+        // DOM cursor follower. The native cursor is hidden by CSS, so the follower
+        // element is the only cursor. It reappears on the next mouse move after the
+        // pointer leaves and returns to the window or tab.
         if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-            let cursorRefreshScheduled = false;
+            (function() {
+                const follower = document.createElement('div');
+                follower.id = 'windows-cursor-follower';
+                follower.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(follower);
 
-            function forceCursorRefresh() {
-                if (cursorRefreshScheduled) return;
-                cursorRefreshScheduled = true;
-                document.body.classList.add('force-cursor-refresh');
-                window.requestAnimationFrame(function() {
-                    document.body.classList.remove('force-cursor-refresh');
-                    cursorRefreshScheduled = false;
+                let visible = false;
+
+                function showFollower(x, y) {
+                    follower.style.transform = 'translate3d(' + (x - 1) + 'px, ' + (y - 1) + 'px, 0)';
+                    if (!visible) {
+                        visible = true;
+                        follower.classList.add('visible');
+                    }
+                }
+
+                function hideFollower() {
+                    visible = false;
+                    follower.classList.remove('visible');
+                }
+
+                document.addEventListener('mousemove', function(event) {
+                    showFollower(event.clientX, event.clientY);
+                }, { passive: true });
+
+                document.addEventListener('mouseenter', function(event) {
+                    showFollower(event.clientX, event.clientY);
                 });
-            }
 
-            window.addEventListener('mouseenter', forceCursorRefresh);
-            window.addEventListener('focus', forceCursorRefresh);
-            document.addEventListener('visibilitychange', function() {
-                if (!document.hidden) forceCursorRefresh();
-            });
+                document.addEventListener('mouseleave', hideFollower);
+                document.addEventListener('visibilitychange', function() {
+                    if (document.hidden) hideFollower();
+                });
+            })();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
