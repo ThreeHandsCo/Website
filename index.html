@@ -431,9 +431,8 @@
             }
         }
 
-        /* Windows 1.x–3.1 default arrow: raster 32×32 cursor, hotspot 0,0.
-           Two byte-distinct variants force Chromium to re-read the native cursor
-           after a window or tab return. There is no DOM follower. */
+        /* Blocky RGB cursor: red left, green center, blue right. The white center
+           sits one pixel above the color layers. There is no DOM follower. */
         :root {
             --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACQSURBVFjD7ZZBCoAwDAQ3i///crxUqbG2HtpEJAMF2wg7rggCgJYVAgFAVRElweMiSoL1JkKC9sBbgq1DTwk+Dbwk2Bt6SHB0w2qJocBqia03FJGbCwDBRG4NNELFrKlcBBrhyzkFSrjUIm5fQR2OBTW/acCGilcL9H5iyyhcSwP2NU1t4POE/rIlSZIk/2cHS9I1Fe321T4AAAARdEVYdGNvbW1lbnQAYmxvY2t5LWEzc9eBsgAAAABJRU5ErkJggg==") 0 0, auto;
         }
@@ -442,7 +441,16 @@
             --windows-cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAAAAAAAAPlDu38AAACQSURBVFjD7ZZBCoAwDAQ3i///crxUqbG2HtpEJAMF2wg7rggCgJYVAgFAVRElweMiSoL1JkKC9sBbgq1DTwk+Dbwk2Bt6SHB0w2qJocBqia03FJGbCwDBRG4NNELFrKlcBBrhyzkFSrjUIm5fQR2OBTW/acCGilcL9H5iyyhcSwP2NU1t4POE/rIlSZIk/2cHS9I1Fe321T4AAAARdEVYdGNvbW1lbnQAYmxvY2t5LWIzWPrScQAAAABJRU5ErkJggg==") 0 0, auto;
         }
 
-        @media (hover: hover) and (pointer: fine) {
+         /* Use the crisp RGB cursor assets for the final native cursor. */
+         :root {
+             --windows-cursor: url('/assets/windows-3.1-cursor-rgb-a.svg') 0 0, auto;
+         }
+
+         :root.cursor-variant-b {
+             --windows-cursor: url('/assets/windows-3.1-cursor-rgb-b.svg') 0 0, auto;
+         }
+
+         @media (hover: hover) and (pointer: fine) {
             html,
             body,
             body * {

@@ -39,6 +39,8 @@ jobs:
           required = (
               "index.html",
               "assets/itch-embed-colors.js",
+              "assets/windows-3.1-cursor-rgb-a.svg",
+              "assets/windows-3.1-cursor-rgb-b.svg",
               "site.webmanifest",
               "ThreeHandsLogoAnimation.gif",
               "favicon-16x16.png",
