@@ -201,14 +201,15 @@
             height: 100%;
             opacity: 0;
             pointer-events: none;
-            transform: translateY(10px);
-            transition: opacity 0.45s ease, transform 0.45s ease;
+            /* Keep the full frame inside its shell while it fades in. */
+            transform: none;
+            transition: opacity 0.45s ease;
         }
 
         .embed-shell.embed-visible iframe {
             opacity: 1;
             pointer-events: auto;
-            transform: translateY(0);
+            transform: none;
         }
 
         .embed-loading {
