@@ -201,15 +201,15 @@
             height: 100%;
             opacity: 0;
             pointer-events: none;
-            /* Keep the full frame inside its shell while it fades in. */
-            transform: none;
-            transition: opacity 0.45s ease;
+            transform: scale(0.98);
+            will-change: opacity, transform;
+            transition: opacity 0.55s ease, transform 0.55s ease;
         }
 
         .embed-shell.embed-visible iframe {
             opacity: 1;
             pointer-events: auto;
-            transform: none;
+            transform: scale(1);
         }
 
         .embed-loading {
@@ -330,6 +330,10 @@
             .embed-shell iframe,
             .embed-loading {
                 transition-duration: 0.01ms;
+            }
+
+            .embed-shell iframe {
+                transform: none;
             }
 
             .embed-loading::before,
