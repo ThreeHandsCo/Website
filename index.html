@@ -994,11 +994,26 @@
             const pending = Array.from(group.querySelectorAll('iframe[data-src]:not([src])'));
             if (!pending.length) return;
             pending.forEach(function(frame) {
-                // Airtight 429: itch never auto-loads — only on click (see loader click handler)
-                if (isItchFrame(frame)) return;
+                var isItch = isItchFrame(frame);
                 var isPriority = frame.dataset._wasEager === 'true' || frame.loading !== 'lazy';
                 if (isPriority && group.classList.contains('visible')) {
                     startEmbedLoad(frame);
+                    return;
+                }
+                if (isItch) {
+                    // Intelligent autoload for itch — throttled queue + viewport, not click-to-load
+                    if (embedLoadObserver) {
+                        embedLoadObserver.observe(frame.closest('.embed-shell'));
+                        window.setTimeout(function() {
+                            if (!frame.hasAttribute('src') && group.classList.contains('visible') && !frame.closest('.embed-shell').classList.contains('embed-failed')) {
+                                var rect = frame.closest('.embed-shell').getBoundingClientRect();
+                                var inViewport = rect.top < window.innerHeight + 250 && rect.bottom > -250;
+                                if (inViewport) startEmbedLoad(frame);
+                            }
+                        }, 1200);
+                    } else {
+                        startEmbedLoad(frame);
+                    }
                     return;
                 }
                 if (embedLoadObserver) {
@@ -1065,24 +1080,7 @@
                 shell.dataset.embedIndex = String(index);
                 loader.className = 'embed-loading';
                 loader.setAttribute('aria-hidden', 'true');
-                if (provider === 'itch.io') {
-                    loaderText.textContent = 'CLICK TO LOAD ITCH.IO';
-                    loader.style.cursor = 'pointer';
-                    shell.style.cursor = 'pointer';
-                    var loadItch = function() {
-                        if (!frame.hasAttribute('src') && group.classList.contains('visible') && !shell.classList.contains('embed-ready')) {
-                            loaderText.textContent = 'LOADING ITCH.IO...';
-                            enqueueItchLoad(frame);
-                        }
-                    };
-                    loader.addEventListener('click', function(e) { e.stopPropagation(); loadItch(); });
-                    shell.addEventListener('click', function(e) {
-                        if (e.target.closest('.embed-error') || e.target.closest('a')) return;
-                        loadItch();
-                    });
-                } else {
-                    loaderText.textContent = 'LOADING ' + provider.toUpperCase() + '...';
-                }
+                loaderText.textContent = 'LOADING ' + provider.toUpperCase() + '...';
                 loader.appendChild(loaderText);
 
                 error.className = 'embed-error';
