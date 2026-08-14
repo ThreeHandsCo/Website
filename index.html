@@ -673,12 +673,14 @@
     <script>
         const itchEmbedColors = window.THREEHANDS_ITCH_EMBED_COLORS;
         const EMBED_LOAD_TIMEOUT_MS = 9000;
-        const EMBED_MAX_RETRIES = 3;
-        const ITCH_THROTTLE_MS = 750;
+        const EMBED_MAX_RETRIES = 5;
+        const ITCH_THROTTLE_MS = 1800;
         const ITCH_MAX_CONCURRENT = 1;
+        const ITCH_BACKOFF_BASE_MS = 2200;
         let itchQueue = [];
         let itchActiveCount = 0;
         let itchQueueTimer = null;
+        let itch429PauseUntil = 0;
         const widgetGroups = Array.from(document.querySelectorAll('.steam-widgets, .itch-widgets'));
 
         function clearEmbedTimeout(frame) {
@@ -704,6 +706,16 @@
         function processItchQueue() {
             if (itchQueue.length === 0) return;
             if (itchActiveCount >= ITCH_MAX_CONCURRENT) return;
+            if (Date.now() < itch429PauseUntil) {
+                var wait = itch429PauseUntil - Date.now();
+                if (!itchQueueTimer) {
+                    itchQueueTimer = window.setTimeout(function() {
+                        itchQueueTimer = null;
+                        processItchQueue();
+                    }, wait);
+                }
+                return;
+            }
             var now = Date.now();
             var last = processItchQueue._last || 0;
             var delay = Math.max(0, ITCH_THROTTLE_MS - (now - last));
@@ -759,8 +771,9 @@
         function handleEmbedStalled(frame, shell) {
             var retries = parseInt(frame.dataset.embedRetry || '0', 10);
             var isItch = isItchFrame(frame);
-            // Itch 429 needs longer backoff
-            var backoff = isItch ? (1200 * Math.pow(2, retries) + Math.random() * 400) : (250 * (retries + 1));
+            // Itch 429 — exponential backoff with jitter, and global pause
+            var backoff = isItch ? (ITCH_BACKOFF_BASE_MS * Math.pow(2, retries) + Math.random() * 700) : (400 * (retries + 1));
+            if (isItch) { itch429PauseUntil = Date.now() + backoff + 800; }
             if (retries < EMBED_MAX_RETRIES) {
                 frame.dataset.embedRetry = String(retries + 1);
                 var source = frame.dataset.src || frame.getAttribute('src');
@@ -866,7 +879,7 @@
                     if (frame) startEmbedLoad(frame);
                     observer.unobserve(entry.target);
                 });
-            }, { rootMargin: '600px 0px' })
+            }, { rootMargin: '200px 0px' })
             : null;
 
         function observeLazyEmbeds(group) {
@@ -883,7 +896,7 @@
                     window.setTimeout(function() {
                         if (!frame.hasAttribute('src') && group.classList.contains('visible') && !frame.closest('.embed-shell').classList.contains('embed-failed')) {
                             const rect = frame.closest('.embed-shell').getBoundingClientRect();
-                            const inViewport = rect.top < window.innerHeight + 700 && rect.bottom > -700;
+                            const inViewport = rect.top < window.innerHeight + 250 && rect.bottom > -250;
                             if (inViewport) startEmbedLoad(frame);
                         }
                     }, 1200);
