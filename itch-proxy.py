@@ -9,6 +9,12 @@ last_fetch = 0
 lock = threading.Lock()
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        # Static embeds change with the site. Do not let the fallback port keep
+        # an old iframe document after a generated embed is corrected.
+        self.send_header("Cache-Control", "no-store, max-age=0")
+        super().end_headers()
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path.startswith("/api/itch-embed"):
