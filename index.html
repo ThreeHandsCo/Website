@@ -421,12 +421,7 @@
                 }
                 .platform-link:hover::before { border-color: color(srgb-linear 10 10 10) !important; }
             }
-            @supports (color: lab(300% 0 0)) {
-                .platform-link.active { background: lab(300% 0 0) !important; border-color: lab(300% 0 0) !important; }
-                .platform-link.active::before { border-color: lab(300% 0 0) !important; }
-                .platform-link:hover { background: lab(300% 0 0) !important; border-color: lab(300% 0 0) !important; }
-                .platform-link:hover::before { border-color: lab(300% 0 0) !important; }
-            }
+            /* lab() lightness clamps to 100% in shipping browsers — would override true HDR above with SDR white, so removed */
         }
 
         .blurb {
