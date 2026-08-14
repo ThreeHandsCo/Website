@@ -1,12 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
-  <!-- Blocky RGB cursor. The white center is one pixel above the color layers. -->
-  <g transform="translate(-2 1)" fill="#ff0000">
+  <!-- Blocky RGB cursor. The white center is one pixel above the color layers. SDR base #ff0000/#00ff00/#0000ff, HDR via display-p3/rec2020. -->
+  <style>
+    @supports (color: color(display-p3 1 0 0)) {
+      g.hdr-r { fill: color(display-p3 1 0 0); }
+      g.hdr-g { fill: color(display-p3 0 1 0); }
+      g.hdr-b { fill: color(display-p3 0 0 1); }
+    }
+    @media (dynamic-range: high) {
+      @supports (color: color(rec2020 1 0 0)) {
+        g.hdr-r { fill: color(rec2020 1 0 0); }
+        g.hdr-g { fill: color(rec2020 0 1 0); }
+        g.hdr-b { fill: color(rec2020 0 0 1); }
+      }
+    }
+  </style>
+  <g class="hdr-r" transform="translate(-2 1)" fill="#ff0000">
     <path d="M0 0h2v1H0z M0 1h1v1H0z M2 1h1v1H2z M0 2h1v1H0z M3 2h1v1H3z M0 3h1v1H0z M4 3h1v1H4z M0 4h1v1H0z M5 4h1v1H5z M0 5h1v1H0z M6 5h1v1H6z M0 6h1v1H0z M7 6h1v1H7z M0 7h1v1H0z M8 7h1v1H8z M0 8h1v1H0z M9 8h1v1H9z M0 9h1v1H0z M10 9h1v1H10z M0 10h1v1H0z M7 10h5v1H7z M0 11h1v1H0z M4 11h1v1H4z M7 11h1v1H7z M0 12h1v1H0z M3 12h2v1H3z M7 12h1v1H7z M0 13h1v1H0z M2 13h1v1H2z M4 13h2v1H4z M8 13h1v1H8z M0 14h2v1H0z M5 14h1v1H5z M8 14h1v1H8z M0 15h1v1H0z M6 15h1v1H6z M9 15h1v1H9z M6 16h1v1H6z M9 16h1v1H9z M7 17h1v1H7z M10 17h1v1H10z M7 18h1v1H7z M10 18h1v1H10z M8 19h2v1H8z"/>
   </g>
-  <g transform="translate(0 1)" fill="#00ff00">
+  <g class="hdr-g" transform="translate(0 1)" fill="#00ff00">
     <path d="M0 0h2v1H0z M0 1h1v1H0z M2 1h1v1H2z M0 2h1v1H0z M3 2h1v1H3z M0 3h1v1H0z M4 3h1v1H4z M0 4h1v1H0z M5 4h1v1H5z M0 5h1v1H0z M6 5h1v1H6z M0 6h1v1H0z M7 6h1v1H7z M0 7h1v1H0z M8 7h1v1H8z M0 8h1v1H0z M9 8h1v1H9z M0 9h1v1H0z M10 9h1v1H10z M0 10h1v1H0z M7 10h5v1H7z M0 11h1v1H0z M4 11h1v1H4z M7 11h1v1H7z M0 12h1v1H0z M3 12h2v1H3z M7 12h1v1H7z M0 13h1v1H0z M2 13h1v1H2z M4 13h2v1H4z M8 13h1v1H8z M0 14h2v1H0z M5 14h1v1H5z M8 14h1v1H8z M0 15h1v1H0z M6 15h1v1H6z M9 15h1v1H9z M6 16h1v1H6z M9 16h1v1H9z M7 17h1v1H7z M10 17h1v1H10z M7 18h1v1H7z M10 18h1v1H10z M8 19h2v1H8z"/>
   </g>
-  <g transform="translate(2 1)" fill="#0000ff">
+  <g class="hdr-b" transform="translate(2 1)" fill="#0000ff">
     <path d="M0 0h2v1H0z M0 1h1v1H0z M2 1h1v1H2z M0 2h1v1H0z M3 2h1v1H3z M0 3h1v1H0z M4 3h1v1H4z M0 4h1v1H0z M5 4h1v1H5z M0 5h1v1H0z M6 5h1v1H6z M0 6h1v1H0z M7 6h1v1H7z M0 7h1v1H0z M8 7h1v1H8z M0 8h1v1H0z M9 8h1v1H9z M0 9h1v1H0z M10 9h1v1H10z M0 10h1v1H0z M7 10h5v1H7z M0 11h1v1H0z M4 11h1v1H4z M7 11h1v1H7z M0 12h1v1H0z M3 12h2v1H3z M7 12h1v1H7z M0 13h1v1H0z M2 13h1v1H2z M4 13h2v1H4z M8 13h1v1H8z M0 14h2v1H0z M5 14h1v1H5z M8 14h1v1H8z M0 15h1v1H0z M6 15h1v1H6z M9 15h1v1H9z M6 16h1v1H6z M9 16h1v1H9z M7 17h1v1H7z M10 17h1v1H10z M7 18h1v1H7z M10 18h1v1H10z M8 19h2v1H8z"/>
   </g>
   <g transform="translate(0 0)">
