@@ -5,42 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-html{background:#000;dynamic-range-limit:no-limit;}
-body{margin:0;padding:0;background:#000;color:#4DA3FF;font-family:'Press Start 2P',cursive;dynamic-range-limit:no-limit;}
-a{text-decoration:none}
-.embed{display:flex;align-items:center;gap:18px;width:560px;height:175px;box-sizing:border-box;padding:14px;background:#000;border:0;overflow:hidden}
-.thumb{width:175px;height:138px;flex:0 0 175px;background:#111 url('/assets/itch-thumbnails/4823253.jpg') center/cover no-repeat;border-radius:0;border:2px solid #4DA3FF}
-.meta{flex:1;min-width:0}
-.title{font-size:14px;line-height:1.5;color:#4DA3FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.5px;font-weight:700}
-.link{display:inline-block;margin-top:14px;font-size:10px;letter-spacing:1px;padding:10px 14px;background:#4DA3FF;color:#FFFFFF;border:2px solid #4DA3FF;text-transform:uppercase}
-.link:hover{filter:brightness(1.15)}
-/* HDR 2 stops — only on HDR displays, with proper linear conversion */
-@media (dynamic-range: high) {
-  @supports (color: color(display-p3 1 0 0)) {
-    .title{color:color(display-p3 0.544 1.151 1.800);}
-    .thumb{border-color:color(display-p3 0.544 1.151 1.800);}
-    .link{background:color(display-p3 0.544 1.151 1.800);border-color:color(display-p3 0.544 1.151 1.800);}
-  }
-  @supports (color: color(srgb-linear 1 0 0)) {
-    .title{color:color(srgb-linear 0.2969 1.4650 4.0000);}
-    .thumb{border-color:color(srgb-linear 0.2969 1.4650 4.0000);}
-    .link{background:color(srgb-linear 0.2969 1.4650 4.0000);border-color:color(srgb-linear 0.2969 1.4650 4.0000);}
-  }
+html { height:100%; background:#000; dynamic-range-limit:no-limit; }
+body { margin:0; padding:0; height:100%; background:#000; color:#4DA3FF; font-family:'Press Start 2P',cursive; dynamic-range-limit:no-limit; }
+a { text-decoration:none; }
+.embed { display:grid; grid-template-columns:175px minmax(0,1fr); gap:18px; width:100%; height:100%; min-height:175px; box-sizing:border-box; padding:14px; background:#000; overflow:hidden; }
+.thumb-frame { width:175px; height:138px; box-sizing:border-box; padding:2px; background:#4DA3FF; overflow:hidden; }
+.thumb { width:100%; height:100%; background:#111 url('/assets/itch-thumbnails/4823253.jpg') center/cover no-repeat; }
+.meta { min-width:0; min-height:0; height:100%; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:10px; overflow:hidden; }
+.title { min-height:0; overflow-y:auto; overflow-wrap:anywhere; white-space:normal; font-size:14px; line-height:1.5; font-weight:700; letter-spacing:.5px; color:#4DA3FF; scrollbar-width:thin; }
+.link-frame { width:max-content; max-width:100%; box-sizing:border-box; padding:2px; background:#4DA3FF; }
+.link { display:block; box-sizing:border-box; max-width:100%; padding:10px 14px; background:#4DA3FF; color:#000000; border:0; font-size:10px; line-height:1.4; letter-spacing:1px; text-align:center; text-transform:uppercase; white-space:normal; }
+.link:hover { filter:brightness(1.15); }
+/* Actual PQ/BT.2020 HDR swatches. Browsers that do not support HDR AVIF
+   keep the generated SDR colors above; HDR-capable outputs tone-map this
+   image correctly instead of clamping CSS color() values. */
+@supports (background-image:url('/assets/itch-hdr/4DA3FF.avif')) {
+  .thumb-frame { background-image:url('/assets/itch-hdr/4DA3FF.avif'); background-size:cover; background-repeat:no-repeat; background-position:center; }
 }
-@media (max-width: 600px) {
-  .embed{width:100vw;height:100vh;max-width:100%;max-height:100%;padding:16px;gap:14px}
-  .thumb{width:40%;height:auto;aspect-ratio:1.27;flex:0 0 40%}
-  .title{font-size:16px;white-space:normal;line-height:1.6}
-  .link{font-size:11px;padding:12px 16px;margin-top:18px}
+@supports (background-image:url('/assets/itch-hdr/4DA3FF.avif')) {
+  .link-frame, .link { background-image:url('/assets/itch-hdr/4DA3FF.avif'); background-size:cover; background-repeat:no-repeat; background-position:center; }
+}
+@supports ((-webkit-background-clip:text) or (background-clip:text)) and (background-image:url('/assets/itch-hdr/4DA3FF.avif')) {
+  .title { color:transparent; -webkit-text-fill-color:transparent; background-image:url('/assets/itch-hdr/4DA3FF.avif'); background-repeat:repeat; background-size:auto 100%; -webkit-background-clip:text; background-clip:text; }
+}
+@media (max-width:600px) {
+  .embed { grid-template-columns:38% minmax(0,1fr); gap:12px; min-height:100%; padding:12px; }
+  .thumb-frame { width:100%; height:auto; aspect-ratio:1.27; }
+  .title { font-size:14px; line-height:1.5; }
+  .link-frame { width:100%; }
+  .link { padding:10px 8px; font-size:10px; letter-spacing:.5px; }
 }
 </style>
 </head>
 <body>
 <div class="embed">
-  <div class="thumb"></div>
+  <div class="thumb-frame"><div class="thumb"></div></div>
   <div class="meta">
     <div class="title">BOKU NO BULLET HELL</div>
-    <a class="link" href="https://hxydn.itch.io/boku-no-bullet-hell" target="_blank" rel="noopener">VIEW ON ITCH.IO</a>
+    <div class="link-frame"><a class="link" href="https://hxydn.itch.io/boku-no-bullet-hell" target="_blank" rel="noopener">VIEW ON ITCH.IO</a></div>
   </div>
 </div>
 </body>

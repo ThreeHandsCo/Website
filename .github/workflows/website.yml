@@ -31,6 +31,9 @@ jobs:
       - name: Verify generated itch configuration
         run: python3 .build/tools/generate_itch_colors.py --check
 
+      - name: Verify generated itch embeds and HDR swatches
+        run: python3 .build/tools/generate_itch_embeds.py --check
+
       - name: Make sure that required site files exist
         run: |
           python3 - <<'PY'
@@ -39,6 +42,8 @@ jobs:
           required = (
               "index.html",
               "assets/itch-embed-colors.js",
+              "assets/itch-embeds/4823129.html",
+              "assets/itch-hdr/A7A9E8.avif",
               "assets/windows-3.1-cursor-rgb-a.svg",
               "assets/windows-3.1-cursor-rgb-b.svg",
               "site.webmanifest",
