@@ -391,22 +391,51 @@
 
         /* BLINDING HDR white on selected — 2-20× diffuse white (203 nits → 400-4000 nits).
            Default stays SDR #fff (og). Only .active/.hover transitions to HDR.
-           No @media gate — always set HDR>1, SDR clamps to white. */
+           No @media gate — always set HDR>1, SDR clamps to white.
+           Multiple syntaxes for widest HDR headroom support. */
+        .platform-link.active {
+            dynamic-range-limit: no-limit;
+        }
+        .platform-link:hover {
+            dynamic-range-limit: no-limit;
+        }
         @supports (color: color(display-p3 1.2 1.2 1.2)) {
             .platform-link.active {
                 background: color(display-p3 2 2 2) !important;
                 border-color: color(display-p3 2 2 2) !important;
                 color: black !important;
-                dynamic-range-limit: no-limit;
             }
             .platform-link.active::before { border-color: color(display-p3 2 2 2) !important; }
             .platform-link:hover {
                 background: color(display-p3 2 2 2) !important;
                 border-color: color(display-p3 2 2 2) !important;
                 color: black !important;
-                dynamic-range-limit: no-limit;
             }
             .platform-link:hover::before { border-color: color(display-p3 2 2 2) !important; }
+        }
+        @supports (color: oklab(1.5 0 0)) {
+            .platform-link.active {
+                background: oklab(1.5 0 0) !important;
+                border-color: oklab(1.5 0 0) !important;
+            }
+            .platform-link.active::before { border-color: oklab(1.5 0 0) !important; }
+            .platform-link:hover {
+                background: oklab(1.5 0 0) !important;
+                border-color: oklab(1.5 0 0) !important;
+            }
+            .platform-link:hover::before { border-color: oklab(1.5 0 0) !important; }
+        }
+        @supports (color: oklch(1.5 0 0)) {
+            .platform-link.active {
+                background: oklch(1.5 0 0) !important;
+                border-color: oklch(1.5 0 0) !important;
+            }
+            .platform-link.active::before { border-color: oklch(1.5 0 0) !important; }
+            .platform-link:hover {
+                background: oklch(1.5 0 0) !important;
+                border-color: oklch(1.5 0 0) !important;
+            }
+            .platform-link:hover::before { border-color: oklch(1.5 0 0) !important; }
         }
         @supports (color: color(srgb-linear 3 3 3)) {
             .platform-link.active {
