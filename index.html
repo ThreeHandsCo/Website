@@ -412,26 +412,41 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
-        /* HDR only for the rim (outline) when glowing — fill stays SDR white (og).
-           Outline #fff is SDR visible; HDR makes the glowing rim pop 1 stop above. */
+        /* HDR for Steam/Itch buttons — fill + thin rim both HDR when active/hover */
         .platform-link.active,
         .platform-link:hover {
             dynamic-range-limit: no-limit;
         }
         @supports (color: color(display-p3 1.2 1.2 1.2)) {
+            .platform-link.active {
+                background-color: color(display-p3 1.6 1.6 1.6) !important;
+                border-color: color(display-p3 1.6 1.6 1.6) !important;
+                color: black !important;
+            }
             .platform-link.active::before { border-color: color(display-p3 4 4 4) !important; transition: all 0.3s ease; }
+            .platform-link:hover {
+                background-color: color(display-p3 1.6 1.6 1.6) !important;
+                border-color: color(display-p3 1.6 1.6 1.6) !important;
+                color: black !important;
+            }
             .platform-link:hover::before { border-color: color(display-p3 4 4 4) !important; transition: all 0.3s ease; }
         }
         @supports (color: oklab(1.5 0 0)) {
+            .platform-link.active { background-color: oklab(1.4 0 0) !important; border-color: oklab(1.4 0 0) !important; }
             .platform-link.active::before { border-color: oklab(2.0 0 0) !important; transition: all 0.3s ease; }
+            .platform-link:hover { background-color: oklab(1.4 0 0) !important; border-color: oklab(1.4 0 0) !important; }
             .platform-link:hover::before { border-color: oklab(2.0 0 0) !important; transition: all 0.3s ease; }
         }
         @supports (color: oklch(1.5 0 0)) {
+            .platform-link.active { background-color: oklch(1.4 0 0) !important; border-color: oklch(1.4 0 0) !important; }
             .platform-link.active::before { border-color: oklch(2.0 0 0) !important; transition: all 0.3s ease; }
+            .platform-link:hover { background-color: oklch(1.4 0 0) !important; border-color: oklch(1.4 0 0) !important; }
             .platform-link:hover::before { border-color: oklch(2.0 0 0) !important; transition: all 0.3s ease; }
         }
         @supports (color: color(srgb-linear 3 3 3)) {
+            .platform-link.active { background-color: color(srgb-linear 2 2 2) !important; border-color: color(srgb-linear 2 2 2) !important; }
             .platform-link.active::before { border-color: color(srgb-linear 20 20 20) !important; transition: all 0.3s ease; }
+            .platform-link:hover { background-color: color(srgb-linear 2 2 2) !important; border-color: color(srgb-linear 2 2 2) !important; }
             .platform-link:hover::before { border-color: color(srgb-linear 20 20 20) !important; transition: all 0.3s ease; }
         }
         /* HDR glow — rim's box-shadow also HDR when supported (blinding) */
