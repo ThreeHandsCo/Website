@@ -1,33 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
-  <!-- Blocky RGB cursor. White center #f0f0f0 SDR, RGB pop via HDR gain-map AVIF + display-p3/rec2020 -->
-  <defs>
-    <pattern id="hdr-red-a" patternUnits="userSpaceOnUse" width="32" height="32">
-      <image href="/assets/hdr-red.avif" xlink:href="/assets/hdr-red.avif" width="32" height="32" preserveAspectRatio="none"/>
-    </pattern>
-    <pattern id="hdr-green-a" patternUnits="userSpaceOnUse" width="32" height="32">
-      <image href="/assets/hdr-green.avif" xlink:href="/assets/hdr-green.avif" width="32" height="32" preserveAspectRatio="none"/>
-    </pattern>
-    <pattern id="hdr-blue-a" patternUnits="userSpaceOnUse" width="32" height="32">
-      <image href="/assets/hdr-blue.avif" xlink:href="/assets/hdr-blue.avif" width="32" height="32" preserveAspectRatio="none"/>
-    </pattern>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Blocky RGB cursor. White center #f0f0f0 SDR, RGB pop via HDR headroom (no external images — cursors block them) -->
   <style>
-    @supports (color: color(display-p3 1 0 0)) {
-      g.hdr-r { fill: color(display-p3 1 0 0); }
-      g.hdr-g { fill: color(display-p3 0 1 0); }
-      g.hdr-b { fill: color(display-p3 0 0 1); }
+    g.hdr-r { fill: #ff0000; }
+    g.hdr-g { fill: #00ff00; }
+    g.hdr-b { fill: #0000ff; }
+    @supports (color: color(display-p3 1.5 0 0)) {
+      g.hdr-r { fill: color(display-p3 1.5 0 0); }
+      g.hdr-g { fill: color(display-p3 0 1.5 0); }
+      g.hdr-b { fill: color(display-p3 0 0 1.5); }
     }
-    @media (dynamic-range: high) {
-      @supports (color: color(rec2020 1 0 0)) {
-        g.hdr-r { fill: color(rec2020 1 0 0); }
-        g.hdr-g { fill: color(rec2020 0 1 0); }
-        g.hdr-b { fill: color(rec2020 0 0 1); }
-      }
-      @supports (background-image: url('/assets/hdr-red.avif')) {
-        g.hdr-r { fill: url(#hdr-red-a); }
-        g.hdr-g { fill: url(#hdr-green-a); }
-        g.hdr-b { fill: url(#hdr-blue-a); }
-      }
+    @supports (color: oklab(1.4 0 0)) {
+      g.hdr-r { fill: oklab(1.4 0.2 0.1); }
+      g.hdr-g { fill: oklab(1.4 -0.25 0.2); }
+      g.hdr-b { fill: oklab(1.4 -0.05 -0.25); }
+    }
+    @supports (color: color(srgb-linear 5 0 0)) {
+      g.hdr-r { fill: color(srgb-linear 5 0 0); }
+      g.hdr-g { fill: color(srgb-linear 0 5 0); }
+      g.hdr-b { fill: color(srgb-linear 0 0 5); }
     }
   </style>
   <g class="hdr-r" transform="translate(-2 1)" fill="#ff0000">

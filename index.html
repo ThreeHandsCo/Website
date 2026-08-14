@@ -403,70 +403,89 @@
                 background: color(display-p3 1.4 1.4 1.4) !important;
                 border-color: color(display-p3 1.4 1.4 1.4) !important;
                 color: black !important;
+                transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
             }
-            .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4) !important; }
+            .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4) !important; transition: border-color 0.3s ease, opacity 0.3s ease; }
             .platform-link:hover {
                 background: color(display-p3 1.4 1.4 1.4) !important;
                 border-color: color(display-p3 1.4 1.4 1.4) !important;
                 color: black !important;
+                transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
             }
-            .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4) !important; }
+            .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4) !important; transition: border-color 0.3s ease, opacity 0.3s ease; }
         }
         @supports (color: oklab(1.3 0 0)) {
             .platform-link.active {
                 background: oklab(1.3 0 0) !important;
                 border-color: oklab(1.3 0 0) !important;
+                transition: background 0.3s ease, border-color 0.3s ease;
             }
-            .platform-link.active::before { border-color: oklab(1.3 0 0) !important; }
+            .platform-link.active::before { border-color: oklab(1.3 0 0) !important; transition: border-color 0.3s ease; }
             .platform-link:hover {
                 background: oklab(1.3 0 0) !important;
                 border-color: oklab(1.3 0 0) !important;
+                transition: background 0.3s ease, border-color 0.3s ease;
             }
-            .platform-link:hover::before { border-color: oklab(1.3 0 0) !important; }
+            .platform-link:hover::before { border-color: oklab(1.3 0 0) !important; transition: border-color 0.3s ease; }
         }
         @supports (color: oklch(1.3 0 0)) {
             .platform-link.active {
                 background: oklch(1.3 0 0) !important;
                 border-color: oklch(1.3 0 0) !important;
+                transition: background 0.3s ease, border-color 0.3s ease;
             }
-            .platform-link.active::before { border-color: oklch(1.3 0 0) !important; }
+            .platform-link.active::before { border-color: oklch(1.3 0 0) !important; transition: border-color 0.3s ease; }
             .platform-link:hover {
                 background: oklch(1.3 0 0) !important;
                 border-color: oklch(1.3 0 0) !important;
+                transition: background 0.3s ease, border-color 0.3s ease;
             }
-            .platform-link:hover::before { border-color: oklch(1.3 0 0) !important; }
+            .platform-link:hover::before { border-color: oklch(1.3 0 0) !important; transition: border-color 0.3s ease; }
         }
         @supports (color: color(srgb-linear 3 3 3)) {
             .platform-link.active {
                 background: color(srgb-linear 2 2 2) !important;
                 border-color: color(srgb-linear 2 2 2) !important;
+                transition: background 0.3s ease, border-color 0.3s ease;
             }
-            .platform-link.active::before { border-color: color(srgb-linear 2 2 2) !important; }
+            .platform-link.active::before { border-color: color(srgb-linear 2 2 2) !important; transition: border-color 0.3s ease; }
             .platform-link:hover {
                 background: color(srgb-linear 2 2 2) !important;
                 border-color: color(srgb-linear 2 2 2) !important;
+                transition: background 0.3s ease, border-color 0.3s ease;
             }
-            .platform-link:hover::before { border-color: color(srgb-linear 2 2 2) !important; }
+            .platform-link:hover::before { border-color: color(srgb-linear 2 2 2) !important; transition: border-color 0.3s ease; }
         }
-        /* Real HDR gain-map image — guaranteed HDR headroom where CSS color headroom is clamped */
+        /* Real HDR gain-map image — guaranteed HDR headroom where CSS color headroom is clamped.
+           Fade in via ::after opacity so it matches the button's 0.3s ease. */
+        .platform-link::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('/assets/hdr-white.avif');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .platform-link > * { position: relative; z-index: 1; }
         @supports (background-image: url('/assets/hdr-white.avif')) {
+            .platform-link.active::after,
+            .platform-link:hover::after {
+                opacity: 1;
+            }
             .platform-link.active {
                 background-color: white !important;
-                background-image: url('/assets/hdr-white.avif') !important;
-                background-size: cover !important;
-                background-repeat: no-repeat !important;
-                background-position: center !important;
-                border-color: color(srgb-linear 20 20 20) !important;
+                border-color: color(srgb-linear 2 2 2) !important;
                 color: black !important;
                 dynamic-range-limit: no-limit;
             }
             .platform-link:hover {
                 background-color: white !important;
-                background-image: url('/assets/hdr-white.avif') !important;
-                background-size: cover !important;
-                background-repeat: no-repeat !important;
-                background-position: center !important;
-                border-color: color(srgb-linear 20 20 20) !important;
+                border-color: color(srgb-linear 2 2 2) !important;
                 color: black !important;
                 dynamic-range-limit: no-limit;
             }
