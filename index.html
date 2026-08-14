@@ -389,10 +389,9 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
-        /* BLINDING HDR white on selected — 2-20× diffuse white (203 nits → 400-4000 nits).
+        /* HDR white on selected — 1 stop above SDR diffuse white (203 nits → 400 nits, 2×).
            Default stays SDR #fff (og). Only .active/.hover transitions to HDR.
-           No @media gate — always set HDR>1, SDR clamps to white.
-           Multiple syntaxes for widest HDR headroom support. */
+           No @media gate — always set HDR>1, SDR clamps to white. */
         .platform-link.active {
             dynamic-range-limit: no-limit;
         }
@@ -401,53 +400,53 @@
         }
         @supports (color: color(display-p3 1.2 1.2 1.2)) {
             .platform-link.active {
-                background: color(display-p3 2 2 2) !important;
-                border-color: color(display-p3 2 2 2) !important;
+                background: color(display-p3 1.4 1.4 1.4) !important;
+                border-color: color(display-p3 1.4 1.4 1.4) !important;
                 color: black !important;
             }
-            .platform-link.active::before { border-color: color(display-p3 2 2 2) !important; }
+            .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4) !important; }
             .platform-link:hover {
-                background: color(display-p3 2 2 2) !important;
-                border-color: color(display-p3 2 2 2) !important;
+                background: color(display-p3 1.4 1.4 1.4) !important;
+                border-color: color(display-p3 1.4 1.4 1.4) !important;
                 color: black !important;
             }
-            .platform-link:hover::before { border-color: color(display-p3 2 2 2) !important; }
+            .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4) !important; }
         }
-        @supports (color: oklab(1.5 0 0)) {
+        @supports (color: oklab(1.3 0 0)) {
             .platform-link.active {
-                background: oklab(1.5 0 0) !important;
-                border-color: oklab(1.5 0 0) !important;
+                background: oklab(1.3 0 0) !important;
+                border-color: oklab(1.3 0 0) !important;
             }
-            .platform-link.active::before { border-color: oklab(1.5 0 0) !important; }
+            .platform-link.active::before { border-color: oklab(1.3 0 0) !important; }
             .platform-link:hover {
-                background: oklab(1.5 0 0) !important;
-                border-color: oklab(1.5 0 0) !important;
+                background: oklab(1.3 0 0) !important;
+                border-color: oklab(1.3 0 0) !important;
             }
-            .platform-link:hover::before { border-color: oklab(1.5 0 0) !important; }
+            .platform-link:hover::before { border-color: oklab(1.3 0 0) !important; }
         }
-        @supports (color: oklch(1.5 0 0)) {
+        @supports (color: oklch(1.3 0 0)) {
             .platform-link.active {
-                background: oklch(1.5 0 0) !important;
-                border-color: oklch(1.5 0 0) !important;
+                background: oklch(1.3 0 0) !important;
+                border-color: oklch(1.3 0 0) !important;
             }
-            .platform-link.active::before { border-color: oklch(1.5 0 0) !important; }
+            .platform-link.active::before { border-color: oklch(1.3 0 0) !important; }
             .platform-link:hover {
-                background: oklch(1.5 0 0) !important;
-                border-color: oklch(1.5 0 0) !important;
+                background: oklch(1.3 0 0) !important;
+                border-color: oklch(1.3 0 0) !important;
             }
-            .platform-link:hover::before { border-color: oklch(1.5 0 0) !important; }
+            .platform-link:hover::before { border-color: oklch(1.3 0 0) !important; }
         }
         @supports (color: color(srgb-linear 3 3 3)) {
             .platform-link.active {
-                background: color(srgb-linear 20 20 20) !important;
-                border-color: color(srgb-linear 20 20 20) !important;
+                background: color(srgb-linear 2 2 2) !important;
+                border-color: color(srgb-linear 2 2 2) !important;
             }
-            .platform-link.active::before { border-color: color(srgb-linear 20 20 20) !important; }
+            .platform-link.active::before { border-color: color(srgb-linear 2 2 2) !important; }
             .platform-link:hover {
-                background: color(srgb-linear 20 20 20) !important;
-                border-color: color(srgb-linear 20 20 20) !important;
+                background: color(srgb-linear 2 2 2) !important;
+                border-color: color(srgb-linear 2 2 2) !important;
             }
-            .platform-link:hover::before { border-color: color(srgb-linear 20 20 20) !important; }
+            .platform-link:hover::before { border-color: color(srgb-linear 2 2 2) !important; }
         }
         /* Real HDR gain-map image — guaranteed HDR headroom where CSS color headroom is clamped */
         @supports (background-image: url('/assets/hdr-white.avif')) {
