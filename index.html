@@ -412,55 +412,43 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
-        /* HDR for Steam/Itch buttons — fill + thin rim both HDR when active/hover */
-        .platform-link.active,
-        .platform-link:hover {
+        /* Perma HDR rim shimmer — thin 1px rim always HDR when supported, fill stays SDR white */
+        .platform-link::before {
+            opacity: 1;
+            border: 1px solid white;
+            box-shadow: none;
+            animation: none;
+        }
+        .platform-link {
             dynamic-range-limit: no-limit;
         }
-        @supports (color: color(display-p3 1.2 1.2 1.2)) {
-            .platform-link.active {
-                background-color: color(display-p3 1.6 1.6 1.6) !important;
-                border-color: color(display-p3 1.6 1.6 1.6) !important;
-                color: black !important;
-            }
-            .platform-link.active::before { border-color: color(display-p3 4 4 4) !important; transition: all 0.3s ease; }
-            .platform-link:hover {
-                background-color: color(display-p3 1.6 1.6 1.6) !important;
-                border-color: color(display-p3 1.6 1.6 1.6) !important;
-                color: black !important;
-            }
-            .platform-link:hover::before { border-color: color(display-p3 4 4 4) !important; transition: all 0.3s ease; }
+        .platform-link::before {
+            dynamic-range-limit: no-limit;
         }
-        @supports (color: oklab(1.5 0 0)) {
-            .platform-link.active { background-color: oklab(1.4 0 0) !important; border-color: oklab(1.4 0 0) !important; }
-            .platform-link.active::before { border-color: oklab(2.0 0 0) !important; transition: all 0.3s ease; }
-            .platform-link:hover { background-color: oklab(1.4 0 0) !important; border-color: oklab(1.4 0 0) !important; }
-            .platform-link:hover::before { border-color: oklab(2.0 0 0) !important; transition: all 0.3s ease; }
-        }
-        @supports (color: oklch(1.5 0 0)) {
-            .platform-link.active { background-color: oklch(1.4 0 0) !important; border-color: oklch(1.4 0 0) !important; }
-            .platform-link.active::before { border-color: oklch(2.0 0 0) !important; transition: all 0.3s ease; }
-            .platform-link:hover { background-color: oklch(1.4 0 0) !important; border-color: oklch(1.4 0 0) !important; }
-            .platform-link:hover::before { border-color: oklch(2.0 0 0) !important; transition: all 0.3s ease; }
-        }
-        @supports (color: color(srgb-linear 3 3 3)) {
-            .platform-link.active { background-color: color(srgb-linear 2 2 2) !important; border-color: color(srgb-linear 2 2 2) !important; }
-            .platform-link.active::before { border-color: color(srgb-linear 20 20 20) !important; transition: all 0.3s ease; }
-            .platform-link:hover { background-color: color(srgb-linear 2 2 2) !important; border-color: color(srgb-linear 2 2 2) !important; }
-            .platform-link:hover::before { border-color: color(srgb-linear 20 20 20) !important; transition: all 0.3s ease; }
-        }
-        /* HDR glow — rim's box-shadow also HDR when supported (blinding) */
-        @supports (color: color(display-p3 4 4 4)) {
-            @keyframes glow-hdr {
-                from { box-shadow: 0 0 5px color(display-p3 4 4 4), 0 0 10px color(display-p3 4 4 4); }
-                to { box-shadow: 0 0 8px color(display-p3 4 4 4), 0 0 15px color(display-p3 4 4 4); }
-            }
-            .platform-link.active::before,
-            .platform-link:hover::before {
-                animation: glow-hdr 1.5s ease-in-out infinite alternate !important;
+        @media (dynamic-range: high) {
+            @supports (color: color(display-p3 1.5 1.5 1.5)) {
+                .platform-link::before {
+                    border-color: color(display-p3 1.4 1.4 1.4);
+                    animation: platform-rim-hdr 1.8s ease-in-out infinite;
+                }
+                @keyframes platform-rim-hdr {
+                    0%, 100% {
+                        border-color: color(display-p3 1.4 1.4 1.4);
+                        box-shadow: 0 0 3px color(display-p3 2 2 2 / .5);
+                    }
+                    50% {
+                        border-color: color(display-p3 3 3 3);
+                        box-shadow: 0 0 8px color(display-p3 4 4 4 / .55);
+                    }
+                }
             }
         }
-        /* HDR only for rim — keep fill SDR white */
+        @media (prefers-reduced-motion: reduce) {
+            .platform-link::before {
+                animation: none !important;
+            }
+        }
+        /* HDR only for rim — keep fill SDR white (perma shimmer above is the HDR) */
 
         .blurb {
             text-align: center;
