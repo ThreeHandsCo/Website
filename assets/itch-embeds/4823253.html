@@ -7,23 +7,32 @@
 <style>
 html,body{margin:0;padding:0;background:#000;color:#4DA3FF;font-family:'Press Start 2P',cursive;}
 a{text-decoration:none}
-.embed{display:flex;align-items:center;gap:16px;width:560px;height:175px;box-sizing:border-box;padding:12px;background:#000;border:0;overflow:hidden}
-.thumb{width:170px;height:135px;flex:0 0 170px;background:#111 url('/assets/itch-thumbnails/4823253.jpg') center/cover no-repeat;border-radius:0;border:2px solid #4DA3FF}
+.embed{display:flex;align-items:center;gap:18px;width:560px;height:175px;box-sizing:border-box;padding:14px;background:#000;border:0;overflow:hidden}
+.thumb{width:175px;height:138px;flex:0 0 175px;background:#111 url('/assets/itch-thumbnails/4823253.jpg') center/cover no-repeat;border-radius:0;border:2px solid #4DA3FF}
 .meta{flex:1;min-width:0}
-.title{font-size:12px;line-height:1.4;color:#4DA3FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.5px}
-.link{display:inline-block;margin-top:14px;font-size:9px;letter-spacing:1px;padding:10px 14px;background:#4DA3FF;color:#FFFFFF;border:2px solid #4DA3FF;text-transform:uppercase}
-.link:hover{filter:brightness(1.1)}
-/* HDR 2 stops (4×) — SDR fallback #RRGGBB above, HDR overrides below */
+.title{font-size:14px;line-height:1.5;color:#4DA3FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.5px;font-weight:700}
+.link{display:inline-block;margin-top:14px;font-size:10px;letter-spacing:1px;padding:10px 14px;background:#4DA3FF;color:#FFFFFF;border:2px solid #4DA3FF;text-transform:uppercase}
+.link:hover{filter:brightness(1.15)}
+/* HDR 2 stops — SDR fallback above, HDR overrides below (multiple spaces for widest support) */
+@supports (color: color(display-p3 1 0 0)) {
+  .title{color:color(display-p3 0.544 1.151 1.800);}
+  .thumb{border-color:color(display-p3 0.544 1.151 1.800);}
+  .link{background:color(display-p3 0.544 1.151 1.800);border-color:color(display-p3 0.544 1.151 1.800);}
+}
+@supports (color: oklab(1.5 0 0)) {
+  .title{color:oklab(1.4 0.15 0.08);}
+  .link{background:oklab(1.4 0.15 0.08);border-color:oklab(1.4 0.15 0.08);}
+}
 @supports (color: color(srgb-linear 1 0 0)) {
   .title{color:color(srgb-linear 1.208 2.557 4.000);}
   .thumb{border-color:color(srgb-linear 1.208 2.557 4.000);}
   .link{background:color(srgb-linear 1.208 2.557 4.000);border-color:color(srgb-linear 1.208 2.557 4.000);}
 }
 @media (max-width: 600px) {
-  .embed{width:100vw;height:100vh;max-width:100%;max-height:100%;padding:14px;gap:12px}
-  .thumb{width:38%;height:auto;aspect-ratio:1.26;flex:0 0 38%}
-  .title{font-size:14px;white-space:normal;line-height:1.5}
-  .link{font-size:10px;padding:12px 16px;margin-top:16px}
+  .embed{width:100vw;height:100vh;max-width:100%;max-height:100%;padding:16px;gap:14px}
+  .thumb{width:40%;height:auto;aspect-ratio:1.27;flex:0 0 40%}
+  .title{font-size:16px;white-space:normal;line-height:1.6}
+  .link{font-size:11px;padding:12px 16px;margin-top:18px}
 }
 </style>
 </head>
