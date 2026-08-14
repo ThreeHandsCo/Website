@@ -13,6 +13,12 @@ a{text-decoration:none}
 .title{font-size:12px;line-height:1.4;color:#A7A9E8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.5px}
 .link{display:inline-block;margin-top:14px;font-size:9px;letter-spacing:1px;padding:10px 14px;background:#A7A9E8;color:#000000;border:2px solid #A7A9E8;text-transform:uppercase}
 .link:hover{filter:brightness(1.1)}
+/* HDR 2 stops (4×) — SDR fallback #RRGGBB above, HDR overrides below */
+@supports (color: color(srgb-linear 1 0 0)) {
+  .title{color:color(srgb-linear 2.620 2.651 3.639);}
+  .thumb{border-color:color(srgb-linear 2.620 2.651 3.639);}
+  .link{background:color(srgb-linear 2.620 2.651 3.639);border-color:color(srgb-linear 2.620 2.651 3.639);}
+}
 @media (max-width: 600px) {
   .embed{width:100vw;height:100vh;max-width:100%;max-height:100%;padding:14px;gap:12px}
   .thumb{width:38%;height:auto;aspect-ratio:1.26;flex:0 0 38%}
