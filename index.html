@@ -417,26 +417,24 @@
             animation: none;
             dynamic-range-limit: no-limit;
         }
-        @media (dynamic-range: high) {
-            @supports (color: color(display-p3 1.5 1.5 1.5)) {
-                .platform-link {
+        @supports (color: color(display-p3 1.5 1.5 1.5)) {
+            .platform-link {
+                border-color: color(display-p3 1.8 1.8 1.8);
+            }
+            .platform-link::before {
+                border-color: color(display-p3 1.8 1.8 1.8);
+                animation: platform-rim-hdr 2.2s ease-in-out infinite;
+            }
+            @keyframes platform-rim-hdr {
+                0%, 100% {
                     border-color: color(display-p3 1.8 1.8 1.8);
+                    box-shadow: 0 0 4px color(display-p3 1.8 1.8 1.8 / .55), 0 0 10px color(display-p3 1.8 1.8 1.8 / .35);
+                    filter: brightness(1);
                 }
-                .platform-link::before {
-                    border-color: color(display-p3 1.8 1.8 1.8);
-                    animation: platform-rim-hdr 2.2s ease-in-out infinite;
-                }
-                @keyframes platform-rim-hdr {
-                    0%, 100% {
-                        border-color: color(display-p3 1.8 1.8 1.8);
-                        box-shadow: 0 0 4px color(display-p3 1.8 1.8 1.8 / .55), 0 0 10px color(display-p3 1.8 1.8 1.8 / .35);
-                        filter: brightness(1);
-                    }
-                    50% {
-                        border-color: color(display-p3 2.2 2.2 2.2);
-                        box-shadow: 0 0 6px color(display-p3 2.2 2.2 2.2 / .65), 0 0 14px color(display-p3 2.2 2.2 2.2 / .45);
-                        filter: brightness(1.05);
-                    }
+                50% {
+                    border-color: color(display-p3 2.2 2.2 2.2);
+                    box-shadow: 0 0 6px color(display-p3 2.2 2.2 2.2 / .65), 0 0 14px color(display-p3 2.2 2.2 2.2 / .45);
+                    filter: brightness(1.05);
                 }
             }
         }
