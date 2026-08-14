@@ -63,11 +63,27 @@
             background: black;
         }
 
+        /* Feathered soft edge - vignette into the black page background (no box) */
+        #video-container video {
+            -webkit-mask-image: radial-gradient(ellipse 120% 86% at 50% 50%, black 58%, transparent 93%);
+            mask-image: radial-gradient(ellipse 120% 86% at 50% 50%, black 58%, transparent 93%);
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+        }
+
         .header-video {
             width: 400px;
             height: 225px;
             margin-bottom: 40px;
             background: black;
+            -webkit-mask-image: radial-gradient(ellipse 102% 98% at 50% 50%, black 66%, transparent 98%);
+            mask-image: radial-gradient(ellipse 102% 98% at 50% 50%, black 66%, transparent 98%);
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
         }
 
         .featured-trailer {
@@ -76,6 +92,12 @@
             aspect-ratio: 16 / 9;
             object-fit: contain;
             background: black;
+            -webkit-mask-image: radial-gradient(ellipse 102% 96% at 50% 50%, black 64%, transparent 98%);
+            mask-image: radial-gradient(ellipse 102% 96% at 50% 50%, black 64%, transparent 98%);
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
         }
 
         #content-container {
