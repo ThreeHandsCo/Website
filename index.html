@@ -222,8 +222,9 @@
             opacity: 1;
             pointer-events: auto;
             transform: scale(1);
-            -webkit-mask-position: 0% 0;
-            mask-position: 0% 0;
+            /* End past the ramp so the wipe edge fully leaves the frame. */
+            -webkit-mask-position: 50% 0;
+            mask-position: 50% 0;
         }
 
         .embed-loading {
@@ -343,8 +344,8 @@
         @media (prefers-reduced-motion: reduce) {
             .embed-shell iframe {
                 transform: none;
-                -webkit-mask-position: 0% 0;
-                mask-position: 0% 0;
+                -webkit-mask-position: 50% 0;
+                mask-position: 50% 0;
                 transition: opacity 0.25s ease;
             }
 
