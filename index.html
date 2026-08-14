@@ -390,27 +390,28 @@
 
         /* HDR white on selected — true headroom above SDR diffuse white (203 nits).
            Default .platform-link stays SDR #fff (og). Only .active/.hover
-           transitions to HDR out-of-range srgb-linear >1, clamped to white on SDR. */
-        @supports (color: color(srgb-linear 2 2 2)) {
+           transitions to HDR out-of-range srgb-linear >1 (3× = ~610 nits),
+           clamped to white on SDR. */
+        @supports (color: color(srgb-linear 3 3 3)) {
             @media (dynamic-range: high) {
                 .platform-link.active {
-                    background: color(srgb-linear 2 2 2);
-                    border-color: color(srgb-linear 2 2 2);
+                    background: color(srgb-linear 3 3 3);
+                    border-color: color(srgb-linear 3 3 3);
                     /* keep text black SDR on HDR white bg */
                     color: black;
                     dynamic-range-limit: no-limit;
                 }
                 .platform-link.active::before {
-                    border-color: color(srgb-linear 2 2 2);
+                    border-color: color(srgb-linear 3 3 3);
                 }
                 .platform-link:hover {
-                    background: color(srgb-linear 2 2 2);
-                    border-color: color(srgb-linear 2 2 2);
+                    background: color(srgb-linear 3 3 3);
+                    border-color: color(srgb-linear 3 3 3);
                     color: black;
                     dynamic-range-limit: no-limit;
                 }
                 .platform-link:hover::before {
-                    border-color: color(srgb-linear 2 2 2);
+                    border-color: color(srgb-linear 3 3 3);
                 }
             }
         }
