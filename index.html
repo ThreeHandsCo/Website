@@ -922,11 +922,7 @@
             if (shell.classList.contains('embed-ready')) return;
             if (shell.classList.contains('embed-failed') && parseInt(frame.dataset.embedRetry || '0', 10) >= EMBED_MAX_RETRIES) return;
             if (embedLoadObserver) embedLoadObserver.unobserve(shell);
-            // Itch is rate-limited (429) — throttle to 1 concurrent with 750 ms spacing
-            if (isItchFrame(frame)) {
-                enqueueItchLoad(frame);
-                return;
-            }
+            // Same-origin static itch embeds — no rate limit needed (was for itch.io 429)
             shell.classList.remove('embed-failed');
             try { frame.loading = 'eager'; } catch (_e) {}
             frame.src = frame.dataset.src;
