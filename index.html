@@ -928,6 +928,13 @@
             scheduleEmbedTimeout(frame, shell);
         }
 
+        function getItchProxyBase() {
+            // Perma proxy serves /api/itch-embed on the same host that serves the site
+            // when via 100.127.203.63:8787 or ephemeral 45615, use relative (same origin)
+            // For GitHub Pages (threehands.dev) the relative will 404, so we fall back to direct
+            // check if /api/itch-embed is available (we try relative first)
+            return '/api/itch-embed';
+        }
         function setItchEmbedSources() {
             document.querySelectorAll('.itch-widgets iframe[data-itch-id]').forEach(function(frame) {
                 if (frame.dataset.src || frame.hasAttribute('src')) return;
@@ -939,14 +946,34 @@
                     return;
                 }
 
-                const source = new URL('https://itch.io/embed/' + gameId);
-                source.search = new URLSearchParams({
-                    border_width: '0',
-                    bg_color: '000000',
-                    fg_color: colors.fg,
-                    link_color: colors.link,
-                    border_color: '000000'
-                }).toString();
+                // Prefer perma proxy (same-origin /api/itch-embed) to avoid 429 — falls back to direct if proxy 404s (handled in onError)
+                var proxyBase = getItchProxyBase();
+                var source;
+                try {
+                    source = new URL(proxyBase, window.location.origin);
+                } catch (_e) {
+                    source = new URL('https://itch.io/embed/' + gameId);
+                }
+                // Use id param for proxy, or path for direct
+                if (source.pathname.indexOf('/api/itch-embed') !== -1) {
+                    source.search = new URLSearchParams({
+                        id: gameId,
+                        border_width: '0',
+                        bg_color: '000000',
+                        fg_color: colors.fg,
+                        link_color: colors.link,
+                        border_color: '000000'
+                    }).toString();
+                } else {
+                    source = new URL('https://itch.io/embed/' + gameId);
+                    source.search = new URLSearchParams({
+                        border_width: '0',
+                        bg_color: '000000',
+                        fg_color: colors.fg,
+                        link_color: colors.link,
+                        border_color: '000000'
+                    }).toString();
+                }
 
                 frame.dataset.src = source.href;
             });
