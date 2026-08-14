@@ -348,6 +348,23 @@
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
         }
+        /* Base in same color space as HDR for smooth interpolation (white → HDR white) */
+        @supports (color: color(display-p3 1 1 1)) {
+            .platform-link {
+                color: color(display-p3 1 1 1);
+                border-color: color(display-p3 1 1 1);
+            }
+            .platform-link.active {
+                background-color: color(display-p3 1 1 1);
+                color: black;
+            }
+            .platform-link::before {
+                border-color: color(display-p3 1 1 1);
+            }
+            .platform-link:hover {
+                background-color: color(display-p3 1 1 1);
+            }
+        }
 
         .platform-link.active {
             background: white;
