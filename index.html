@@ -659,7 +659,12 @@
     <script>
         const itchEmbedColors = window.THREEHANDS_ITCH_EMBED_COLORS;
         const EMBED_LOAD_TIMEOUT_MS = 9000;
-        const EMBED_MAX_RETRIES = 2;
+        const EMBED_MAX_RETRIES = 3;
+        const ITCH_THROTTLE_MS = 750;
+        const ITCH_MAX_CONCURRENT = 1;
+        let itchQueue = [];
+        let itchActiveCount = 0;
+        let itchQueueTimer = null;
         const widgetGroups = Array.from(document.querySelectorAll('.steam-widgets, .itch-widgets'));
 
         function clearEmbedTimeout(frame) {
@@ -678,23 +683,96 @@
             }, EMBED_LOAD_TIMEOUT_MS);
         }
 
+        function isItchFrame(frame) {
+            return !!frame.closest('.itch-widgets');
+        }
+
+        function processItchQueue() {
+            if (itchQueue.length === 0) return;
+            if (itchActiveCount >= ITCH_MAX_CONCURRENT) return;
+            var now = Date.now();
+            var last = processItchQueue._last || 0;
+            var delay = Math.max(0, ITCH_THROTTLE_MS - (now - last));
+            if (delay > 0) {
+                if (!itchQueueTimer) {
+                    itchQueueTimer = window.setTimeout(function() {
+                        itchQueueTimer = null;
+                        processItchQueue();
+                    }, delay);
+                }
+                return;
+            }
+            var frame = itchQueue.shift();
+            if (!frame || frame.hasAttribute('src') || !frame.dataset.src) {
+                window.setTimeout(processItchQueue, 0);
+                return;
+            }
+            var shell = frame.closest('.embed-shell');
+            if (!shell || shell.classList.contains('embed-ready') || (shell.classList.contains('embed-failed') && parseInt(frame.dataset.embedRetry || '0', 10) >= EMBED_MAX_RETRIES)) {
+                window.setTimeout(processItchQueue, 0);
+                return;
+            }
+            itchActiveCount++;
+            processItchQueue._last = Date.now();
+            shell.classList.remove('embed-failed');
+            try { frame.loading = 'eager'; } catch (_e) {}
+            frame.src = frame.dataset.src;
+            shell.dataset.embedState = 'loading';
+            scheduleEmbedTimeout(frame, shell);
+            var onDone = function() {
+                itchActiveCount = Math.max(0, itchActiveCount - 1);
+                frame.removeEventListener('load', onDone);
+                frame.removeEventListener('error', onDone);
+                window.setTimeout(processItchQueue, ITCH_THROTTLE_MS);
+            };
+            frame.addEventListener('load', onDone);
+            frame.addEventListener('error', onDone);
+            if (itchQueue.length) {
+                window.setTimeout(processItchQueue, ITCH_THROTTLE_MS);
+            }
+        }
+
+        function enqueueItchLoad(frame) {
+            if (!frame.dataset.src || frame.hasAttribute('src')) return;
+            if (itchQueue.indexOf(frame) !== -1) return;
+            var shell = frame.closest('.embed-shell');
+            if (!shell || shell.classList.contains('embed-ready')) return;
+            if (shell.classList.contains('embed-failed') && parseInt(frame.dataset.embedRetry || '0', 10) >= EMBED_MAX_RETRIES) return;
+            itchQueue.push(frame);
+            processItchQueue();
+        }
+
         function handleEmbedStalled(frame, shell) {
-            const retries = parseInt(frame.dataset.embedRetry || '0', 10);
+            var retries = parseInt(frame.dataset.embedRetry || '0', 10);
+            var isItch = isItchFrame(frame);
+            // Itch 429 needs longer backoff
+            var backoff = isItch ? (1200 * Math.pow(2, retries) + Math.random() * 400) : (250 * (retries + 1));
             if (retries < EMBED_MAX_RETRIES) {
                 frame.dataset.embedRetry = String(retries + 1);
-                const source = frame.dataset.src || frame.getAttribute('src');
+                var source = frame.dataset.src || frame.getAttribute('src');
                 if (!source) {
                     markEmbedFailed(shell, frame);
+                    if (isItch) { itchActiveCount = Math.max(0, itchActiveCount - 1); window.setTimeout(processItchQueue, ITCH_THROTTLE_MS); }
                     return;
                 }
                 frame.dataset.src = source;
                 frame.removeAttribute('src');
                 shell.classList.remove('embed-ready');
-                window.setTimeout(function() {
-                    startEmbedLoad(frame);
-                }, 250 * (retries + 1));
+                // For itch, re-queue with backoff; for others immediate
+                if (isItch) {
+                    itchActiveCount = Math.max(0, itchActiveCount - 1);
+                    window.setTimeout(function() {
+                        enqueueItchLoad(frame);
+                    }, backoff);
+                    window.setTimeout(processItchQueue, backoff);
+                } else {
+                    window.setTimeout(function() {
+                        startEmbedLoad(frame);
+                    }, backoff);
+                }
             } else {
                 markEmbedFailed(shell, frame);
+                if (isItch) { itchActiveCount = Math.max(0, itchActiveCount - 1); window.setTimeout(processItchQueue, ITCH_THROTTLE_MS); }
             }
         }
 
@@ -730,6 +808,11 @@
             if (shell.classList.contains('embed-ready')) return;
             if (shell.classList.contains('embed-failed') && parseInt(frame.dataset.embedRetry || '0', 10) >= EMBED_MAX_RETRIES) return;
             if (embedLoadObserver) embedLoadObserver.unobserve(shell);
+            // Itch is rate-limited (429) — throttle to 1 concurrent with 750 ms spacing
+            if (isItchFrame(frame)) {
+                enqueueItchLoad(frame);
+                return;
+            }
             shell.classList.remove('embed-failed');
             try { frame.loading = 'eager'; } catch (_e) {}
             frame.src = frame.dataset.src;
