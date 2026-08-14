@@ -419,26 +419,26 @@
             dynamic-range-limit: no-limit;
         }
         @supports (color: color(display-p3 1.2 1.2 1.2)) {
-            .platform-link.active::before { border-color: color(display-p3 2 2 2) !important; transition: all 0.3s ease; }
-            .platform-link:hover::before { border-color: color(display-p3 2 2 2) !important; transition: all 0.3s ease; }
+            .platform-link.active::before { border-color: color(display-p3 4 4 4) !important; transition: all 0.3s ease; }
+            .platform-link:hover::before { border-color: color(display-p3 4 4 4) !important; transition: all 0.3s ease; }
         }
         @supports (color: oklab(1.5 0 0)) {
-            .platform-link.active::before { border-color: oklab(1.5 0 0) !important; transition: all 0.3s ease; }
-            .platform-link:hover::before { border-color: oklab(1.5 0 0) !important; transition: all 0.3s ease; }
+            .platform-link.active::before { border-color: oklab(2.0 0 0) !important; transition: all 0.3s ease; }
+            .platform-link:hover::before { border-color: oklab(2.0 0 0) !important; transition: all 0.3s ease; }
         }
         @supports (color: oklch(1.5 0 0)) {
-            .platform-link.active::before { border-color: oklch(1.5 0 0) !important; transition: all 0.3s ease; }
-            .platform-link:hover::before { border-color: oklch(1.5 0 0) !important; transition: all 0.3s ease; }
+            .platform-link.active::before { border-color: oklch(2.0 0 0) !important; transition: all 0.3s ease; }
+            .platform-link:hover::before { border-color: oklch(2.0 0 0) !important; transition: all 0.3s ease; }
         }
         @supports (color: color(srgb-linear 3 3 3)) {
-            .platform-link.active::before { border-color: color(srgb-linear 4 4 4) !important; transition: all 0.3s ease; }
-            .platform-link:hover::before { border-color: color(srgb-linear 4 4 4) !important; transition: all 0.3s ease; }
+            .platform-link.active::before { border-color: color(srgb-linear 20 20 20) !important; transition: all 0.3s ease; }
+            .platform-link:hover::before { border-color: color(srgb-linear 20 20 20) !important; transition: all 0.3s ease; }
         }
-        /* HDR glow — rim's box-shadow also HDR when supported (2 stops) */
-        @supports (color: color(display-p3 2 2 2)) {
+        /* HDR glow — rim's box-shadow also HDR when supported (blinding) */
+        @supports (color: color(display-p3 4 4 4)) {
             @keyframes glow-hdr {
-                from { box-shadow: 0 0 5px color(display-p3 2 2 2), 0 0 10px color(display-p3 2 2 2); }
-                to { box-shadow: 0 0 8px color(display-p3 2 2 2), 0 0 15px color(display-p3 2 2 2); }
+                from { box-shadow: 0 0 5px color(display-p3 4 4 4), 0 0 10px color(display-p3 4 4 4); }
+                to { box-shadow: 0 0 8px color(display-p3 4 4 4), 0 0 15px color(display-p3 4 4 4); }
             }
             .platform-link.active::before,
             .platform-link:hover::before {
