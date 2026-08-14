@@ -358,7 +358,11 @@
         }
 
         .platform-link.active {
-            background: white;
+            background-color: white;
+            background-image: url('/assets/hdr-white.avif');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
             color: black;
         }
 
@@ -380,9 +384,11 @@
             border-image: url('/assets/hdr-white.avif') 1 / 2px stretch;
         }
 
+        .platform-link.active::before {
+            display: none;
+        }
+
         .platform-link:hover {
-            background: white;
-            color: black;
             transform: translateY(-5px);
         }
 
