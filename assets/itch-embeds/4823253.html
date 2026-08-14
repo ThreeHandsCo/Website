@@ -8,10 +8,10 @@
 html { height:100%; background:#000; dynamic-range-limit:no-limit; }
 body { margin:0; padding:0; height:100%; background:#000; color:#4DA3FF; font-family:'Press Start 2P',cursive; dynamic-range-limit:no-limit; }
 a { text-decoration:none; }
-.embed { display:grid; grid-template-columns:175px minmax(0,1fr); gap:18px; width:100%; height:100%; min-height:175px; box-sizing:border-box; padding:14px; background:#000; overflow:hidden; }
+.embed { display:grid; grid-template-columns:175px minmax(0,1fr); gap:18px; width:100%; height:auto; min-height:175px; align-content:start; box-sizing:border-box; padding:14px; background:#000; overflow:hidden; }
 .thumb-frame { width:175px; height:138px; box-sizing:border-box; padding:2px; background:#4DA3FF; overflow:hidden; }
 .thumb { width:100%; height:100%; background:#111 url('/assets/itch-thumbnails/4823253.jpg') center/cover no-repeat; }
-.meta { min-width:0; min-height:0; height:100%; display:grid; grid-template-rows:auto auto; gap:10px; align-content:start; overflow:hidden; }
+.meta { min-width:0; min-height:0; height:auto; display:grid; grid-template-rows:auto auto; gap:10px; align-content:start; align-self:start; overflow:hidden; }
 .title { min-height:0; overflow-wrap:anywhere; white-space:normal; font-size:14px; line-height:1.5; font-weight:700; letter-spacing:.5px; color:#4DA3FF; }
 .link-frame { width:max-content; max-width:100%; box-sizing:border-box; padding:2px; background:#4DA3FF; }
 .link { display:block; box-sizing:border-box; max-width:100%; padding:10px 14px; background:#4DA3FF; color:#000000; border:0; font-size:10px; line-height:1.4; letter-spacing:1px; text-align:center; text-transform:uppercase; white-space:normal; }
