@@ -29,6 +29,7 @@
         html {
             min-height: 100%;
             background: black;
+            dynamic-range-limit: no-limit;
         }
         
         body {
@@ -389,30 +390,43 @@
         }
 
         /* HDR white on selected — true headroom above SDR diffuse white (203 nits).
-           Default .platform-link stays SDR #fff (og). Only .active/.hover
-           transitions to HDR out-of-range srgb-linear >1 (3× = ~610 nits),
-           clamped to white on SDR. */
-        @supports (color: color(srgb-linear 3 3 3)) {
-            @media (dynamic-range: high) {
+           Default stays SDR #fff (og). Only .active/.hover transitions to HDR.
+           Use display-p3 >1 (widely supported HDR headroom) + rec2020 + srgb-linear
+           with dynamic-range-limit:no-limit so it actually exceeds white. */
+        @media (dynamic-range: high) {
+            @supports (color: color(display-p3 1.2 1.2 1.2)) {
+                .platform-link.active {
+                    background: color(display-p3 1.4 1.4 1.4);
+                    border-color: color(display-p3 1.4 1.4 1.4);
+                    color: black;
+                    dynamic-range-limit: no-limit;
+                }
+                .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4); }
+                .platform-link:hover {
+                    background: color(display-p3 1.4 1.4 1.4);
+                    border-color: color(display-p3 1.4 1.4 1.4);
+                    color: black;
+                    dynamic-range-limit: no-limit;
+                }
+                .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4); }
+            }
+            @supports (color: color(srgb-linear 3 3 3)) {
                 .platform-link.active {
                     background: color(srgb-linear 3 3 3);
                     border-color: color(srgb-linear 3 3 3);
-                    /* keep text black SDR on HDR white bg */
-                    color: black;
-                    dynamic-range-limit: no-limit;
                 }
-                .platform-link.active::before {
-                    border-color: color(srgb-linear 3 3 3);
-                }
+                .platform-link.active::before { border-color: color(srgb-linear 3 3 3); }
                 .platform-link:hover {
                     background: color(srgb-linear 3 3 3);
                     border-color: color(srgb-linear 3 3 3);
-                    color: black;
-                    dynamic-range-limit: no-limit;
                 }
-                .platform-link:hover::before {
-                    border-color: color(srgb-linear 3 3 3);
-                }
+                .platform-link:hover::before { border-color: color(srgb-linear 3 3 3); }
+            }
+            @supports (color: lab(150% 0 0)) {
+                .platform-link.active { background: lab(150% 0 0); border-color: lab(150% 0 0); }
+                .platform-link.active::before { border-color: lab(150% 0 0); }
+                .platform-link:hover { background: lab(150% 0 0); border-color: lab(150% 0 0); }
+                .platform-link:hover::before { border-color: lab(150% 0 0); }
             }
         }
 
