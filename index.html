@@ -202,14 +202,28 @@
             opacity: 0;
             pointer-events: none;
             transform: scale(0.98);
-            will-change: opacity, transform;
-            transition: opacity 0.55s ease, transform 0.55s ease;
+            will-change: opacity, transform, mask-position;
+            /* Diagonal gradient wipe: hidden until the reveal mask sweeps across. */
+            -webkit-mask-image: linear-gradient(115deg, transparent 0%, black 28%, black 100%);
+            mask-image: linear-gradient(115deg, transparent 0%, black 28%, black 100%);
+            -webkit-mask-size: 250% 100%;
+            mask-size: 250% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: -100% 0;
+            mask-position: -100% 0;
+            transition: opacity 0.2s ease,
+                transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                -webkit-mask-position 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                mask-position 0.65s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .embed-shell.embed-visible iframe {
             opacity: 1;
             pointer-events: auto;
             transform: scale(1);
+            -webkit-mask-position: 0% 0;
+            mask-position: 0% 0;
         }
 
         .embed-loading {
@@ -328,8 +342,10 @@
 
         @media (prefers-reduced-motion: reduce) {
             .embed-shell iframe {
-                transition: opacity 0.25s ease;
                 transform: none;
+                -webkit-mask-position: 0% 0;
+                mask-position: 0% 0;
+                transition: opacity 0.25s ease;
             }
 
             .embed-loading {
