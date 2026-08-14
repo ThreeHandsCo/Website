@@ -400,61 +400,61 @@
         }
         @supports (color: color(display-p3 1.2 1.2 1.2)) {
             .platform-link.active {
-                background: color(display-p3 1.4 1.4 1.4) !important;
+                background-color: color(display-p3 1.4 1.4 1.4) !important;
                 border-color: color(display-p3 1.4 1.4 1.4) !important;
                 color: black !important;
-                transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4) !important; transition: border-color 0.3s ease, opacity 0.3s ease; }
+            .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4) !important; transition: all 0.3s ease; }
             .platform-link:hover {
-                background: color(display-p3 1.4 1.4 1.4) !important;
+                background-color: color(display-p3 1.4 1.4 1.4) !important;
                 border-color: color(display-p3 1.4 1.4 1.4) !important;
                 color: black !important;
-                transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4) !important; transition: border-color 0.3s ease, opacity 0.3s ease; }
+            .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4) !important; transition: all 0.3s ease; }
         }
         @supports (color: oklab(1.3 0 0)) {
             .platform-link.active {
-                background: oklab(1.3 0 0) !important;
+                background-color: oklab(1.3 0 0) !important;
                 border-color: oklab(1.3 0 0) !important;
-                transition: background 0.3s ease, border-color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link.active::before { border-color: oklab(1.3 0 0) !important; transition: border-color 0.3s ease; }
+            .platform-link.active::before { border-color: oklab(1.3 0 0) !important; transition: all 0.3s ease; }
             .platform-link:hover {
-                background: oklab(1.3 0 0) !important;
+                background-color: oklab(1.3 0 0) !important;
                 border-color: oklab(1.3 0 0) !important;
-                transition: background 0.3s ease, border-color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link:hover::before { border-color: oklab(1.3 0 0) !important; transition: border-color 0.3s ease; }
+            .platform-link:hover::before { border-color: oklab(1.3 0 0) !important; transition: all 0.3s ease; }
         }
         @supports (color: oklch(1.3 0 0)) {
             .platform-link.active {
-                background: oklch(1.3 0 0) !important;
+                background-color: oklch(1.3 0 0) !important;
                 border-color: oklch(1.3 0 0) !important;
-                transition: background 0.3s ease, border-color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link.active::before { border-color: oklch(1.3 0 0) !important; transition: border-color 0.3s ease; }
+            .platform-link.active::before { border-color: oklch(1.3 0 0) !important; transition: all 0.3s ease; }
             .platform-link:hover {
-                background: oklch(1.3 0 0) !important;
+                background-color: oklch(1.3 0 0) !important;
                 border-color: oklch(1.3 0 0) !important;
-                transition: background 0.3s ease, border-color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link:hover::before { border-color: oklch(1.3 0 0) !important; transition: border-color 0.3s ease; }
+            .platform-link:hover::before { border-color: oklch(1.3 0 0) !important; transition: all 0.3s ease; }
         }
         @supports (color: color(srgb-linear 3 3 3)) {
             .platform-link.active {
-                background: color(srgb-linear 2 2 2) !important;
+                background-color: color(srgb-linear 2 2 2) !important;
                 border-color: color(srgb-linear 2 2 2) !important;
-                transition: background 0.3s ease, border-color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link.active::before { border-color: color(srgb-linear 2 2 2) !important; transition: border-color 0.3s ease; }
+            .platform-link.active::before { border-color: color(srgb-linear 2 2 2) !important; transition: all 0.3s ease; }
             .platform-link:hover {
-                background: color(srgb-linear 2 2 2) !important;
+                background-color: color(srgb-linear 2 2 2) !important;
                 border-color: color(srgb-linear 2 2 2) !important;
-                transition: background 0.3s ease, border-color 0.3s ease;
+                transition: all 0.3s ease;
             }
-            .platform-link:hover::before { border-color: color(srgb-linear 2 2 2) !important; transition: border-color 0.3s ease; }
+            .platform-link:hover::before { border-color: color(srgb-linear 2 2 2) !important; transition: all 0.3s ease; }
         }
         /* Real HDR gain-map image — guaranteed HDR headroom where CSS color headroom is clamped.
            Fade in via ::after opacity so it matches the button's 0.3s ease.
