@@ -389,44 +389,43 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
-        /* HDR white on selected — true headroom above SDR diffuse white (203 nits).
+        /* BLINDING HDR white on selected — 2-10× diffuse white (203 nits → 400-2000 nits).
            Default stays SDR #fff (og). Only .active/.hover transitions to HDR.
-           Use display-p3 >1 (widely supported HDR headroom) + rec2020 + srgb-linear
-           with dynamic-range-limit:no-limit so it actually exceeds white. */
+           Multiple syntaxes for Chrome/Safari HDR headroom, all >1 = true HDR. */
         @media (dynamic-range: high) {
             @supports (color: color(display-p3 1.2 1.2 1.2)) {
                 .platform-link.active {
-                    background: color(display-p3 1.4 1.4 1.4);
-                    border-color: color(display-p3 1.4 1.4 1.4);
-                    color: black;
+                    background: color(display-p3 2 2 2) !important;
+                    border-color: color(display-p3 2 2 2) !important;
+                    color: black !important;
                     dynamic-range-limit: no-limit;
                 }
-                .platform-link.active::before { border-color: color(display-p3 1.4 1.4 1.4); }
+                .platform-link.active::before { border-color: color(display-p3 2 2 2) !important; }
                 .platform-link:hover {
-                    background: color(display-p3 1.4 1.4 1.4);
-                    border-color: color(display-p3 1.4 1.4 1.4);
-                    color: black;
+                    background: color(display-p3 2 2 2) !important;
+                    border-color: color(display-p3 2 2 2) !important;
+                    color: black !important;
                     dynamic-range-limit: no-limit;
                 }
-                .platform-link:hover::before { border-color: color(display-p3 1.4 1.4 1.4); }
+                .platform-link:hover::before { border-color: color(display-p3 2 2 2) !important; }
             }
             @supports (color: color(srgb-linear 3 3 3)) {
                 .platform-link.active {
-                    background: color(srgb-linear 3 3 3);
-                    border-color: color(srgb-linear 3 3 3);
+                    background: color(srgb-linear 10 10 10) !important;
+                    border-color: color(srgb-linear 10 10 10) !important;
                 }
-                .platform-link.active::before { border-color: color(srgb-linear 3 3 3); }
+                .platform-link.active::before { border-color: color(srgb-linear 10 10 10) !important; }
                 .platform-link:hover {
-                    background: color(srgb-linear 3 3 3);
-                    border-color: color(srgb-linear 3 3 3);
+                    background: color(srgb-linear 10 10 10) !important;
+                    border-color: color(srgb-linear 10 10 10) !important;
                 }
-                .platform-link:hover::before { border-color: color(srgb-linear 3 3 3); }
+                .platform-link:hover::before { border-color: color(srgb-linear 10 10 10) !important; }
             }
-            @supports (color: lab(150% 0 0)) {
-                .platform-link.active { background: lab(150% 0 0); border-color: lab(150% 0 0); }
-                .platform-link.active::before { border-color: lab(150% 0 0); }
-                .platform-link:hover { background: lab(150% 0 0); border-color: lab(150% 0 0); }
-                .platform-link:hover::before { border-color: lab(150% 0 0); }
+            @supports (color: lab(300% 0 0)) {
+                .platform-link.active { background: lab(300% 0 0) !important; border-color: lab(300% 0 0) !important; }
+                .platform-link.active::before { border-color: lab(300% 0 0) !important; }
+                .platform-link:hover { background: lab(300% 0 0) !important; border-color: lab(300% 0 0) !important; }
+                .platform-link:hover::before { border-color: lab(300% 0 0) !important; }
             }
         }
 
@@ -886,6 +885,8 @@
             const pending = Array.from(group.querySelectorAll('iframe[data-src]:not([src])'));
             if (!pending.length) return;
             pending.forEach(function(frame) {
+                // Airtight 429: itch never auto-loads — only on click (see loader click handler)
+                if (isItchFrame(frame)) return;
                 var isPriority = frame.dataset._wasEager === 'true' || frame.loading !== 'lazy';
                 if (isPriority && group.classList.contains('visible')) {
                     startEmbedLoad(frame);
@@ -955,7 +956,24 @@
                 shell.dataset.embedIndex = String(index);
                 loader.className = 'embed-loading';
                 loader.setAttribute('aria-hidden', 'true');
-                loaderText.textContent = 'LOADING ' + provider.toUpperCase() + '...';
+                if (provider === 'itch.io') {
+                    loaderText.textContent = 'CLICK TO LOAD ITCH.IO';
+                    loader.style.cursor = 'pointer';
+                    shell.style.cursor = 'pointer';
+                    var loadItch = function() {
+                        if (!frame.hasAttribute('src') && group.classList.contains('visible') && !shell.classList.contains('embed-ready')) {
+                            loaderText.textContent = 'LOADING ITCH.IO...';
+                            enqueueItchLoad(frame);
+                        }
+                    };
+                    loader.addEventListener('click', function(e) { e.stopPropagation(); loadItch(); });
+                    shell.addEventListener('click', function(e) {
+                        if (e.target.closest('.embed-error') || e.target.closest('a')) return;
+                        loadItch();
+                    });
+                } else {
+                    loaderText.textContent = 'LOADING ' + provider.toUpperCase() + '...';
+                }
                 loader.appendChild(loaderText);
 
                 error.className = 'embed-error';
