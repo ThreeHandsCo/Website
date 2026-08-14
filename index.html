@@ -730,9 +730,6 @@
                 }).toString();
 
                 frame.dataset.src = source.href;
-                if (frame.loading !== 'lazy') {
-                    startEmbedLoad(frame);
-                }
             });
         }
 
@@ -751,6 +748,11 @@
             const pending = Array.from(group.querySelectorAll('iframe[data-src]:not([src])'));
             if (!pending.length) return;
             pending.forEach(function(frame) {
+                var isPriority = frame.dataset._wasEager === 'true' || frame.loading !== 'lazy';
+                if (isPriority && group.classList.contains('visible')) {
+                    startEmbedLoad(frame);
+                    return;
+                }
                 if (embedLoadObserver) {
                     embedLoadObserver.observe(frame.closest('.embed-shell'));
                     window.setTimeout(function() {
@@ -916,14 +918,6 @@
 
                 if (frame.dataset.embedLoaded === 'true' && frame.hasAttribute('src')) {
                     onReady();
-                }
-
-                if (frame.dataset._wasEager === 'true') {
-                    window.setTimeout(function() {
-                        if (!shell.classList.contains('embed-ready') && !shell.classList.contains('embed-failed')) {
-                            startEmbedLoad(frame);
-                        }
-                    }, 0);
                 }
             });
         });
