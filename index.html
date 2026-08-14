@@ -388,6 +388,26 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
+        /* HDR white — true headroom above SDR diffuse white (203 nits).
+           SDR fallback #fff stays for SDR displays / old parsers;
+           HDR is out-of-range srgb-linear >1, clamped to white on SDR. */
+        @supports (color: color(srgb-linear 2 2 2)) {
+            @media (dynamic-range: high) {
+                .platform-link {
+                    color: color(srgb-linear 2 2 2);
+                    border-color: color(srgb-linear 2 2 2);
+                }
+                .platform-link::before {
+                    border-color: color(srgb-linear 2 2 2);
+                }
+                .platform-link.active,
+                .platform-link:hover {
+                    background: color(srgb-linear 2 2 2);
+                    border-color: color(srgb-linear 2 2 2);
+                }
+            }
+        }
+
         .blurb {
             text-align: center;
             color: white;
