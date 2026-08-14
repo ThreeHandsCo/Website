@@ -389,39 +389,36 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
 
-        /* BLINDING HDR white on selected — 2-10× diffuse white (203 nits → 400-2000 nits).
+        /* BLINDING HDR white on selected — 2-20× diffuse white (203 nits → 400-4000 nits).
            Default stays SDR #fff (og). Only .active/.hover transitions to HDR.
-           Multiple syntaxes for Chrome/Safari HDR headroom, all >1 = true HDR. */
-        @media (dynamic-range: high) {
-            @supports (color: color(display-p3 1.2 1.2 1.2)) {
-                .platform-link.active {
-                    background: color(display-p3 2 2 2) !important;
-                    border-color: color(display-p3 2 2 2) !important;
-                    color: black !important;
-                    dynamic-range-limit: no-limit;
-                }
-                .platform-link.active::before { border-color: color(display-p3 2 2 2) !important; }
-                .platform-link:hover {
-                    background: color(display-p3 2 2 2) !important;
-                    border-color: color(display-p3 2 2 2) !important;
-                    color: black !important;
-                    dynamic-range-limit: no-limit;
-                }
-                .platform-link:hover::before { border-color: color(display-p3 2 2 2) !important; }
+           No @media gate — always set HDR>1, SDR clamps to white. */
+        @supports (color: color(display-p3 1.2 1.2 1.2)) {
+            .platform-link.active {
+                background: color(display-p3 2 2 2) !important;
+                border-color: color(display-p3 2 2 2) !important;
+                color: black !important;
+                dynamic-range-limit: no-limit;
             }
-            @supports (color: color(srgb-linear 3 3 3)) {
-                .platform-link.active {
-                    background: color(srgb-linear 10 10 10) !important;
-                    border-color: color(srgb-linear 10 10 10) !important;
-                }
-                .platform-link.active::before { border-color: color(srgb-linear 10 10 10) !important; }
-                .platform-link:hover {
-                    background: color(srgb-linear 10 10 10) !important;
-                    border-color: color(srgb-linear 10 10 10) !important;
-                }
-                .platform-link:hover::before { border-color: color(srgb-linear 10 10 10) !important; }
+            .platform-link.active::before { border-color: color(display-p3 2 2 2) !important; }
+            .platform-link:hover {
+                background: color(display-p3 2 2 2) !important;
+                border-color: color(display-p3 2 2 2) !important;
+                color: black !important;
+                dynamic-range-limit: no-limit;
             }
-            /* lab() lightness clamps to 100% in shipping browsers — would override true HDR above with SDR white, so removed */
+            .platform-link:hover::before { border-color: color(display-p3 2 2 2) !important; }
+        }
+        @supports (color: color(srgb-linear 3 3 3)) {
+            .platform-link.active {
+                background: color(srgb-linear 20 20 20) !important;
+                border-color: color(srgb-linear 20 20 20) !important;
+            }
+            .platform-link.active::before { border-color: color(srgb-linear 20 20 20) !important; }
+            .platform-link:hover {
+                background: color(srgb-linear 20 20 20) !important;
+                border-color: color(srgb-linear 20 20 20) !important;
+            }
+            .platform-link:hover::before { border-color: color(srgb-linear 20 20 20) !important; }
         }
 
         .blurb {
