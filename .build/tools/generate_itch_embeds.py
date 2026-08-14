@@ -27,7 +27,7 @@ EMBED_DIR = ROOT / "assets" / "itch-embeds"
 HDR_DIR = ROOT / "assets" / "itch-hdr"
 
 REFERENCE_WHITE_NITS = 203.0
-HDR_STOPS = 2
+HDR_STOPS = 1
 HDR_SCALE = 2**HDR_STOPS
 
 # Linear sRGB -> XYZ D65, then XYZ -> Rec.2020.
