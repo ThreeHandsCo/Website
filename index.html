@@ -363,7 +363,7 @@
         }
 
         /*
-         * One fixed 1px rim. The PQ/BT.2020 AVIF is real HDR image data, so
+         * One fixed 2px rim. The PQ/BT.2020 AVIF is real HDR image data, so
          * this does not depend on CSS color() headroom or hover state. The
          * white border remains as the SDR fallback if the image is unavailable.
          */
@@ -371,13 +371,13 @@
             content: '';
             position: absolute;
             inset: -2px;
-            border: 1px solid white;
+            border: 2px solid white;
             opacity: 1;
             pointer-events: none;
             transition: none;
             animation: none !important;
             dynamic-range-limit: no-limit;
-            border-image: url('/assets/hdr-white.avif') 1 / 1px stretch;
+            border-image: url('/assets/hdr-white.avif') 1 / 2px stretch;
         }
 
         .platform-link:hover {
