@@ -449,6 +449,29 @@
             }
             .platform-link:hover::before { border-color: color(srgb-linear 20 20 20) !important; }
         }
+        /* Real HDR gain-map image — guaranteed HDR headroom where CSS color headroom is clamped */
+        @supports (background-image: url('/assets/hdr-white.avif')) {
+            .platform-link.active {
+                background-color: white !important;
+                background-image: url('/assets/hdr-white.avif') !important;
+                background-size: cover !important;
+                background-repeat: no-repeat !important;
+                background-position: center !important;
+                border-color: color(srgb-linear 20 20 20) !important;
+                color: black !important;
+                dynamic-range-limit: no-limit;
+            }
+            .platform-link:hover {
+                background-color: white !important;
+                background-image: url('/assets/hdr-white.avif') !important;
+                background-size: cover !important;
+                background-repeat: no-repeat !important;
+                background-position: center !important;
+                border-color: color(srgb-linear 20 20 20) !important;
+                color: black !important;
+                dynamic-range-limit: no-limit;
+            }
+        }
 
         .blurb {
             text-align: center;
