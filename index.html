@@ -227,6 +227,70 @@
             50% { opacity: 0.9; }
         }
 
+        .embed-error {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #050505;
+            color: #b8c0c8;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .embed-error span {
+            color: #b8c0c8;
+        }
+
+        .embed-retry {
+            padding: 10px 14px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .embed-retry:hover {
+            background: white;
+            color: black;
+        }
+
+        .embed-error a.embed-fallback-link {
+            color: #b8c0c8;
+            font-size: 8px;
+            letter-spacing: 1px;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .embed-error a.embed-fallback-link:hover {
+            color: white;
+        }
+
+        .embed-shell.embed-failed .embed-error {
+            display: flex;
+        }
+
+        .embed-shell.embed-failed .embed-loading {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        .embed-shell.embed-failed .embed-cursor-overlay {
+            display: none !important;
+            pointer-events: none;
+        }
+
         .steam-widgets.visible,
         .itch-widgets.visible {
             display: flex;
@@ -544,9 +608,88 @@
 
     <script>
         const itchEmbedColors = window.THREEHANDS_ITCH_EMBED_COLORS;
+        const EMBED_LOAD_TIMEOUT_MS = 9000;
+        const EMBED_MAX_RETRIES = 2;
+        const widgetGroups = Array.from(document.querySelectorAll('.steam-widgets, .itch-widgets'));
+
+        function clearEmbedTimeout(frame) {
+            if (frame._embedTimeout) {
+                clearTimeout(frame._embedTimeout);
+                frame._embedTimeout = null;
+            }
+        }
+
+        function scheduleEmbedTimeout(frame, shell) {
+            clearEmbedTimeout(frame);
+            frame._embedTimeout = window.setTimeout(function() {
+                if (shell.classList.contains('embed-ready') || shell.classList.contains('embed-failed')) return;
+                if (!frame.hasAttribute('src')) return;
+                handleEmbedStalled(frame, shell);
+            }, EMBED_LOAD_TIMEOUT_MS);
+        }
+
+        function handleEmbedStalled(frame, shell) {
+            const retries = parseInt(frame.dataset.embedRetry || '0', 10);
+            if (retries < EMBED_MAX_RETRIES) {
+                frame.dataset.embedRetry = String(retries + 1);
+                const source = frame.dataset.src || frame.getAttribute('src');
+                if (!source) {
+                    markEmbedFailed(shell, frame);
+                    return;
+                }
+                frame.dataset.src = source;
+                frame.removeAttribute('src');
+                shell.classList.remove('embed-ready');
+                window.setTimeout(function() {
+                    startEmbedLoad(frame);
+                }, 250 * (retries + 1));
+            } else {
+                markEmbedFailed(shell, frame);
+            }
+        }
+
+        function markEmbedReady(shell, frame, index) {
+            clearEmbedTimeout(frame);
+            shell.classList.remove('embed-failed');
+            if (shell.classList.contains('embed-ready')) return;
+            shell.classList.add('embed-ready');
+            frame.removeAttribute('tabindex');
+            const group = shell.closest('.steam-widgets, .itch-widgets');
+            if (group && group.classList.contains('visible')) {
+                window.setTimeout(function() {
+                    if (group.classList.contains('visible') && shell.classList.contains('embed-ready')) {
+                        shell.classList.add('embed-visible');
+                    }
+                }, Math.min(index, 5) * 80);
+            }
+        }
+
+        function markEmbedFailed(shell, frame) {
+            clearEmbedTimeout(frame);
+            shell.classList.remove('embed-ready');
+            shell.classList.add('embed-failed');
+            shell.classList.remove('embed-visible');
+            frame.setAttribute('tabindex', '-1');
+        }
+
+        function startEmbedLoad(frame) {
+            if (frame.hasAttribute('src')) return;
+            if (!frame.dataset.src) return;
+            const shell = frame.closest('.embed-shell');
+            if (!shell) return;
+            if (shell.classList.contains('embed-ready')) return;
+            if (shell.classList.contains('embed-failed') && parseInt(frame.dataset.embedRetry || '0', 10) >= EMBED_MAX_RETRIES) return;
+            if (embedLoadObserver) embedLoadObserver.unobserve(shell);
+            shell.classList.remove('embed-failed');
+            try { frame.loading = 'eager'; } catch (_e) {}
+            frame.src = frame.dataset.src;
+            shell.dataset.embedState = 'loading';
+            scheduleEmbedTimeout(frame, shell);
+        }
 
         function setItchEmbedSources() {
             document.querySelectorAll('.itch-widgets iframe[data-itch-id]').forEach(function(frame) {
+                if (frame.dataset.src || frame.hasAttribute('src')) return;
                 const gameId = frame.dataset.itchId;
                 const colors = itchEmbedColors && itchEmbedColors[gameId];
 
@@ -564,21 +707,11 @@
                     border_color: '000000'
                 }).toString();
 
-                if (frame.loading === 'lazy') {
-                    frame.dataset.src = source.href;
-                } else {
-                    frame.src = source.href;
+                frame.dataset.src = source.href;
+                if (frame.loading !== 'lazy') {
+                    startEmbedLoad(frame);
                 }
             });
-        }
-
-        setItchEmbedSources();
-        const widgetGroups = Array.from(document.querySelectorAll('.steam-widgets, .itch-widgets'));
-
-        function startEmbedLoad(frame) {
-            if (!frame.hasAttribute('src') && frame.dataset.src) {
-                frame.src = frame.dataset.src;
-            }
         }
 
         const embedLoadObserver = 'IntersectionObserver' in window
@@ -593,9 +726,18 @@
             : null;
 
         function observeLazyEmbeds(group) {
-            group.querySelectorAll('iframe[data-src]:not([src])').forEach(function(frame) {
+            const pending = Array.from(group.querySelectorAll('iframe[data-src]:not([src])'));
+            if (!pending.length) return;
+            pending.forEach(function(frame) {
                 if (embedLoadObserver) {
                     embedLoadObserver.observe(frame.closest('.embed-shell'));
+                    window.setTimeout(function() {
+                        if (!frame.hasAttribute('src') && group.classList.contains('visible') && !frame.closest('.embed-shell').classList.contains('embed-failed')) {
+                            const rect = frame.closest('.embed-shell').getBoundingClientRect();
+                            const inViewport = rect.top < window.innerHeight + 700 && rect.bottom > -700;
+                            if (inViewport) startEmbedLoad(frame);
+                        }
+                    }, 1200);
                 } else {
                     startEmbedLoad(frame);
                 }
@@ -618,20 +760,64 @@
             const provider = group.classList.contains('steam-widgets') ? 'Steam' : 'itch.io';
 
             Array.from(group.querySelectorAll('iframe')).forEach(function(frame, index) {
+                const initialSrc = frame.getAttribute('src');
+                const alreadyLoaded = frame.dataset.embedLoaded === 'true' && !!initialSrc;
+                const isEager = !!initialSrc && frame.loading !== 'lazy' && !alreadyLoaded;
+                if (isEager) {
+                    frame.dataset.src = initialSrc;
+                    frame.removeAttribute('src');
+                    frame.dataset._wasEager = 'true';
+                }
+
+                let fallbackHref = '';
+                let fallbackLabel = '';
+                const fallbackAnchor = frame.querySelector('a');
+                if (fallbackAnchor) {
+                    fallbackHref = fallbackAnchor.getAttribute('href') || fallbackAnchor.href || '';
+                    fallbackLabel = (fallbackAnchor.textContent || '').trim();
+                }
+                if (!fallbackHref && frame.dataset.itchId) {
+                    const htmlFallback = frame.innerHTML || '';
+                    const match = htmlFallback.match(/href\s*=\s*["']([^"']+)["']/i);
+                    if (match) fallbackHref = match[1];
+                }
+
                 const shell = document.createElement('div');
                 const loader = document.createElement('div');
                 const loaderText = document.createElement('span');
+                const error = document.createElement('div');
+                const errorText = document.createElement('span');
+                const retryButton = document.createElement('button');
 
                 shell.className = 'embed-shell';
-                shell.dataset.embedIndex = index;
+                shell.dataset.embedIndex = String(index);
                 loader.className = 'embed-loading';
                 loader.setAttribute('aria-hidden', 'true');
                 loaderText.textContent = 'LOADING ' + provider.toUpperCase() + '...';
                 loader.appendChild(loaderText);
 
+                error.className = 'embed-error';
+                error.setAttribute('aria-hidden', 'true');
+                errorText.textContent = provider.toUpperCase() + ' FAILED TO LOAD';
+                retryButton.className = 'embed-retry';
+                retryButton.type = 'button';
+                retryButton.textContent = 'RETRY';
+                error.appendChild(errorText);
+                error.appendChild(retryButton);
+                if (fallbackHref) {
+                    const fallbackLink = document.createElement('a');
+                    fallbackLink.className = 'embed-fallback-link';
+                    fallbackLink.href = fallbackHref;
+                    fallbackLink.target = '_blank';
+                    fallbackLink.rel = 'noopener';
+                    fallbackLink.textContent = fallbackLabel ? 'OPEN ' + fallbackLabel.split(' by ')[0].toUpperCase() : 'OPEN ON ' + provider.toUpperCase();
+                    error.appendChild(fallbackLink);
+                }
+
                 frame.before(shell);
                 shell.appendChild(frame);
                 shell.appendChild(loader);
+                shell.appendChild(error);
 
                 // Keep the Windows cursor over cross-origin frames.
                 // The iframe's document controls its own cursor, so we cover it with a same-origin link that shows the custom cursor and forwards clicks.
@@ -674,27 +860,53 @@
                 shell.appendChild(cursorOverlay);
 
                 frame.setAttribute('tabindex', '-1');
+                frame.dataset.embedRetry = '0';
 
-                function markEmbedReady() {
-                    shell.classList.add('embed-ready');
-                    frame.removeAttribute('tabindex');
-
-                    if (group.classList.contains('visible')) {
-                        window.setTimeout(function() {
-                            if (group.classList.contains('visible')) {
-                                shell.classList.add('embed-visible');
-                            }
-                        }, Math.min(index, 5) * 80);
-                    }
+                function onReady() {
+                    markEmbedReady(shell, frame, index);
                 }
 
-                frame.addEventListener('load', markEmbedReady);
+                function onStalledOrError() {
+                    handleEmbedStalled(frame, shell);
+                }
 
-                if (frame.dataset.embedLoaded === 'true') {
-                    markEmbedReady();
+                retryButton.addEventListener('click', function() {
+                    shell.classList.remove('embed-failed');
+                    frame.dataset.embedRetry = '0';
+                    if (!frame.dataset.src && frame.getAttribute('src')) {
+                        frame.dataset.src = frame.getAttribute('src');
+                    }
+                    frame.removeAttribute('src');
+                    window.setTimeout(function() {
+                        startEmbedLoad(frame);
+                    }, 150);
+                });
+
+                frame.addEventListener('load', function() {
+                    if (!frame.hasAttribute('src')) return;
+                    if (frame.dataset.embedLoaded === 'true' && shell.classList.contains('embed-ready')) return;
+                    onReady();
+                });
+
+                frame.addEventListener('error', function() {
+                    onStalledOrError();
+                });
+
+                if (frame.dataset.embedLoaded === 'true' && frame.hasAttribute('src')) {
+                    onReady();
+                }
+
+                if (frame.dataset._wasEager === 'true') {
+                    window.setTimeout(function() {
+                        if (!shell.classList.contains('embed-ready') && !shell.classList.contains('embed-failed')) {
+                            startEmbedLoad(frame);
+                        }
+                    }, 0);
                 }
             });
         });
+
+        setItchEmbedSources();
 
         // Chromium can keep a stale cursor after a window or tab return.
         // Swap between two visually identical but byte-distinct cursors to force a refresh.
