@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-html,body{margin:0;padding:0;background:#000;color:#B7D94C;font-family:'Press Start 2P',cursive;}
+html{background:#000;dynamic-range-limit:no-limit;}
+body{margin:0;padding:0;background:#000;color:#B7D94C;font-family:'Press Start 2P',cursive;dynamic-range-limit:no-limit;}
 a{text-decoration:none}
 .embed{display:flex;align-items:center;gap:18px;width:560px;height:175px;box-sizing:border-box;padding:14px;background:#000;border:0;overflow:hidden}
 .thumb{width:175px;height:138px;flex:0 0 175px;background:#111 url('/assets/itch-thumbnails/4826672.jpg') center/cover no-repeat;border-radius:0;border:2px solid #B7D94C}
@@ -13,26 +14,25 @@ a{text-decoration:none}
 .title{font-size:14px;line-height:1.5;color:#B7D94C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.5px;font-weight:700}
 .link{display:inline-block;margin-top:14px;font-size:10px;letter-spacing:1px;padding:10px 14px;background:#B7D94C;color:#000000;border:2px solid #B7D94C;text-transform:uppercase}
 .link:hover{filter:brightness(1.15)}
-/* HDR 2 stops — SDR fallback above, HDR overrides below (multiple spaces for widest support) */
-@supports (color: color(display-p3 1 0 0)) {
-  .title{color:color(display-p3 1.292 1.532 0.536);}
-  .thumb{border-color:color(display-p3 1.292 1.532 0.536);}
-  .link{background:color(display-p3 1.292 1.532 0.536);border-color:color(display-p3 1.292 1.532 0.536);}
-}
-@supports (color: oklab(1.5 0 0)) {
-  .title{color:oklab(1.4 0.15 0.08);}
-  .link{background:oklab(1.4 0.15 0.08);border-color:oklab(1.4 0.15 0.08);}
-}
-@supports (color: color(srgb-linear 1 0 0)) {
-  .title{color:color(srgb-linear 2.871 3.404 1.192);}
-  .thumb{border-color:color(srgb-linear 2.871 3.404 1.192);}
-  .link{background:color(srgb-linear 2.871 3.404 1.192);border-color:color(srgb-linear 2.871 3.404 1.192);}
+/* HDR 2 stops — only on HDR displays, with proper linear conversion */
+@media (dynamic-range: high) {
+  @supports (color: color(display-p3 1 0 0)) {
+    .title{color:color(display-p3 1.292 1.532 0.536);}
+    .thumb{border-color:color(display-p3 1.292 1.532 0.536);}
+    .link{background:color(display-p3 1.292 1.532 0.536);border-color:color(display-p3 1.292 1.532 0.536);}
+  }
+  @supports (color: color(srgb-linear 1 0 0)) {
+    .title{color:color(srgb-linear 1.8941 2.7755 0.2891);}
+    .thumb{border-color:color(srgb-linear 1.8941 2.7755 0.2891);}
+    .link{background:color(srgb-linear 1.8941 2.7755 0.2891);border-color:color(srgb-linear 1.8941 2.7755 0.2891);}
+  }
 }
 @media (max-width: 600px) {
-  .embed{width:100vw;height:100vh;max-width:100%;max-height:100%;padding:16px;gap:14px}
-  .thumb{width:40%;height:auto;aspect-ratio:1.27;flex:0 0 40%}
+  .embed{width:100vw;min-height:260px;height:auto;max-width:100%;padding:16px;gap:14px;flex-direction:column;align-items:stretch}
+  .thumb{width:100%;height:160px;flex:0 0 auto;aspect-ratio:auto}
+  .meta{width:100%}
   .title{font-size:16px;white-space:normal;line-height:1.6}
-  .link{font-size:11px;padding:12px 16px;margin-top:18px}
+  .link{font-size:11px;padding:12px 16px;margin-top:18px;width:100%;box-sizing:border-box;text-align:center}
 }
 </style>
 </head>

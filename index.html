@@ -186,6 +186,18 @@
             height: 175px;
         }
 
+        @media (max-width: 600px) {
+            .itch-widgets .embed-shell {
+                height: auto;
+                min-height: 260px;
+            }
+            .itch-widgets .embed-shell iframe {
+                position: absolute;
+                height: 260px;
+                min-height: 260px;
+            }
+        }
+
         .embed-shell iframe {
             position: absolute;
             inset: 0;
