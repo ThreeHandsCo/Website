@@ -341,8 +341,9 @@
             color: white;
             text-decoration: none;
             background: transparent;
-            /* Keep the layout size stable; the visible outline is the fixed rim below. */
-            border: 1px solid transparent;
+            /* Paint the rim inside the button so its bottom edge cannot be clipped. */
+            border: 2px solid white;
+            border-image: url('/assets/hdr-white.avif') 1 / 2px stretch;
             padding: 20px;
             font-size: 16px;
             transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
@@ -360,28 +361,8 @@
         .platform-link.active {
             background: white url('/assets/hdr-white.avif') center / 100% 100% no-repeat;
             color: black;
-        }
-
-        /*
-         * One fixed 2px rim. The PQ/BT.2020 AVIF is real HDR image data, so
-         * this does not depend on CSS color() headroom or hover state. The
-         * white border remains as the SDR fallback if the image is unavailable.
-         */
-        .platform-link::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border: 2px solid white;
-            opacity: 1;
-            pointer-events: none;
-            transition: none;
-            animation: none !important;
-            dynamic-range-limit: no-limit;
-            border-image: url('/assets/hdr-white.avif') 1 / 2px stretch;
-        }
-
-        .platform-link.active::before {
-            display: none;
+            border-color: transparent;
+            border-image: none;
         }
 
         .platform-link:hover {
