@@ -341,10 +341,11 @@
             color: white;
             text-decoration: none;
             background: transparent;
-            border: 2px solid white;
+            /* Keep the layout size stable; the visible outline is the fixed rim below. */
+            border: 1px solid transparent;
             padding: 20px;
             font-size: 16px;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
             text-align: center;
             min-width: 180px;
             text-transform: uppercase;
@@ -353,16 +354,7 @@
             position: relative;
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
-        }
-        /* Base in same color space as HDR for smooth border interpolation (white → HDR white) — fill stays SDR */
-        @supports (color: color(display-p3 1 1 1)) {
-            .platform-link {
-                color: color(display-p3 1 1 1);
-                border-color: color(display-p3 1 1 1);
-            }
-            .platform-link::before {
-                border-color: color(display-p3 1 1 1);
-            }
+            dynamic-range-limit: no-limit;
         }
 
         .platform-link.active {
@@ -370,68 +362,29 @@
             color: black;
         }
 
+        /*
+         * One fixed 1px rim. The PQ/BT.2020 AVIF is real HDR image data, so
+         * this does not depend on CSS color() headroom or hover state. The
+         * white border remains as the SDR fallback if the image is unavailable.
+         */
         .platform-link::before {
             content: '';
             position: absolute;
-            top: -5px;
-            left: -5px;
-            right: -5px;
-            bottom: -5px;
+            inset: -2px;
             border: 1px solid white;
             opacity: 1;
-            transition: all 0.3s ease;
-        }
-
-        .platform-link:hover::before {
-            opacity: 1;
-            animation: glow 1.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
-                           0 0 10px rgba(255, 255, 255, 0.3);
-            }
-            to {
-                box-shadow: 0 0 8px rgba(255, 255, 255, 0.6),
-                           0 0 15px rgba(255, 255, 255, 0.4);
-            }
+            pointer-events: none;
+            transition: none;
+            animation: none !important;
+            dynamic-range-limit: no-limit;
+            border-image: url('/assets/hdr-white.avif') 1 / 1px stretch;
         }
 
         .platform-link:hover {
             background: white;
             color: black;
             transform: translateY(-5px);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
         }
-
-        /* Perma HDR — whole border (not fill) thick HDR shimmer, fill stays SDR white */
-        .platform-link {
-            border: 5px solid white;
-            dynamic-range-limit: no-limit;
-        }
-        .platform-link::before {
-            opacity: 1;
-            border: 4px solid white;
-            box-shadow: none;
-            animation: none;
-            dynamic-range-limit: no-limit;
-        }
-        @supports (color: color(display-p3 1.5 1.5 1.5)) {
-            .platform-link {
-                border-color: color(display-p3 1.8 1.8 1.8);
-            }
-                .platform-link::before {
-                    border-color: color(display-p3 2 2 2);
-                    box-shadow: 0 0 6px color(display-p3 2 2 2 / .6), 0 0 12px color(display-p3 2 2 2 / .4);
-                }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .platform-link::before {
-                animation: none !important;
-            }
-        }
-        /* HDR only for rim — keep fill SDR white (perma shimmer above is the HDR) */
 
         .blurb {
             text-align: center;
