@@ -504,7 +504,7 @@
             text-decoration: none;
             background: #0e0e0e;
             border: none;
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 20px 26px;
             font-size: 13px;
             line-height: 1.35;
@@ -547,7 +547,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 2px;
             background: var(--btn-spec-bg, radial-gradient(ellipse 30% 38% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 60 60 60) 0%, color(srgb-linear 22 22 22) 18%, color(srgb-linear 8 8 8) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -569,7 +569,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            border-radius: 18px;
+            border-radius: 20px;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
             opacity: 0.38;
             mix-blend-mode: overlay;
@@ -637,7 +637,7 @@
 
         /* Adafruit-style 16x2 LCD module: black plastic shell around a
            blue, backlit character display. */
-        .lcd-module {
+         .lcd-module {
             --lcd-dot: 3px;
             position: relative;
             width: 100%;
@@ -645,7 +645,8 @@
             overflow: hidden;
             isolation: isolate;
             border: 1px solid #030405;
-            border-radius: clamp(10px, 1.6vw, 17px);
+            /* Same corner roundness as the video bezel and the buttons. */
+            border-radius: 20px;
             background: linear-gradient(145deg, #3a3d42 0%, #17191d 9%, #08090b 48%, #25282d 100%);
             box-shadow:
                 11px 13px 24px rgba(0, 0, 0, 0.92),
@@ -674,7 +675,7 @@
             position: absolute;
             inset: 0;
             z-index: 2;
-            border-radius: clamp(10px, 1.6vw, 17px);
+            border-radius: 20px;
             padding: 1.8px;
             background: radial-gradient(ellipse 40% 46% at var(--lcd-spec-x, 30%) var(--lcd-spec-y, 20%), color(srgb-linear 20 20 20) 0%, color(srgb-linear 13 13 13) 20%, color(srgb-linear 5 5 5) 40%, transparent 75%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -694,7 +695,7 @@
             inset: 4px;
             z-index: 3;
             border: 1px solid rgba(255,255,255,0.07);
-            border-radius: clamp(8px, 1.2vw, 13px);
+            border-radius: 16px;
             pointer-events: none;
         }
 
@@ -709,7 +710,7 @@
             overflow: hidden;
             padding: 12px 14px;
             border: 1px solid rgba(0, 12, 50, 0.75);
-            border-radius: clamp(7px, 1.15vw, 11px);
+            border-radius: 12px;
             background: linear-gradient(180deg, #087fe9 0%, #0767d5 48%, #034ba9 100%);
             box-shadow:
                 inset 0 2px 0 rgba(185, 225, 255, 0.35),
