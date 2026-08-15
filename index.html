@@ -155,7 +155,7 @@
 
         /* Realtime monitor glow: a downsampled copy of the current frame, blurred.
            Painted on three layers - tight bloom + wide spill + outer haze.
-           No mask/border — the canvas edge is hidden by blur + dither. */
+           Feathered at top where it would otherwise cut abruptly. */
         .trailer-glow {
             position: absolute;
             top: 50%;
@@ -168,24 +168,30 @@
             opacity: 0;
             will-change: opacity;
             image-rendering: auto;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%), radial-gradient(ellipse 88% 88% at 50% 45%, black 0%, black 28%, transparent 74%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%), radial-gradient(ellipse 88% 88% at 50% 45%, black 0%, black 28%, transparent 74%);
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
         }
 
         .trailer-glow-tight {
             width: 118%;
             height: 118%;
-            filter: blur(56px) saturate(1.5);
+            filter: blur(62px) saturate(1.5);
         }
 
         .trailer-glow-wide {
             width: 170%;
             height: 170%;
-            filter: blur(130px) saturate(1.5);
+            filter: blur(140px) saturate(1.5);
         }
 
         .trailer-glow-outer {
             width: 220%;
             height: 220%;
-            filter: blur(190px) saturate(1.5);
+            filter: blur(210px) saturate(1.5);
         }
 
 
