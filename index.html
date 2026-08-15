@@ -91,15 +91,48 @@
             position: relative;
             width: min(646px, calc(100vw - 40px));
             aspect-ratio: 16 / 9;
-            /* Neumorphic frame — thinner, softer extrude to match aged buttons */
+            /* Darker, thinner neumorphic frame — real HDR specular edge */
             isolation: isolate;
-            background: #0e0e0e;
-            border-radius: 16px;
-            padding: 6px;
+            background: #070709;
+            border-radius: 14px;
+            padding: 5px;
             box-shadow:
-                6px 6px 12px rgba(0, 0, 0, 0.88),
-                -6px -6px 12px rgba(255, 255, 255, 0.045),
-                inset 0 1px 0 rgba(255,255,255,0.035);
+                7px 7px 14px rgba(0, 0, 0, 0.96),
+                -7px -7px 14px rgba(255, 255, 255, 0.038),
+                inset 0 1px 0 rgba(255,255,255,0.04),
+                inset 0 -1px 1px rgba(0,0,0,0.55);
+        }
+
+        /* HDR shimmering edge — top-left specular, driven by video light */
+        .trailer-wrap::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            padding: 1.2px;
+            background: linear-gradient(135deg,
+                color(srgb-linear 8 8 8) 0%,
+                color(srgb-linear 3.5 3.5 3.5) 14%,
+                rgba(255,255,255,0.09) 22%,
+                transparent 38%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: var(--bezel-specular, 0.92);
+            mix-blend-mode: screen;
+            will-change: opacity;
+        }
+
+        .trailer-wrap::after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: 13px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.055) 0%, transparent 42%);
+            pointer-events: none;
+            opacity: 0.7;
         }
 
         .featured-trailer {
@@ -1656,10 +1689,11 @@
                     }
                 }
 
-                // Text lit by video — not self-emissive. Sample bottom edge of luma field.
+                // Text + bezel lit by video — not self-emissive. Sample bottom for text, top for bezel specular.
                 const blurbEl = document.querySelector('.release-status .blurb');
                 const comingEl = document.querySelector('.coming-soon');
                 const platformEls = document.querySelectorAll('.platform-link');
+                const bezelEl = document.querySelector('.trailer-wrap');
                 function updateTextLight() {
                     if (!blurbEl) return;
                     if (!lumaData || glowFade <= 0.01) {
@@ -1674,6 +1708,7 @@
                             btn.style.filter = btn.classList.contains('active') ? 'brightness(0.86) contrast(0.97)' : 'brightness(0.88) contrast(0.98)';
                             btn.style.opacity = btn.classList.contains('active') ? '0.86' : '0.90';
                         });
+                        if (bezelEl) bezelEl.style.setProperty('--bezel-specular', '0.62');
                         return;
                     }
                     const w = lumaCanvas.width, h = lumaCanvas.height;
@@ -1710,6 +1745,21 @@
                         btn.style.filter = `brightness(${b}) contrast(0.97)`;
                         btn.style.opacity = isActive ? String(0.84 + 0.09*avgL) : String(0.90 + 0.08*avgL);
                     });
+                    // HDR shimmering edge: top ring of video drives bezel specular
+                    if (bezelEl) {
+                        let topR=0, topG=0, topB=0, topC=0;
+                        const topY0 = 0, topY1 = Math.floor(h * 0.22);
+                        for (let y=topY0; y<topY1; y++) {
+                            for (let x=0; x<w; x++) {
+                                const i=(y*w+x)*4;
+                                topR+=lumaData[i]; topG+=lumaData[i+1]; topB+=lumaData[i+2]; topC++;
+                            }
+                        }
+                        topR/=topC; topG/=topC; topB/=topC;
+                        const topL = (0.2126*topR + 0.7152*topG + 0.0722*topB)/255;
+                        const spec = 0.58 + 0.52 * topL * flick * (0.45 + 0.55*glowFade);
+                        bezelEl.style.setProperty('--bezel-specular', String(spec.toFixed(3)));
+                    }
                 }
 
                 function renderGlow(now) {
