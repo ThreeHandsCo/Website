@@ -730,12 +730,14 @@
 
         @supports (color: color(srgb-linear 1 1 1)) {
             .lcd-screen {
-                background: radial-gradient(ellipse 92% 110% at 45% 34%, color(srgb-linear 0.015 0.18 5.5) 0%, color(srgb-linear 0.006 0.08 2.5) 58%, color(srgb-linear 0.002 0.025 0.72) 100%);
+                /* Backlight pushed ~1.5 stops into HDR: identical hue/chromaticity,
+                   linear-light channels scaled 2.83x (pure luminance, no color change). */
+                background: radial-gradient(ellipse 92% 110% at 45% 34%, color(srgb-linear 0.042 0.51 15.6) 0%, color(srgb-linear 0.017 0.226 7.08) 58%, color(srgb-linear 0.0057 0.071 2.04) 100%);
                 box-shadow:
                     inset 0 2px 0 rgba(185, 225, 255, 0.35),
                     inset 0 -6px 12px rgba(0, 22, 105, 0.42),
-                    0 0 34px color(srgb-linear 0.01 0.10 4.5 / 0.54),
-                    0 0 78px color(srgb-linear 0.002 0.035 1.4 / 0.28),
+                    0 0 34px color(srgb-linear 0.0283 0.283 12.74 / 0.54),
+                    0 0 78px color(srgb-linear 0.0057 0.099 3.96 / 0.28),
                     0 0 0 2px rgba(0, 0, 0, 0.62);
             }
         }
@@ -994,6 +996,10 @@
               opacity: 0;
               pointer-events: none;
               will-change: transform;
+              /* Ghosts replay the pointer's path AND velocity: each tick sample
+                 is interpolated over the tick interval, so the trail flows at
+                 the speed the cursor actually moved. Disabled during the merge. */
+              transition: transform 40ms linear;
               dynamic-range-limit: no-limit;
           }
 
@@ -1820,6 +1826,8 @@
          // Ghost placement uses the classic Windows 2000 time-based trail
          // algorithm — each ghost sits where the pointer was N ticks ago — so
          // the chain bunches up at low speed and stretches out when flicked.
+         // Tick samples are interpolated, so each ghost also replays the
+         // pointer's velocity along the traced path instead of snapping.
          // The ghosts are spaced three ticks apart (about 100/200/300 ms).
          // Movement must be idle for 280 ms before the trail retracts, so the
          // brief pauses of normal motion never collapse the chain.
@@ -1867,7 +1875,10 @@
                  }
                  collapsePath = null;
                  collapseDistances = null;
-                 trails.forEach(function(node) { node.style.opacity = '0'; });
+                 trails.forEach(function(node) {
+                     node.style.opacity = '0';
+                     node.style.transition = '';
+                 });
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
 
@@ -1901,7 +1912,10 @@
                  collapseRaf = 0;
                  collapsePath = null;
                  collapseDistances = null;
-                 trails.forEach(function(node) { node.style.opacity = '0'; });
+                 trails.forEach(function(node) {
+                     node.style.opacity = '0';
+                     node.style.transition = '';
+                 });
                  target = null;
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
@@ -1943,7 +1957,10 @@
                  collapseStart = performance.now();
                  // The modern cursor takes over immediately; the ghosts
                  // disappear beneath it as they retract along the path.
+                 // The merge drives transforms per frame, so the velocity
+                 // transition is switched off for its duration.
                  document.documentElement.classList.remove('cursor-trail-moving');
+                 trails.forEach(function(node) { node.style.transition = 'none'; });
                  collapseRaf = window.requestAnimationFrame(renderCollapseFrame);
              }
 
@@ -1978,6 +1995,7 @@
                  if (collapseRaf) {
                      window.cancelAnimationFrame(collapseRaf);
                      collapseRaf = 0;
+                     trails.forEach(function(node) { node.style.transition = ''; });
                  }
                  document.documentElement.classList.add('cursor-trail-moving');
                  const wasHidden = !target;
