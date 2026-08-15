@@ -486,11 +486,13 @@
             text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.68), 0 2px 6px rgba(0,0,0,0.42);
             opacity: 0.90;
             filter: contrast(0.97) brightness(0.78) sepia(0.02);
-            /* extruded: dark shadow + faint highlight, same base as page */
+            /* extruded: dark shadow + highlight edge, same base as page.
+               A crisp 1px top light + 1px bottom dark makes the boundary read. */
             box-shadow:
-                9px 9px 18px rgba(0, 0, 0, 0.92),
-                -9px -9px 18px var(--btn-edge, rgba(255, 255, 255, 0.055)),
-                inset 0 0 0 rgba(255,255,255,0);
+                9px 9px 18px rgba(0, 0, 0, 0.96),
+                -9px -9px 18px var(--btn-edge, rgba(255, 255, 255, 0.09)),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.6);
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
                 transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -512,8 +514,8 @@
             position: absolute;
             inset: 0;
             border-radius: 18px;
-            padding: 1.2px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%));
+            padding: 2px;
+            background: var(--btn-spec-bg, radial-gradient(ellipse 30% 38% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 60 60 60) 0%, color(srgb-linear 22 22 22) 18%, color(srgb-linear 8 8 8) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -547,7 +549,9 @@
             filter: brightness(0.92);
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
-                -11px -11px 22px rgba(255, 255, 255, 0.07);
+                -11px -11px 22px var(--btn-edge, rgba(255, 255, 255, 0.11)),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.6);
         }
 
         .platform-link:active,
@@ -574,11 +578,13 @@
         }
 
         .platform-link:disabled {
-            opacity: 0.38;
+            opacity: 0.52;
             cursor: not-allowed;
             box-shadow:
                 5px 5px 12px rgba(0, 0, 0, 0.62),
-                -5px -5px 12px rgba(255, 255, 255, 0.032);
+                -5px -5px 12px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.55);
             transform: none;
         }
 
@@ -637,15 +643,15 @@
         }
 
         .coming-soon {
-            color: #c2c9d1;
+            color: #e0e5ea;
             font-family: 'Press Start 2P', cursive;
             font-size: 11px;
             letter-spacing: 1px;
             text-align: center;
             /* same light field, weaker — further from the video */
-            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.09), 0 1px 0 rgba(0,0,0,0.5);
-            opacity: 0.88;
-            filter: brightness(0.94);
+            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.14), 0 1px 0 rgba(0,0,0,0.45);
+            opacity: 0.92;
+            filter: brightness(1);
             transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color;
         }
@@ -1719,18 +1725,21 @@
                 function updateTextLight() {
                     if (!blurbEl) return;
                     if (!lumaData || glowFade <= 0.01) {
-                        blurbEl.style.filter = 'brightness(0.78) contrast(0.98)';
-                        blurbEl.style.opacity = '0.84';
-                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45)';
-                        // Solid fill so the clipped glyphs stay visible pre-video.
-                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #b8bfc6 0%, #b8bfc6 100%)');
+                        blurbEl.style.filter = 'brightness(0.95) contrast(0.99)';
+                        blurbEl.style.opacity = '0.92';
+                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.16), 0 1px 0 rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4)';
+                        // Solid near-white fill so the clipped glyphs stay visible pre-video.
+                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #e2e6eb 0%, #e2e6eb 100%)');
                         if (comingEl) {
-                            comingEl.style.filter = 'brightness(0.76)';
-                            comingEl.style.opacity = '0.78';
+                            comingEl.style.filter = 'brightness(0.92)';
+                            comingEl.style.opacity = '0.88';
                         }
                         platformEls.forEach(function(btn) {
                             btn.style.filter = btn.classList.contains('active') ? 'brightness(0.86) contrast(0.97)' : 'brightness(0.88) contrast(0.98)';
                             btn.style.opacity = btn.classList.contains('active') ? '0.86' : '0.90';
+                            // Keep the edge visible before the trailer lights it.
+                            btn.style.setProperty('--btn-specular', '0.6');
+                            btn.style.setProperty('--btn-edge', 'rgba(255, 255, 255, 0.09)');
                         });
                         if (bezelEl) bezelEl.style.setProperty('--bezel-specular', '0.62');
                         return;
@@ -1753,8 +1762,9 @@
                     const avgL = (0.2126*rS + 0.7152*gS + 0.0722*bS)/255;
                     const flick = 0.55 + 0.45 * glowFlicker;
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
-                    // darker base, HDR emissive tint — text only as bright as video
-                    const baseR = Math.round(58 + (rS-20)*0.11), baseG = Math.round(60 + (gS-22)*0.11), baseB = Math.round(66 + (bS-28)*0.11);
+                    // Near-white glyphs — the video light brightens and tints
+                    // them, never darkens them below a readable white.
+                    const baseR = Math.round(208 + (rS-110)*0.18), baseG = Math.round(210 + (gS-112)*0.18), baseB = Math.round(214 + (bS-118)*0.18);
                     const tintR = Math.round(208 + (rS-110)*0.14);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
@@ -1765,8 +1775,8 @@
                     const hdrGlow = `0 0 ${hdrBlur}px color(srgb-linear ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.95 + 1.9*avgL).toFixed(2)} / ${hdrAlpha})`;
                     blurbEl.style.color = `rgb(${baseR},${baseG},${baseB})`;
                     blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
-                    blurbEl.style.filter = `brightness(${0.66 + 0.62*avgL*flick*glowFade}) contrast(0.98)`;
-                    blurbEl.style.opacity = String(0.78 + 0.18*avgL*flick);
+                    blurbEl.style.filter = `brightness(${0.94 + 0.24*avgL*flick*glowFade}) contrast(0.99)`;
+                    blurbEl.style.opacity = String(0.92 + 0.08*avgL*flick);
                     // Mild text shimmer: a narrow specular streak on the glyphs
                     // that crawls with the video's brightest spot, tinted by it.
                     {
@@ -1784,9 +1794,9 @@
                         const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
                         const streakW = 7 + Math.round(9 * avgL);                    // narrow, mild
                         const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
-                        const pR = Math.min(255, Math.round(baseR + (tintR - baseR) * 0.55 + 42 * peak));
-                        const pG = Math.min(255, Math.round(baseG + (tintG - baseG) * 0.55 + 42 * peak));
-                        const pB = Math.min(255, Math.round(baseB + (tintB - baseB) * 0.55 + 46 * peak));
+                        const pR = Math.min(255, Math.round(baseR + (tintR - baseR) * 0.55 + 60 * peak));
+                        const pG = Math.min(255, Math.round(baseG + (tintG - baseG) * 0.55 + 60 * peak));
+                        const pB = Math.min(255, Math.round(baseB + (tintB - baseB) * 0.55 + 64 * peak));
                         const g0 = Math.max(0, streakX - streakW);
                         const g1 = Math.min(100, streakX + streakW);
                         blurbEl.style.setProperty('--blurb-sheen',
@@ -1798,14 +1808,14 @@
                                 rgba(${baseR},${baseG},${baseB},1) 100%)`);
                     }
                     if (comingEl) {
-                        const cR = Math.round(baseR*0.92), cG = Math.round(baseG*0.92), cB = Math.round(baseB*0.96);
+                        const cR = Math.round(188 + (rS-110)*0.15), cG = Math.round(190 + (gS-112)*0.15), cB = Math.round(194 + (bS-118)*0.15);
                         const cHdrBlur = (2.5 + 4.5 * avgL * flick * glowFade).toFixed(1);
                         const cHdrA = (0.10 + 0.16 * avgL * flick * glowFade).toFixed(3);
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
                         comingEl.style.color = `rgb(${cR},${cG},${cB})`;
-                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.04 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.58), ${cGlow}`;
-                        comingEl.style.filter = `brightness(${0.68 + 0.52*avgL*flick*glowFade})`;
-                        comingEl.style.opacity = String(0.74 + 0.14*avgL);
+                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.07 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.5), ${cGlow}`;
+                        comingEl.style.filter = `brightness(${0.9 + 0.2*avgL*flick*glowFade})`;
+                        comingEl.style.opacity = String(0.86 + 0.08*avgL);
                     }
                     platformEls.forEach(function(btn, idx) {
                         // Light falling on this button: the frame strip above it.
@@ -1822,8 +1832,8 @@
                         btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.84 + 0.12*sL);
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
-                        // specular only when popped-out — way brighter, very reactive
-                        const spec = isActive ? 0 : Math.min(1, 0.48 + 0.95 * sL * flick * glowFade);
+                        // specular only when popped-out — bright, always-visible edge
+                        const spec = isActive ? 0 : Math.min(1, 0.65 + 0.9 * sL * flick * glowFade);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                         // Kick-ass part: the shimmer carries the COLOR of the light
                         // above this button. Peak/mid/low stops get a subtle hue
@@ -1836,16 +1846,16 @@
                         const hueR = Math.min(255, Math.round(sR * 255 / Math.max(24, maxC)));
                         const hueG = Math.min(255, Math.round(sG * 255 / Math.max(24, maxC)));
                         const hueB = Math.min(255, Math.round(sB * 255 / Math.max(24, maxC)));
-                        const pR = Math.round(32 + (hueR - 32) * mixT * 0.85);
-                        const pG = Math.round(32 + (hueG - 32) * mixT * 0.85);
-                        const pB = Math.round(32 + (hueB - 32) * mixT * 0.85);
+                        const pR = Math.round(60 + (hueR - 60) * mixT * 0.85);
+                        const pG = Math.round(60 + (hueG - 60) * mixT * 0.85);
+                        const pB = Math.round(60 + (hueB - 60) * mixT * 0.85);
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
                         btn.style.setProperty('--btn-spec-bg',
                             `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
                         // Neumorphic top edge takes the same light, softer.
                         btn.style.setProperty('--btn-edge',
-                            `rgba(${Math.min(255, 205 + hueR * mixT * 0.3)}, ${Math.min(255, 205 + hueG * mixT * 0.3)}, ${Math.min(255, 210 + hueB * mixT * 0.3)}, ${(0.045 + 0.05 * sL).toFixed(3)})`);
+                            `rgba(${Math.min(255, 212 + hueR * mixT * 0.3)}, ${Math.min(255, 212 + hueG * mixT * 0.3)}, ${Math.min(255, 217 + hueB * mixT * 0.3)}, ${(0.075 + 0.07 * sL).toFixed(3)})`);
                     });
                     // HDR shimmering edge: location + intensity from top edge, way brighter
                     if (bezelEl) {
