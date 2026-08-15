@@ -944,7 +944,7 @@
               --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer.svg') 10 10, auto;
           }
 
-          /* Nine solid channel ghosts placed by the time-based trail chain. */
+          /* Three solid channel ghosts placed by the time-based trail chain. */
           .mouse-trail {
               position: fixed;
               top: 0;
@@ -1762,27 +1762,33 @@
              refreshCursor();
          })();
 
-         // Motion mode: a monochrome Win3.1 cursor leads nine solid RGB ghosts —
-         // three per channel, cycling red, green, blue down the trail.
+         // Motion mode: a monochrome Win3.1 cursor leads three solid RGB ghosts —
+         // one red, one green, one blue.
          // Ghost placement uses the classic Windows 2000 time-based trail
          // algorithm — each ghost sits where the pointer was N ticks ago — so
          // the chain bunches up at low speed and stretches out when flicked.
+         // The ghosts are spaced two ticks apart: close enough to read as one
+         // trail, far enough that they never bunch into a blob.
          // When movement stops, the ghosts accelerate forward and merge into
          // the modern cursor, which takes over as the chain disappears.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
-             const colorCycle = ['is-red', 'is-green', 'is-blue'];
-             const trails = Array.from({ length: 9 }, function(_, index) {
+             const trailClasses = ['is-red', 'is-green', 'is-blue'];
+             const trails = trailClasses.map(function(colorClass) {
                  const node = document.createElement('span');
-                 node.className = `mouse-trail ${colorCycle[index % colorCycle.length]}`;
+                 node.className = `mouse-trail ${colorClass}`;
                  node.setAttribute('aria-hidden', 'true');
                  document.body.appendChild(node);
                  return node;
              });
-             const positions = Array.from({ length: trails.length + 1 }, function() {
-                 return { x: 0, y: 0 };
-             });
+             const trailTickOffsets = [2, 4, 6];
+             const positions = Array.from(
+                 { length: trailTickOffsets[trailTickOffsets.length - 1] + 1 },
+                 function() {
+                     return { x: 0, y: 0 };
+                 }
+             );
              let target = null;
              let pointerMode = false;
              let lastMove = 0;
@@ -1864,7 +1870,7 @@
 
                  const hotspot = pointerMode ? 10 : 0;
                  trails.forEach(function(node, index) {
-                     const point = positions[index + 1];
+                     const point = positions[trailTickOffsets[index]];
                      node.style.opacity = '1';
                      node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
                  });
