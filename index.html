@@ -1763,8 +1763,11 @@
          })();
 
          // Motion mode: a monochrome Win3.1 cursor leads three solid RGB ghosts.
-         // The ghosts use fixed path distances while moving, then snap back into
-         // the modern cursor with a short, intentionally janky acceleration.
+         // Ghost placement uses the classic Windows 2000 time-based trail
+         // algorithm — each ghost sits where the pointer was N ticks ago — so
+         // the chain bunches up at low speed and stretches out when flicked.
+         // When movement stops, the ghosts collapse into the modern cursor with
+         // a short, intentionally janky acceleration.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
@@ -1776,11 +1779,9 @@
                  document.body.appendChild(node);
                  return node;
              });
-             const trailGap = 28;
-             const sampleStep = 4;
-             const maxPathDistance = trailGap * (trails.length + 1) + 48;
-             const path = [];
-             let pathDistance = 0;
+             const positions = Array.from({ length: trails.length + 1 }, function() {
+                 return { x: 0, y: 0 };
+             });
              let target = null;
              let pointerMode = false;
              let lastMove = 0;
@@ -1797,8 +1798,6 @@
                      window.clearTimeout(collapseTimer);
                      collapseTimer = 0;
                  }
-                 path.length = 0;
-                 pathDistance = 0;
                  trails.forEach(function(node) {
                      node.classList.remove('is-collapsing');
                      node.style.opacity = '0';
@@ -1812,66 +1811,6 @@
                  return !!clickable && !(clickable.disabled || clickable.matches(':disabled'));
              }
 
-             function distanceBetween(first, second) {
-                 return Math.hypot(first.x - second.x, first.y - second.y);
-             }
-
-             function recordPoint(x, y) {
-                 const point = { x: x, y: y };
-                 if (!path.length) {
-                     path.unshift(point);
-                     return;
-                 }
-
-                 const leadingDistance = distanceBetween(point, path[0]);
-                 if (leadingDistance < sampleStep) {
-                     if (path.length > 1) {
-                         pathDistance += distanceBetween(point, path[1]) - distanceBetween(path[0], path[1]);
-                     }
-                     path[0] = point;
-                     return;
-                 }
-
-                 path.unshift(point);
-                 pathDistance += leadingDistance;
-                 while (pathDistance > maxPathDistance && path.length > 2) {
-                     const last = path.length - 1;
-                     pathDistance -= distanceBetween(path[last - 1], path[last]);
-                     path.pop();
-                 }
-             }
-
-             function pointAtDistance(distance) {
-                 if (!path.length) return null;
-
-                 let remaining = distance;
-                 let from = target;
-                 for (let i = 0; i < path.length; i++) {
-                     const to = path[i];
-                     const segmentLength = distanceBetween(from, to);
-                     if (segmentLength >= remaining) {
-                         const ratio = remaining / segmentLength;
-                         return {
-                             x: from.x + (to.x - from.x) * ratio,
-                             y: from.y + (to.y - from.y) * ratio
-                         };
-                     }
-                     remaining -= segmentLength;
-                     from = to;
-                 }
-                 return null;
-             }
-
-             function renderTrailPositions() {
-                 const hotspot = pointerMode ? 10 : 0;
-                 trails.forEach(function(node, index) {
-                     const point = pointAtDistance(trailGap * (index + 1));
-                     node.style.opacity = point ? '1' : '0';
-                     if (!point) return;
-                     node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
-                 });
-             }
-
              function finishCollapse() {
                  collapseTimer = 0;
                  trails.forEach(function(node) {
@@ -1879,8 +1818,6 @@
                      node.style.opacity = '0';
                  });
                  target = null;
-                 path.length = 0;
-                 pathDistance = 0;
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
 
@@ -1914,7 +1851,20 @@
                      collapseTrails();
                      return;
                  }
-                 renderTrailPositions();
+
+                 for (let i = positions.length - 1; i > 0; i--) {
+                     positions[i].x = positions[i - 1].x;
+                     positions[i].y = positions[i - 1].y;
+                 }
+                 positions[0].x = target.x;
+                 positions[0].y = target.y;
+
+                 const hotspot = pointerMode ? 10 : 0;
+                 trails.forEach(function(node, index) {
+                     const point = positions[index + 1];
+                     node.style.opacity = '1';
+                     node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
+                 });
              }
 
              document.addEventListener('pointermove', function(event) {
@@ -1925,8 +1875,14 @@
                      trails.forEach(function(node) { node.classList.remove('is-collapsing'); });
                  }
                  document.documentElement.classList.add('cursor-trail-moving');
+                 const wasHidden = !target;
                  target = { x: event.clientX, y: event.clientY };
-                 recordPoint(event.clientX, event.clientY);
+                 if (wasHidden) {
+                     positions.forEach(function(point) {
+                         point.x = event.clientX;
+                         point.y = event.clientY;
+                     });
+                 }
                  const nextPointerMode = isPointerTarget(event.target);
                  if (nextPointerMode !== pointerMode) {
                      pointerMode = nextPointerMode;
