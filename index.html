@@ -1735,7 +1735,6 @@
             }
 
             document.documentElement.addEventListener('mouseenter', refreshCursor);
-            document.addEventListener('mousemove', refreshCursor, { passive: true });
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) refreshCursor();
             });
@@ -1748,17 +1747,17 @@
              refreshCursor();
          })();
 
-         // A restrained Windows 2000 mouse trail. It only runs for a real
-         // fine pointer and sleeps completely after the pointer stops.
+         // Windows 2000-style trails: five discrete ghosts, updated at 20 Hz.
+         // This deliberately avoids a requestAnimationFrame loop so the effect
+         // cannot compete with video, canvas, or the rest of the page.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
-             const trailOpacities = [0.20, 0.13, 0.08, 0.045, 0.022];
-             const trails = trailOpacities.map(function(opacity) {
+             const trailOpacities = [0.32, 0.22, 0.14, 0.08, 0.04];
+             const trails = trailOpacities.map(function() {
                  const node = document.createElement('span');
                  node.className = 'mouse-trail';
                  node.setAttribute('aria-hidden', 'true');
-                 node.style.opacity = String(opacity);
                  document.body.appendChild(node);
                  return node;
              });
@@ -1766,10 +1765,14 @@
              let target = null;
              let pointerMode = false;
              let lastMove = 0;
-             let animationFrame = 0;
+             let trailTimer = 0;
 
              function hideTrails() {
                  target = null;
+                 if (trailTimer) {
+                     window.clearInterval(trailTimer);
+                     trailTimer = 0;
+                 }
                  trails.forEach(function(node) { node.style.opacity = '0'; });
              }
 
@@ -1779,49 +1782,51 @@
                  return !!clickable && !(clickable.disabled || clickable.matches(':disabled'));
              }
 
-             function renderTrails(now) {
+             function stepTrails() {
                  if (!target || document.hidden) {
-                     animationFrame = 0;
+                     hideTrails();
                      return;
                  }
 
-                 const idle = now - lastMove;
-                 points[0].x += (target.x - points[0].x) * 0.72;
-                 points[0].y += (target.y - points[0].y) * 0.72;
-                 for (let i = 1; i < points.length; i++) {
-                     points[i].x += (points[i - 1].x - points[i].x) * 0.58;
-                     points[i].y += (points[i - 1].y - points[i].y) * 0.58;
+                 for (let i = points.length - 1; i > 0; i--) {
+                     points[i].x = points[i - 1].x;
+                     points[i].y = points[i - 1].y;
                  }
+                 points[0].x = target.x;
+                 points[0].y = target.y;
 
+                 const idle = Date.now() - lastMove;
+                 const fade = idle > 550 ? Math.max(0, 1 - (idle - 550) / 500) : 1;
                  const hotspot = pointerMode ? 10 : 0;
-                 const fade = idle > 650 ? Math.max(0, 1 - (idle - 650) / 550) : 1;
                  trails.forEach(function(node, index) {
                      const point = points[index];
-                     node.classList.toggle('is-pointer', pointerMode);
                      node.style.opacity = String(trailOpacities[index] * fade);
                      node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
                  });
 
-                 if (idle > 1250 && fade <= 0) {
-                     hideTrails();
-                     animationFrame = 0;
-                     return;
-                 }
-                 animationFrame = window.requestAnimationFrame(renderTrails);
+                 if (idle > 1100) hideTrails();
              }
 
              document.addEventListener('pointermove', function(event) {
                  if (event.pointerType === 'touch') return;
-                 if (!target) {
+                 const wasHidden = !target;
+                 target = { x: event.clientX, y: event.clientY };
+                 const nextPointerMode = isPointerTarget(event.target);
+                 if (nextPointerMode !== pointerMode) {
+                     pointerMode = nextPointerMode;
+                     trails.forEach(function(node) { node.classList.toggle('is-pointer', pointerMode); });
+                 }
+                 lastMove = Date.now();
+                 if (wasHidden) {
                      points.forEach(function(point) {
                          point.x = event.clientX;
                          point.y = event.clientY;
                      });
                  }
-                 target = { x: event.clientX, y: event.clientY };
-                 pointerMode = isPointerTarget(document.elementFromPoint(event.clientX, event.clientY));
-                 lastMove = performance.now();
-                 if (!animationFrame) animationFrame = window.requestAnimationFrame(renderTrails);
+                 if (!trailTimer) {
+                     stepTrails();
+                     trailTimer = window.setInterval(stepTrails, 50);
+                 }
              }, { passive: true });
 
              document.addEventListener('pointerout', function(event) {
