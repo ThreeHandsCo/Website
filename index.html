@@ -824,6 +824,21 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
 
+        /* Desktop landing rhythm: keep the hero stack comfortably above the
+           fold without changing its scale or the mobile layout. */
+        @media (min-width: 1025px) {
+            #content-container {
+                gap: 28px;
+                padding-top: 16px;
+                padding-bottom: 32px;
+            }
+
+            .header-video,
+            .header-low-power-frame {
+                margin-bottom: 24px;
+            }
+        }
+
         /* iPhone landscape is wider than 768px. Keep Safari on the page scroller. */
         @media (max-width: 1024px), (hover: none) and (pointer: coarse) {
             body {
