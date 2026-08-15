@@ -102,6 +102,7 @@
                 -10px -10px 24px rgba(255, 255, 255, 0.075),
                 inset 0 1.5px 0 rgba(255, 255, 255, 0.10),
                 inset 0 -1.5px 2px rgba(0, 0, 0, 0.62);
+            dynamic-range-limit: no-limit;
         }
 
         /* HDR shimmering edge — visible, crawling the border */
@@ -165,6 +166,9 @@
             opacity: 0;
             will-change: opacity;
             image-rendering: auto;
+            /* 10-bit raster surface on HDR pipelines: blur+saturate are
+               computed without 8-bit quantization bands. */
+            dynamic-range-limit: no-limit;
         }
 
         .trailer-glow-tight {
@@ -199,6 +203,7 @@
             height: 170%;
             transform: translate(-50%, -50%);
             pointer-events: none;
+            dynamic-range-limit: no-limit;
         }
 
         #content-container {
@@ -612,6 +617,7 @@
             /* lit by video — JS drives --blurb-bright and --blurb-tint */
             transition: transform 0.22s ease, filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color, text-shadow;
+            dynamic-range-limit: no-limit;
         }
 
         /* Same shimmer as the buttons, mild: gradient-lit glyphs with a
@@ -664,6 +670,7 @@
             filter: brightness(1) drop-shadow(0px 3px 8px rgba(0,0,0,0.45));
             transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color;
+            dynamic-range-limit: no-limit;
         }
 
         @keyframes pulse {
@@ -1775,7 +1782,7 @@
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
                     // Max white — pure, video just tints
                     const baseR = 255, baseG = 255, baseB = 255;
-                    const tintR = Math.round(208 + (rS-110)*0.14);
+                    const tintR = Math.round(212 + (rS-110)*0.10);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
                     const hdrBlur = (3.5 + 6.5 * avgL * flick * glowFade).toFixed(1);
@@ -1788,10 +1795,10 @@
                     const shadowY = (3 + 5 * avgL).toFixed(1);
                     const shadowBlur = (8 + 16 * avgL * flick * glowFade).toFixed(1);
                     const shadowA = (0.30 + 0.34 * avgL * flick).toFixed(3);
-                    blurbEl.style.color = `rgb(${Math.min(255,baseR)},${Math.min(255,baseG)},${Math.min(255,baseB)})`;
+                    blurbEl.style.color = `rgb(255,255,255)`;
                     blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
-                    blurbEl.style.filter = `brightness(${1.12 + 0.22*avgL*flick*glowFade}) contrast(0.99) drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
-                    blurbEl.style.opacity = String(0.99 + 0.02*avgL*flick);
+                    blurbEl.style.filter = `brightness(1.0) contrast(1.0) drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
+                    blurbEl.style.opacity = '1';
                     // Mild text shimmer: a narrow specular streak on the glyphs
                     // that crawls with the video's brightest spot, tinted by it.
                     // Shared by the blurb and the coming-soon line.
@@ -1812,8 +1819,8 @@
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
                     {
-                        // HDR peak stop: 3-4 stops (8x-16x), body stays SDR white
-                        const lp = 8 + 8 * peak + 1.2 * avgL;
+                        // HDR peak stop: 4 stops forced (16x, 2000+ nits), body stays SDR white
+                        const lp = 16;
                         const lpR = (lp * tintLin(tintR)).toFixed(2);
                         const lpG = (lp * tintLin(tintG)).toFixed(2);
                         const lpB = (lp * tintLin(tintB)).toFixed(2);
