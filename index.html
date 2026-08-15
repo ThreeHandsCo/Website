@@ -127,7 +127,9 @@
             inset: 0;
             border-radius: 20px;
             padding: 2.2px;
-            background: radial-gradient(ellipse 40% 46% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 20 20 20) 20%, color(srgb-linear 8 8 8) 40%, transparent 78%);
+            /* STATIC specular parked at ~45 deg (30-60 band). Not video-driven;
+               the dynamic specular lives on the LCD bar below. */
+            background: radial-gradient(ellipse 40% 46% at var(--bezel-x, 68%) var(--bezel-y, 34%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 20 20 20) 20%, color(srgb-linear 8 8 8) 40%, transparent 78%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -666,6 +668,26 @@
             pointer-events: none;
         }
 
+        /* Dynamic specular ring on the LCD shell — position and intensity
+           crawl with the video's brightest spot (JS-driven vars). */
+        .lcd-spec-ring {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            border-radius: clamp(10px, 1.6vw, 17px);
+            padding: 1.8px;
+            background: radial-gradient(ellipse 40% 46% at var(--lcd-spec-x, 30%) var(--lcd-spec-y, 20%), color(srgb-linear 20 20 20) 0%, color(srgb-linear 13 13 13) 20%, color(srgb-linear 5 5 5) 40%, transparent 75%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: var(--lcd-specular, 0.8);
+            mix-blend-mode: screen;
+            will-change: opacity, background;
+            dynamic-range-limit: no-limit;
+        }
+
         .lcd-module::after {
             content: "";
             position: absolute;
@@ -1082,6 +1104,7 @@
         </div>
         <div class="release-status">
             <div class="lcd-module" role="img" aria-label="SKLESH OUT NOW. Coming soon to the App Store.">
+                <span class="lcd-spec-ring" aria-hidden="true"></span>
                 <div class="lcd-screen">
                     <canvas class="lcd-matrix" aria-hidden="true"></canvas>
                     <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="lcd-hitarea blurb" aria-label="SKLESH OUT NOW"></a>
@@ -2462,11 +2485,11 @@
                     }
                 }
 
-                // Buttons + bezel lit by video — sample bottom for buttons, top for bezel specular.
+                // Buttons + LCD bar lit by video — sample bottom for buttons, bottom band for the LCD specular.
                 const platformEls = document.querySelectorAll('.platform-link');
-                const bezelEl = document.querySelector('.trailer-wrap');
+                const lcdRingEl = document.querySelector('.lcd-spec-ring');
                 let lastAmbientButtonState = '';
-                let ambientBezelApplied = false;
+                let ambientLcdApplied = false;
                 function updateTextLight() {
                     if (!lumaData || glowFade <= 0.01) {
                         const ambientState = Array.from(platformEls).map(function(btn) {
@@ -2482,14 +2505,14 @@
                                 btn.style.setProperty('--btn-edge', 'rgba(255, 255, 255, 0.09)');
                             });
                         }
-                        if (bezelEl && !ambientBezelApplied) {
-                            bezelEl.style.setProperty('--bezel-specular', '0.85');
-                            ambientBezelApplied = true;
+                        if (lcdRingEl && !ambientLcdApplied) {
+                            lcdRingEl.style.setProperty('--lcd-specular', '0.8');
+                            ambientLcdApplied = true;
                         }
                         return;
                     }
                     lastAmbientButtonState = '';
-                    ambientBezelApplied = false;
+                    ambientLcdApplied = false;
                     const w = lumaCanvas.width, h = lumaCanvas.height;
                     let rS=0,gS=0,bS=0,c=0;
                     // Bottom band split in thirds: each button below the video
@@ -2551,21 +2574,23 @@
                         btn.style.setProperty('--btn-edge',
                             `rgba(${Math.min(255, 212 + hueR * mixT * 0.3)}, ${Math.min(255, 212 + hueG * mixT * 0.3)}, ${Math.min(255, 217 + hueB * mixT * 0.3)}, ${(0.10 + 0.10 * sL).toFixed(3)})`);
                     });
-                    // HDR shimmering edge: location + intensity from top edge, way brighter
-                    if (bezelEl) {
-                        let topR=0, topG=0, topB=0, topC=0;
-                        const topY0 = 0, topY1 = Math.floor(h * 0.22);
-                        for (let y=topY0; y<topY1; y++) {
+                    // Dynamic HDR specular on the LCD bar: intensity from the
+                    // video's bottom band (the light falling on it), position
+                    // crawling with the frame's brightest spot.
+                    if (lcdRingEl) {
+                        let botR=0, botG=0, botB=0, botC=0;
+                        const botY0 = Math.floor(h * 0.76), botY1 = h;
+                        for (let y=botY0; y<botY1; y++) {
                             for (let x=0; x<w; x++) {
                                 const i=(y*w+x)*4;
-                                topR+=lumaData[i]; topG+=lumaData[i+1]; topB+=lumaData[i+2]; topC++;
+                                botR+=lumaData[i]; botG+=lumaData[i+1]; botB+=lumaData[i+2]; botC++;
                             }
                         }
-                        topR/=topC; topG/=topC; topB/=topC;
-                        const topL = (0.2126*topR + 0.7152*topG + 0.0722*topB)/255;
-                        const spec = Math.min(1, 0.85 + 0.5 * topL * flick * (0.45 + 0.55*glowFade));
-                        bezelEl.style.setProperty('--bezel-specular', String(spec.toFixed(3)));
-                        // real-time location: weighted centroid -> angle around border, so highlight crawls the edge
+                        botR/=botC; botG/=botC; botB/=botC;
+                        const botL = (0.2126*botR + 0.7152*botG + 0.0722*botB)/255;
+                        const spec = Math.min(1, 0.55 + 0.9 * botL * flick * (0.45 + 0.55*glowFade));
+                        lcdRingEl.style.setProperty('--lcd-specular', String(spec.toFixed(3)));
+                        // real-time location: weighted centroid -> angle around the shell, so the highlight crawls the edge
                         let sX=0,sY=0,wSum=0;
                         for (let y=0; y<h; y++) {
                             for (let x=0; x<w; x++) {
@@ -2577,10 +2602,10 @@
                         }
                         const cX = wSum>0 ? sX/wSum : 0.22, cY = wSum>0 ? sY/wSum : 0.18;
                         const ang = Math.atan2(cY - 0.5, cX - 0.5);
-                        // bezel: highlight on its border perimeter — pushed to edge so it's visible
+                        // LCD shell: highlight on its border perimeter
                         const bR = 0.50;
-                        bezelEl.style.setProperty('--bezel-x', (50 + Math.cos(ang) * bR * 50).toFixed(1) + '%');
-                        bezelEl.style.setProperty('--bezel-y', (50 + Math.sin(ang) * bR * 44).toFixed(1) + '%');
+                        lcdRingEl.style.setProperty('--lcd-spec-x', (50 + Math.cos(ang) * bR * 50).toFixed(1) + '%');
+                        lcdRingEl.style.setProperty('--lcd-spec-y', (50 + Math.sin(ang) * bR * 44).toFixed(1) + '%');
                         // buttons: same angle but per-button phase so they don't lockstep, still on border
                         platformEls.forEach(function(btn, idx) {
                             const ph = (idx - 1) * 0.32;
