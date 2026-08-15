@@ -508,13 +508,22 @@
         .platform-link:nth-child(3) { --rot: -0.07deg; letter-spacing: 1.58px; }
         .platform-link { transform: rotate(var(--rot, 0deg)); }
 
-        /* popped-out specular — soft curved highlight, not a triangle */
+        /* popped-out specular — exact same HDR border math as video bezel */
         .platform-link::before {
             content: "";
             position: absolute;
-            inset: 1px;
-            border-radius: 17px;
-            background: radial-gradient(ellipse 78% 58% at 22% 18%, color(srgb-linear 12 12 12) 0%, color(srgb-linear 5 5 5) 22%, rgba(255,255,255,0.065) 34%, transparent 52%);
+            inset: 0;
+            border-radius: 18px;
+            padding: 1.2px;
+            background: linear-gradient(135deg,
+                color(srgb-linear 8 8 8) 0%,
+                color(srgb-linear 3.5 3.5 3.5) 14%,
+                rgba(255,255,255,0.09) 22%,
+                transparent 38%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
             pointer-events: none;
             opacity: var(--btn-specular, 0);
             mix-blend-mode: screen;
