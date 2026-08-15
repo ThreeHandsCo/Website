@@ -50,6 +50,7 @@ jobs:
               "favicon-16x16.png",
               "favicon-32x32.png",
               "headerHDR.mp4",
+              "header-hdr-frame.avif",
               "headerSDR.mp4",
               "introHDR.mp4",
               "introSDR.mp4",
@@ -97,6 +98,7 @@ jobs:
             favicon-16x16.png
             favicon-32x32.png
             headerHDR.mp4
+            header-hdr-frame.avif
             headerSDR.mp4
             introHDR.mp4
             introSDR.mp4

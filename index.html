@@ -74,17 +74,33 @@
             mask-size: 100% 100%;
         }
 
-        .header-video {
+        .header-video,
+        .header-low-power-frame {
+            display: block;
             width: 400px;
             height: 225px;
             margin-bottom: 40px;
             background: transparent;
+            object-fit: contain;
             -webkit-mask-image: radial-gradient(ellipse 110% 110% at 50% 50%, black 0%, black 48%, rgba(0,0,0,0.88) 62%, rgba(0,0,0,0.4) 76%, transparent 92%);
             mask-image: radial-gradient(ellipse 110% 110% at 50% 50%, black 0%, black 48%, rgba(0,0,0,0.88) 62%, rgba(0,0,0,0.4) 76%, transparent 92%);
             -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
             mask-size: 100% 100%;
+        }
+
+        .header-low-power-frame {
+            display: none;
+            dynamic-range-limit: no-limit;
+        }
+
+        .header-video.ios-low-power-hidden {
+            display: none;
+        }
+
+        .header-low-power-frame.is-active {
+            display: block;
         }
 
         .trailer-wrap {
@@ -837,7 +853,8 @@
                 touch-action: pan-y;
             }
 
-            .header-video {
+            .header-video,
+            .header-low-power-frame {
                 width: calc(100vw - 40px);
                 height: auto;
                 aspect-ratio: 16 / 9;
@@ -960,13 +977,19 @@
     <div id="content-container">
         <video 
             class="header-video" 
-            muted 
+            muted
             loop
             playsinline 
             preload="auto"
             defaultMuted>
             <source src="headerHDR.mp4" type="video/mp4">
         </video>
+        <img
+            class="header-low-power-frame"
+            id="header-low-power-frame"
+            data-src="header-hdr-frame.avif"
+            alt=""
+            aria-hidden="true">
         <div class="trailer-wrap" id="sklesh-trailer-wrap">
             <!-- Cheap real-time bloom: tiny canvases blurred by CSS, repainted at most 30 fps. -->
             <canvas class="trailer-glow trailer-glow-outer" id="trailer-glow-outer" aria-hidden="true"></canvas>
@@ -1696,13 +1719,28 @@
             const widgetsContainer = document.querySelector('.widgets-container');
             const platformButtons = document.querySelectorAll('button.platform-link');
             const headerVideo = document.querySelector('.header-video');
+            const headerLowPowerFrame = document.getElementById('header-low-power-frame');
             const skleshTrailer = document.getElementById('sklesh-trailer');
             const skleshTrailerSource = 'https://video.akamai.steamstatic.com/store_trailers/4617070/1487669050/ee5ce0cfddebaaa617dc21e62fb7ca8700fdf8cc/1776811423/hls_264_master.m3u8?t=1776816847';
+            const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             let introState = 'pending';
             let introPlayAttempted = false;
             let contentVisible = false;
             let skleshHls = null;
             let skleshTrailerInitialized = false;
+            let iosLowPowerFallback = false;
+
+            function activateIosLowPowerFrame() {
+                if (!isIOSDevice || !headerLowPowerFrame) return false;
+                iosLowPowerFallback = true;
+                if (!headerLowPowerFrame.getAttribute('src')) {
+                    headerLowPowerFrame.setAttribute('src', headerLowPowerFrame.dataset.src);
+                }
+                headerVideo.classList.add('ios-low-power-hidden');
+                headerLowPowerFrame.classList.add('is-active');
+                return true;
+            }
             
             if (window.matchMedia('(dynamic-range: high)').matches) {
                 video.src = 'introHDR.mp4';
@@ -1719,9 +1757,17 @@
                 videoContainer.classList.add('hidden');
                 contentContainer.classList.add('visible');
 
-                const headerPlayback = headerVideo.play();
-                if (headerPlayback !== undefined) {
-                    headerPlayback.catch(function() {});
+                if (iosLowPowerFallback) {
+                    activateIosLowPowerFrame();
+                } else {
+                    const headerPlayback = headerVideo.play();
+                    if (headerPlayback !== undefined) {
+                        headerPlayback.catch(function() {
+                            // Safari exposes no Low Power Mode flag. A rejected
+                            // autoplay promise is the reliable iOS-only signal.
+                            activateIosLowPowerFrame();
+                        });
+                    }
                 }
 
                 initializeSkleshTrailer();
@@ -1736,6 +1782,9 @@
             function showAutoplayFallback(error) {
                 if (error && error.name === 'AbortError') return;
                 if (introState !== 'pending') return;
+                if (isIOSDevice && error && error.name === 'NotAllowedError') {
+                    activateIosLowPowerFrame();
+                }
                 introState = 'fallback';
                 showContent();
             }
@@ -1754,6 +1803,17 @@
 
                 if (introPlayback !== undefined) {
                     introPlayback.then(markIntroPlaying).catch(showAutoplayFallback);
+                }
+
+                // iOS Low Power Mode can leave muted autoplay paused without
+                // rejecting immediately. Only apply this watchdog on iOS,
+                // and only after enough media is ready to rule out networking.
+                if (isIOSDevice) {
+                    window.setTimeout(function() {
+                        if (introState === 'pending' && video.paused && video.readyState >= 2) {
+                            showAutoplayFallback({ name: 'NotAllowedError' });
+                        }
+                    }, 1400);
                 }
             }
 
