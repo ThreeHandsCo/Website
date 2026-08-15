@@ -87,10 +87,20 @@
             mask-size: 100% 100%;
         }
 
-        .featured-trailer {
+        .trailer-wrap {
+            position: relative;
             width: min(646px, calc(100vw - 40px));
-            height: auto;
             aspect-ratio: 16 / 9;
+            /* Stacking context so the glow stays behind the trailer but above the page. */
+            isolation: isolate;
+        }
+
+        .featured-trailer {
+            display: block;
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             background: black;
             -webkit-mask-image: radial-gradient(ellipse 102% 96% at 50% 50%, black 64%, transparent 98%);
@@ -99,6 +109,56 @@
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
             mask-size: 100% 100%;
+        }
+
+        /* Realtime monitor glow: a downsampled copy of the current frame, blurred.
+           Painted on two layers - a tight bright bloom and a wide room-light spill.
+           The canvases stay small (224x126 / 96x54), so repainting is cheap and
+           the blur runs on the compositor. */
+        .trailer-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            will-change: opacity;
+            image-rendering: auto;
+        }
+
+        .trailer-glow-tight {
+            width: 118%;
+            height: 118%;
+            filter: blur(48px) saturate(1.5);
+        }
+
+        .trailer-glow-wide {
+            width: 170%;
+            height: 170%;
+            filter: blur(120px) saturate(1.5);
+        }
+
+        .trailer-glow-outer {
+            width: 220%;
+            height: 220%;
+            filter: blur(180px) saturate(1.5);
+        }
+
+        /* Dust motes drifting through the monitor light. Each mote is lit by
+           sampling the downsampled frame, so dust only shows where the glow
+           actually falls - like dust in a light beam at night. */
+        .trailer-dust {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 2;
+            width: 170%;
+            height: 170%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
         #content-container {
@@ -116,6 +176,10 @@
             opacity: 0;
             transition: opacity 0.5s ease-in;
             overflow-y: auto;
+            /* The glow bleeds past the viewport edges; clip it without creating
+               a horizontal scroll container (body overflow-x: hidden is the
+               fallback for browsers without `clip`). */
+            overflow-x: clip;
             padding: 40px 0;
             /* Keep in-flow content clear of the dynamic Safari controls. */
             padding:
@@ -391,6 +455,15 @@
             transform: translateY(-5px);
         }
 
+        .platform-link:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .platform-link:disabled:hover {
+            transform: none;
+        }
+
         .blurb {
             text-align: center;
             color: white;
@@ -590,25 +663,33 @@
             defaultMuted>
             <source src="headerHDR.mp4" type="video/mp4">
         </video>
-        <video
-            id="sklesh-trailer"
-            class="featured-trailer"
-            autoplay
-            muted
-            loop
-            playsinline
-            preload="metadata"
-            aria-label="Sklesh trailer"
-            poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
-            <a href="https://store.steampowered.com/app/4617070/Sklesh/">Watch the Sklesh trailer on Steam</a>
-        </video>
+        <div class="trailer-wrap" id="sklesh-trailer-wrap">
+            <!-- Cheap real-time bloom: tiny canvases blurred by CSS, repainted at most 30 fps. -->
+            <canvas class="trailer-glow trailer-glow-outer" id="trailer-glow-outer" aria-hidden="true"></canvas>
+            <canvas class="trailer-glow trailer-glow-wide" id="trailer-glow-wide" aria-hidden="true"></canvas>
+            <canvas class="trailer-glow trailer-glow-tight" id="trailer-glow-tight" aria-hidden="true"></canvas>
+            <canvas class="trailer-dust" id="trailer-dust" aria-hidden="true"></canvas>
+            <video
+                id="sklesh-trailer"
+                class="featured-trailer"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-label="Sklesh trailer"
+                poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
+                <a href="https://store.steampowered.com/app/4617070/Sklesh/">Watch the Sklesh trailer on Steam</a>
+            </video>
+        </div>
         <div class="release-status">
             <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="blurb">SKLESH OUT NOW</a>
-            <p class="coming-soon">Coming Soon to iOS</p>
+            <p class="coming-soon">Coming soon to the App Store</p>
         </div>
         <div class="buttons-container">
-            <button class="platform-link" data-platform="steam">Steam</button>
+            <button class="platform-link" data-platform="appstore" disabled>App Store</button>
             <button class="platform-link" data-platform="itch">One-offs</button>
+            <button class="platform-link" data-platform="steam">Steam</button>
             <!-- Reddit button temporarily hidden; uncomment to restore later.
             <a href="https://www.reddit.com/r/PeakIdle/" target="_blank" rel="noopener" class="platform-link">Reddit</a>
             -->
@@ -1189,10 +1270,278 @@
                         }
                     });
                 } else if (skleshTrailer.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Native HLS (Safari): the Steam CDN sends CORS headers, so a
+                    // crossorigin fetch keeps the glow canvas origin-clean.
+                    skleshTrailer.crossOrigin = 'anonymous';
                     skleshTrailer.src = skleshTrailerSource;
                     startSkleshTrailer();
                 }
             }
+
+            // Realtime trailer glow: each painted frame is downsampled into two
+            // tiny canvases behind the video and blurred by CSS. This costs a
+            // couple of small drawImage calls, not a full-size post process.
+            (function initTrailerGlow() {
+                const trailerWrap = document.getElementById('sklesh-trailer-wrap');
+                const glowTight = document.getElementById('trailer-glow-tight');
+                const glowWide = document.getElementById('trailer-glow-wide');
+                const glowOuter = document.getElementById('trailer-glow-outer');
+                if (!trailerWrap || !glowTight || !glowWide || !glowOuter) return;
+
+                const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const tightCtx = glowTight.getContext('2d');
+                const wideCtx = glowWide.getContext('2d');
+                const outerCtx = glowOuter.getContext('2d');
+                // Low-res sources keep the per-frame cost near zero, but stay
+                // fine enough that no upscale blocks survive the CSS blur.
+                glowTight.width = 224;
+                glowTight.height = 126;
+                glowWide.width = 96;
+                glowWide.height = 54;
+                glowOuter.width = 64;
+                glowOuter.height = 36;
+
+                // Even smaller copy used only as the light field the dust
+                // samples. Off-DOM; read once per paint tick.
+                const lumaCanvas = document.createElement('canvas');
+                lumaCanvas.width = 48;
+                lumaCanvas.height = 27;
+                const lumaCtx = lumaCanvas.getContext('2d');
+                let lumaData = null;
+                let dustActive = false;
+
+                let glowFade = 0;
+                let glowFlicker = 1;
+                let glowFlickerTarget = 1;
+                let glowNextFlicker = 0;
+                let glowLastDraw = 0;
+                let glowInView = true;
+                let glowBroken = false;
+
+                if ('IntersectionObserver' in window) {
+                    const glowObserver = new IntersectionObserver(function(entries) {
+                        entries.forEach(function(entry) {
+                            glowInView = entry.isIntersecting;
+                        });
+                    }, { rootMargin: '120px 0px' });
+                    glowObserver.observe(trailerWrap);
+                }
+
+                function paintGlowFrame() {
+                    // No decoded frame yet: keep whatever ambient light we have.
+                    if (skleshTrailer.readyState < 2) return true;
+                    try {
+                        tightCtx.drawImage(skleshTrailer, 0, 0, glowTight.width, glowTight.height);
+                        wideCtx.clearRect(0, 0, glowWide.width, glowWide.height);
+                        wideCtx.drawImage(glowTight, 0, 0, glowWide.width, glowWide.height);
+                        outerCtx.clearRect(0, 0, glowOuter.width, glowOuter.height);
+                        outerCtx.drawImage(glowTight, 0, 0, glowOuter.width, glowOuter.height);
+                        if (dustActive) {
+                            lumaCtx.drawImage(skleshTrailer, 0, 0, lumaCanvas.width, lumaCanvas.height);
+                            try {
+                                lumaData = lumaCtx.getImageData(0, 0, lumaCanvas.width, lumaCanvas.height).data;
+                            } catch (_error) {
+                                // Tainted: glow keeps painting, dust stays dark.
+                                lumaData = null;
+                            }
+                        }
+                        return true;
+                    } catch (error) {
+                        if (error && (error.name === 'SecurityError' || error.code === 18)) {
+                            // Tainted media: never paint, keep the glow off.
+                            glowBroken = true;
+                        }
+                        return false;
+                    }
+                }
+
+                function updateGlowOpacity(now, fadeInStep, fadeOutStep) {
+                    const playing = !skleshTrailer.paused && !skleshTrailer.ended;
+                    const awake = playing && !document.hidden && glowInView && !glowBroken;
+                    if (awake) {
+                        glowFade = Math.min(1, glowFade + fadeInStep);
+                        if (!prefersReducedMotion) {
+                            if (now >= glowNextFlicker) {
+                                glowFlickerTarget = 0.9 + Math.random() * 0.18;
+                                glowNextFlicker = now + 90 + Math.random() * 280;
+                            }
+                            glowFlicker += (glowFlickerTarget - glowFlicker) * 0.08;
+                        }
+                    } else {
+                        glowFade = Math.max(0, glowFade - fadeOutStep);
+                    }
+                    const tight = (prefersReducedMotion ? 0.28 : 0.35 * glowFlicker) * glowFade;
+                    const wide = (prefersReducedMotion ? 0.15 : 0.18 * (0.6 + 0.4 * glowFlicker)) * glowFade;
+                    const outer = (prefersReducedMotion ? 0.06 : 0.08 * (0.6 + 0.4 * glowFlicker)) * glowFade;
+                    glowTight.style.opacity = String(tight);
+                    glowWide.style.opacity = String(wide);
+                    glowOuter.style.opacity = String(outer);
+                }
+
+                if (prefersReducedMotion) {
+                    // No flicker and no per-frame repaints: refresh the ambient
+                    // light once every few seconds instead.
+                    let wasAwake = false;
+                    window.setInterval(function() {
+                        const now = Date.now();
+                        const awake = !glowBroken && !skleshTrailer.paused &&
+                            !document.hidden && glowInView;
+                        if (awake && !wasAwake) {
+                            // Paint immediately so the fade-in has light to show.
+                            paintGlowFrame();
+                            glowLastDraw = now;
+                        }
+                        wasAwake = awake;
+                        if (awake && now - glowLastDraw > 3000) {
+                            glowLastDraw = now;
+                            paintGlowFrame();
+                        }
+                        updateGlowOpacity(now, 0.5, 0.75);
+                    }, 1000);
+                    return;
+                }
+
+                // Dust motes: tiny drifting specks lit only where the monitor
+                // light falls. Positions are region units (0..1 of the dust
+                // canvas), velocities are tiny, and each mote samples the
+                // luminance field, so the dust breathes with the frame and
+                // flickers with the screen. Super subtle by design.
+                const dustCanvas = document.getElementById('trailer-dust');
+                let renderDust = null;
+                let dustLastDraw = 0;
+                if (dustCanvas && dustCanvas.getContext) {
+                    const dustCtx = dustCanvas.getContext('2d');
+                    dustActive = true;
+                    const DUST_COUNT = 64;
+                    const DUST_MAX_ALPHA = 0.1;
+
+                    // One soft near-white sprite, scaled per mote.
+                    const dustSprite = document.createElement('canvas');
+                    dustSprite.width = 24;
+                    dustSprite.height = 24;
+                    (function() {
+                        const sctx = dustSprite.getContext('2d');
+                        const grad = sctx.createRadialGradient(12, 12, 0, 12, 12, 12);
+                        grad.addColorStop(0, 'rgba(236, 242, 255, 1)');
+                        grad.addColorStop(0.35, 'rgba(236, 242, 255, 0.35)');
+                        grad.addColorStop(0.7, 'rgba(236, 242, 255, 0.08)');
+                        grad.addColorStop(1, 'rgba(236, 242, 255, 0)');
+                        sctx.fillStyle = grad;
+                        sctx.fillRect(0, 0, 24, 24);
+                    })();
+
+                    const dust = [];
+                    for (let i = 0; i < DUST_COUNT; i++) {
+                        dust.push({
+                            x: Math.random(),
+                            y: Math.random(),
+                            z: 0.5 + Math.random() * 1.1, // 0.5 near ... 1.6 far
+                            size: 3 + Math.random() * 6,  // sprite px at z=1
+                            vx: (Math.random() - 0.5) * 0.008, // ~4 px/s at 1000px wide
+                            vy: -0.0023 - Math.random() * 0.005,
+                            sway: Math.random() * Math.PI * 2,
+                            twinklePhase: Math.random() * Math.PI * 2,
+                            twinkleFreq: 0.25 + Math.random() * 0.65
+                        });
+                    }
+                    let dustLastTime = 0;
+                    let dustCleared = true;
+
+                    function sampleLight(u, v) {
+                        if (!lumaData) return 0;
+                        const w = lumaCanvas.width;
+                        const h = lumaCanvas.height;
+                        const fx = Math.max(0, Math.min(1, u)) * (w - 1);
+                        const fy = Math.max(0, Math.min(1, v)) * (h - 1);
+                        const x0 = Math.floor(fx);
+                        const y0 = Math.floor(fy);
+                        const x1 = Math.min(w - 1, x0 + 1);
+                        const y1 = Math.min(h - 1, y0 + 1);
+                        const tx = fx - x0;
+                        const ty = fy - y0;
+                        function lum(px, py) {
+                            const i = (py * w + px) * 4;
+                            return (0.2126 * lumaData[i] + 0.7152 * lumaData[i + 1] + 0.0722 * lumaData[i + 2]) / 255;
+                        }
+                        const l00 = lum(x0, y0);
+                        const l10 = lum(x1, y0);
+                        const l01 = lum(x0, y1);
+                        const l11 = lum(x1, y1);
+                        return (l00 * (1 - tx) + l10 * tx) * (1 - ty) + (l01 * (1 - tx) + l11 * tx) * ty;
+                    }
+
+                    renderDust = function(now) {
+                        // Keep the backing store in sync with the responsive wrap.
+                        const targetW = Math.max(8, Math.round(dustCanvas.clientWidth));
+                        const targetH = Math.max(8, Math.round(dustCanvas.clientHeight));
+                        if (dustCanvas.width !== targetW || dustCanvas.height !== targetH) {
+                            dustCanvas.width = targetW;
+                            dustCanvas.height = targetH;
+                        }
+                        if (glowFade <= 0.002) {
+                            if (!dustCleared) {
+                                dustCleared = true;
+                                dustCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
+                            }
+                            return;
+                        }
+                        dustCleared = false;
+                        const dt = Math.min(0.1, Math.max(0, (now - dustLastTime) / 1000));
+                        dustLastTime = now;
+                        const t = now / 1000;
+                        const w = dustCanvas.width;
+                        const h = dustCanvas.height;
+                        const margin = 24 / Math.max(1, w);
+                        dustCtx.clearRect(0, 0, w, h);
+                        dustCtx.globalCompositeOperation = 'lighter';
+                        dust.sort(function(a, b) { return a.z - b.z; }); // far first
+                        for (let i = 0; i < dust.length; i++) {
+                            const p = dust[i];
+                            // Slow drift: gentle sway plus a hint of buoyancy.
+                            p.x += (p.vx + Math.sin(t * 0.4 + p.sway) * 0.0022) * p.z * dt;
+                            p.y += (p.vy + Math.cos(t * 0.3 + p.sway) * 0.0011) * p.z * dt;
+                            if (p.x < -margin) { p.x = 1 + margin; p.y = Math.random(); }
+                            else if (p.x > 1 + margin) { p.x = -margin; p.y = Math.random(); }
+                            if (p.y < -margin) p.y = 1 + margin;
+                            else if (p.y > 1 + margin) p.y = -margin;
+
+                            // How much light falls on this mote right now.
+                            const lit = sampleLight(p.x, p.y);
+                            if (lit <= 0.06) continue;
+                            const twinkle = 0.7 + 0.3 * Math.sin(t * p.twinkleFreq + p.twinklePhase);
+                            const flickerMix = 0.35 + 0.65 * glowFlicker;
+                            const depthAlpha = 1.25 - p.z * 0.5;
+                            const alpha = Math.pow((lit - 0.06) / 0.5, 1.25) *
+                                twinkle * flickerMix * glowFade * depthAlpha * DUST_MAX_ALPHA;
+                            if (alpha <= 0.004) continue;
+                            const size = p.size / p.z;
+                            dustCtx.globalAlpha = alpha;
+                            dustCtx.drawImage(dustSprite, p.x * w - size / 2, p.y * h - size / 2, size, size);
+                        }
+                        dustCtx.globalAlpha = 1;
+                        dustCtx.globalCompositeOperation = 'source-over';
+                    }
+                }
+
+                function renderGlow(now) {
+                    if (!glowBroken) {
+                        const playing = !skleshTrailer.paused && !skleshTrailer.ended;
+                        if (playing && !document.hidden && glowInView &&
+                            now - glowLastDraw >= 33) { // ~30 fps ceiling
+                            glowLastDraw = now;
+                            paintGlowFrame();
+                        }
+                    }
+                    updateGlowOpacity(now, 0.025, 0.04);
+                    if (dustActive && !document.hidden && glowInView &&
+                        now - dustLastDraw >= 33) {
+                        dustLastDraw = now;
+                        renderDust(now);
+                    }
+                    requestAnimationFrame(renderGlow);
+                }
+                requestAnimationFrame(renderGlow);
+            })();
 
             function showPlatformWidgets(platform) {
                 const steamWidgets = document.querySelector('.steam-widgets');
@@ -1238,6 +1587,7 @@
             // Add click event listeners to platform buttons
             platformButtons.forEach(button => {
                 button.addEventListener('click', () => {
+                    if (button.disabled) return;
                     showPlatformWidgets(button.dataset.platform);
                 });
             });
