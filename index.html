@@ -607,12 +607,13 @@
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
-            /* embroidered into the background like the buttons: dark deboss,
+            /* neumorphic pressed-in — dark top inside, light bottom edge,
                hairline top light catches ambient video light */
             text-shadow:
-                0 1px 0 rgba(255, 255, 255, 0.075),
-                0 -1px 0 rgba(0, 0, 0, 0.78),
-                0 -2px 4px rgba(0, 0, 0, 0.45);
+                0 -1px 1px rgba(0, 0, 0, 0.85),
+                0 -2px 4px rgba(0, 0, 0, 0.5),
+                0 1px 0 rgba(255, 255, 255, 0.08),
+                0 2px 3px rgba(0, 0, 0, 0.35);
             opacity: 0.96;
             filter: none;
             background-color: transparent;
@@ -657,6 +658,14 @@
             flex-direction: column;
             align-items: center;
             gap: 16px;
+            /* neumorphic inset plate — text debossed into a physical slab */
+            padding: 26px 44px;
+            border-radius: 22px;
+            background: #0b0b0d;
+            box-shadow:
+                inset 7px 7px 16px rgba(0, 0, 0, 0.82),
+                inset -7px -7px 16px rgba(255, 255, 255, 0.045),
+                0 1px 0 rgba(255, 255, 255, 0.035);
         }
 
         .release-status .blurb {
@@ -669,11 +678,12 @@
             font-size: 11px;
             letter-spacing: 1px;
             text-align: center;
-            /* embroidered like the buttons — deboss + faint ambient light */
+            /* neumorphic pressed-in — dark top, light bottom edge */
             text-shadow:
-                0 1px 0 rgba(255,255,255,0.065),
-                0 -1px 0 rgba(0,0,0,0.72),
-                0 -1px 3px rgba(0,0,0,0.4);
+                0 -1px 1px rgba(0,0,0,0.85),
+                0 -2px 3px rgba(0,0,0,0.5),
+                0 1px 0 rgba(255,255,255,0.08),
+                0 2px 3px rgba(0,0,0,0.35);
             opacity: 0.92;
             filter: none;
             transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
@@ -1805,7 +1815,7 @@
                     if (!lumaData || glowFade <= 0.01) {
                         blurbEl.style.filter = 'none';
                         blurbEl.style.opacity = '0.96';
-                        blurbEl.style.textShadow = '0 1px 0 rgba(255,255,255,0.075), 0 -1px 0 rgba(0,0,0,0.78)';
+                        blurbEl.style.textShadow = '0 -1px 1px rgba(0,0,0,0.85), 0 -2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.08), 0 2px 3px rgba(0,0,0,0.35)';
                         // Embroidered fallback — dark deboss like the buttons.
                         blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #4a4f56 0%, #4a4f56 100%)');
                         if (comingEl) {
@@ -1851,8 +1861,8 @@
                     const tintB = Math.round(215 + (bS-122)*0.14);
                     const hdrBlur = (3.5 + 6.5 * avgL * flick * glowFade).toFixed(1);
                     const hdrAlpha = (0.14 + 0.22 * avgL * flick * glowFade).toFixed(3);
-                    const top = `0 -0.55px 0.55px rgba(${tintR},${tintG},${tintB},${0.03 + 0.09*lift})`;
-                    const bottom = `0 1px 0 rgba(0,0,0,${0.72 - 0.30*lift})`;
+                    const top = `0 -1px 1px rgba(0,0,0,${0.82 - 0.28*lift}), 0 -2px 3px rgba(0,0,0,${0.50 - 0.20*lift}), 0 -0.55px 0.55px rgba(${tintR},${tintG},${tintB},${0.03 + 0.09*lift})`;
+                    const bottom = `0 1px 0 rgba(255,255,255,${0.07 + 0.11*lift}), 0 2px 3px rgba(0,0,0,${0.32 - 0.12*lift})`;
                     const hdrGlow = `0 0 ${hdrBlur}px color(srgb-linear ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.95 + 1.9*avgL).toFixed(2)} / ${hdrAlpha})`;
                     // Realistic drop shadow: cast downward by the screen light
                     // above — deeper and longer when the video is bright.
@@ -1916,7 +1926,7 @@
                         const cHdrA = (0.10 + 0.16 * avgL * flick * glowFade).toFixed(3);
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
                         comingEl.style.color = `rgb(${cR},${cG},${cB})`;
-                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.03 + 0.07*cLift}), 0 1px 0 rgba(0,0,0,${0.68 - 0.26*cLift}), ${cGlow}`;
+                        comingEl.style.textShadow = `0 -1px 1px rgba(0,0,0,${0.80 - 0.26*cLift}), 0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.03 + 0.07*cLift}), 0 1px 0 rgba(255,255,255,${0.06 + 0.09*cLift}), 0 2px 3px rgba(0,0,0,${0.30 - 0.10*cLift}), ${cGlow}`;
                         comingEl.style.filter = `drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
                         comingEl.style.opacity = String(0.92 + 0.08 * cLift);
                         // Same full-width bezel-light treatment, milder: the
