@@ -91,8 +91,14 @@
             position: relative;
             width: min(646px, calc(100vw - 40px));
             aspect-ratio: 16 / 9;
-            /* Stacking context so the glow stays behind the trailer but above the page. */
+            /* Neumorphic frame — same base as buttons, extruded from the black */
             isolation: isolate;
+            background: #0e0e0e;
+            border-radius: 22px;
+            padding: 10px;
+            box-shadow:
+                9px 9px 18px rgba(0, 0, 0, 0.92),
+                -9px -9px 18px rgba(255, 255, 255, 0.055);
         }
 
         .featured-trailer {
@@ -103,6 +109,8 @@
             height: 100%;
             object-fit: contain;
             background: transparent;
+            border-radius: 14px;
+            overflow: hidden;
             -webkit-mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
             mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
             -webkit-mask-repeat: no-repeat;
