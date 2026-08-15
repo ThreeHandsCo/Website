@@ -150,29 +150,16 @@ def readable_foreground(value: str) -> str:
     return "000000" if relative_luminance(value) >= 0.179 else "FFFFFF"
 
 
-def lighten_for_title(hex_color: str) -> str:
-    """Lighten fg for title readability: +0.20 lightness in HLS, keep hue/sat."""
-    hex_color = hex_color.strip("#")
-    r = int(hex_color[0:2], 16) / 255
-    g = int(hex_color[2:4], 16) / 255
-    b = int(hex_color[4:6], 16) / 255
-    h, l, s = colorsys.rgb_to_hls(r, g, b)
-    l = min(0.88, max(0.0, l + 0.20))
-    r2, g2, b2 = colorsys.hls_to_rgb(h, l, s)
-    return f"{round(r2*255):02X}{round(g2*255):02X}{round(b2*255):02X}"
-
-
 def create_embed(game: dict[str, str], color: dict[str, str]) -> str:
     game_id = game["id"]
     fg = color["fg"]
     link = color["link"]
-    # Title needs to be brighter than the 67%-dark frame for readability
-    title_fg = lighten_for_title(fg)
     button_text = readable_foreground(link)
+    # Button text was too dim against HDR button (dark bg at 4 stops HDR vs SDR white) — make text HDR too
+    button_text_hdr = "color(srgb-linear 16 16 16)" if button_text == "FFFFFF" else "color(srgb-linear 0 0 0)"
     title = html.escape(game["title"])
     page_url = html.escape(game["page_url"], quote=True)
     fg_swatch = f"/assets/itch-hdr/{fg}.avif"
-    title_swatch = f"/assets/itch-hdr/{title_fg}.avif"
     link_swatch = f"/assets/itch-hdr/{link}.avif"
     thumbnail = f"/assets/itch-thumbnails/{game_id}.jpg"
     return f'''<!DOCTYPE html>
@@ -189,10 +176,14 @@ a {{ text-decoration:none; }}
 .thumb-frame {{ position:relative; width:175px; height:138px; box-sizing:border-box; background:#{fg}; overflow:hidden; }}
 .thumb {{ position:absolute; inset:2px; background:#111 url('{thumbnail}') center/cover no-repeat; }}
 .meta {{ min-width:0; min-height:0; width:100%; height:138px; align-self:start; display:flex; flex-direction:column; gap:10px; overflow:hidden; }}
-.title {{ flex:1 1 auto; min-width:0; min-height:0; overflow:hidden; overflow-wrap:normal; word-break:normal; hyphens:none; white-space:normal; font-size:14px; line-height:1.15; font-weight:700; letter-spacing:.5px; color:#{title_fg}; }}
+.title {{ flex:1 1 auto; min-width:0; min-height:0; overflow:hidden; overflow-wrap:normal; word-break:normal; hyphens:none; white-space:normal; font-size:14px; line-height:1.15; font-weight:700; letter-spacing:.5px; color:#{fg}; }}
 .link-frame {{ flex:0 0 auto; width:max-content; max-width:100%; box-sizing:border-box; margin-top:auto; padding:2px; background:#{link}; }}
 .link {{ display:block; box-sizing:border-box; max-width:100%; padding:10px 14px; background:#{link}; color:#{button_text}; border:0; font-size:10px; line-height:1.4; letter-spacing:1px; text-align:center; text-transform:uppercase; white-space:normal; }}
 .link:hover {{ filter:brightness(1.15); }}
+/* HDR button text — keep VIEW ON ITCH.IO legible against HDR button (was too dim) */
+@supports (color: color(srgb-linear 16 16 16)) {{
+  .link {{ color: {button_text_hdr}; }}
+}}
 /* Actual PQ/BT.2020 HDR swatches. Browsers that do not support HDR AVIF
    keep the generated SDR colors above; HDR-capable outputs tone-map this
    image correctly instead of clamping CSS color() values. */
@@ -202,8 +193,8 @@ a {{ text-decoration:none; }}
 @supports (background-image:url('{link_swatch}')) {{
   .link-frame, .link {{ background-image:url('{link_swatch}'); background-size:cover; background-repeat:no-repeat; background-position:center; }}
 }}
-@supports ((-webkit-background-clip:text) or (background-clip:text)) and (background-image:url('{title_swatch}')) {{
-  .title {{ color:transparent; -webkit-text-fill-color:transparent; background-image:url('{title_swatch}'); background-repeat:repeat; background-size:auto 100%; -webkit-background-clip:text; background-clip:text; }}
+@supports ((-webkit-background-clip:text) or (background-clip:text)) and (background-image:url('{fg_swatch}')) {{
+  .title {{ color:transparent; -webkit-text-fill-color:transparent; background-image:url('{fg_swatch}'); background-repeat:repeat; background-size:auto 100%; -webkit-background-clip:text; background-clip:text; }}
 }}
 @media (max-width:600px) {{
   .embed {{ grid-template-columns:38% minmax(0,1fr); gap:12px; min-height:100%; padding:12px; }}
@@ -291,7 +282,6 @@ def main() -> None:
             raise RuntimeError(f"Missing thumbnail for {game_id}")
         color = colors[game_id]
         unique_colors.add(color["fg"])
-        unique_colors.add(lighten_for_title(color["fg"]))
         unique_colors.add(color["link"])
         if not args.check:
             (EMBED_DIR / f"{game_id}.html").write_text(
