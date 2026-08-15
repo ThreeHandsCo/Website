@@ -155,8 +155,8 @@ def create_embed(game: dict[str, str], color: dict[str, str]) -> str:
     fg = color["fg"]
     link = color["link"]
     button_text = readable_foreground(link)
-    # Button text was too dim against HDR button (dark bg at 4 stops HDR vs SDR white) — make text HDR too
-    button_text_hdr = "color(srgb-linear 16 16 16)" if button_text == "FFFFFF" else "color(srgb-linear 0 0 0)"
+    # Was too HDR white (16x) — tone down to 4x for subtler HDR
+    button_text_hdr = "color(srgb-linear 4 4 4)" if button_text == "FFFFFF" else "color(srgb-linear 0 0 0)"
     title = html.escape(game["title"])
     page_url = html.escape(game["page_url"], quote=True)
     fg_swatch = f"/assets/itch-hdr/{fg}.avif"
@@ -180,8 +180,8 @@ a {{ text-decoration:none; }}
 .link-frame {{ flex:0 0 auto; width:max-content; max-width:100%; box-sizing:border-box; margin-top:auto; padding:2px; background:#{link}; }}
 .link {{ display:block; box-sizing:border-box; max-width:100%; padding:10px 14px; background:#{link}; color:#{button_text}; border:0; font-size:10px; line-height:1.4; letter-spacing:1px; text-align:center; text-transform:uppercase; white-space:normal; }}
 .link:hover {{ filter:brightness(1.15); }}
-/* HDR button text — keep VIEW ON ITCH.IO legible against HDR button (was too dim) */
-@supports (color: color(srgb-linear 16 16 16)) {{
+/* HDR button text — toned down from 16x (too hot) to 4x */
+@supports (color: color(srgb-linear 4 4 4)) {{
   .link {{ color: {button_text_hdr}; }}
 }}
 /* Actual PQ/BT.2020 HDR swatches. Browsers that do not support HDR AVIF
