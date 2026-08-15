@@ -602,7 +602,8 @@
         }
 
         .release-status {
-            width: min(720px, calc(100vw - 24px));
+            /* Match the trailer-wrap outer width exactly. */
+            width: min(646px, calc(100vw - 40px));
             margin: 0 auto 40px;
         }
 
@@ -694,6 +695,7 @@
             opacity: 0.58;
             mix-blend-mode: screen;
             filter: blur(0.15px);
+            animation: lcd-haze 4.8s ease-in-out infinite;
             pointer-events: none;
         }
 
@@ -705,7 +707,25 @@
             background:
                 radial-gradient(ellipse 82% 72% at 50% 50%, rgba(119, 207, 255, 0.13), transparent 74%),
                 linear-gradient(180deg, rgba(255,255,255,0.14), transparent 19%, transparent 76%, rgba(0,15,80,0.18));
+            animation: lcd-scan 5.6s ease-in-out infinite;
             pointer-events: none;
+        }
+
+        @keyframes lcd-haze {
+            0%, 100% { opacity: 0.42; }
+            50% { opacity: 0.72; }
+        }
+
+        @keyframes lcd-scan {
+            0%, 100% { opacity: 0.72; transform: translateY(-1px); }
+            50% { opacity: 0.96; transform: translateY(1px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .lcd-screen::before,
+            .lcd-screen::after {
+                animation: none;
+            }
         }
 
         .lcd-line {
@@ -1079,30 +1099,50 @@
             '?': ['01110','10001','00001','00010','00100','00000','00100','00000']
         });
 
+        const LCD_TICKER_MESSAGES = Object.freeze([
+            { top: 'SKLESH OUT NOW', bottom: 'Coming soon to the App Store' },
+            { top: 'THREE HANDS', bottom: 'Game Development Studio' },
+            { top: 'ONE-OFFS', bottom: 'Available on itch.io' },
+            { top: 'SKLESH', bottom: 'Now playing on Steam' }
+        ]);
+
         function renderLcdDisplay() {
             const screen = document.querySelector('.lcd-screen');
+            const module = document.querySelector('.lcd-module');
             const lines = Array.from(document.querySelectorAll('.lcd-line[data-lcd-text]'));
-            if (!screen || lines.length === 0) return;
+            if (!screen || !module || lines.length < 2) return;
 
-            lines.forEach(function(line) {
-                const source = line.dataset.lcdText || line.textContent.trim();
-                line.setAttribute('aria-label', source);
+            function glyphFor(character) {
+                return LCD_GLYPHS[character] || LCD_GLYPHS[character.toUpperCase()] || LCD_GLYPHS['?'];
+            }
+
+            function createCells(line) {
                 line.textContent = '';
-                    const characters = Array.from(source);
-                    for (let column = 0; column < LCD_COLUMNS; column++) {
-                        const character = characters[column] || ' ';
-                        const glyph = LCD_GLYPHS[character] || LCD_GLYPHS[character.toUpperCase()] || LCD_GLYPHS['?'];
-                        const cell = document.createElement('span');
-                        cell.className = 'lcd-char';
-                        cell.setAttribute('aria-hidden', 'true');
-                        glyph.join('').split('').forEach(function(pixel) {
-                            const dot = document.createElement('span');
-                            dot.className = pixel === '1' ? 'lcd-dot is-on' : 'lcd-dot';
-                            cell.appendChild(dot);
-                        });
-                        line.appendChild(cell);
-                    }
-            });
+                for (let column = 0; column < LCD_COLUMNS; column++) {
+                    const cell = document.createElement('span');
+                    cell.className = 'lcd-char';
+                    cell.setAttribute('aria-hidden', 'true');
+                    glyphFor(' ').join('').split('').forEach(function() {
+                        const dot = document.createElement('span');
+                        dot.className = 'lcd-dot';
+                        cell.appendChild(dot);
+                    });
+                    line.appendChild(cell);
+                }
+            }
+
+            function writeRow(line, text) {
+                const characters = Array.from(text.padEnd(LCD_COLUMNS, ' ').slice(0, LCD_COLUMNS));
+                characters.forEach(function(character, column) {
+                    const pixels = glyphFor(character).join('');
+                    const dots = line.children[column].children;
+                    pixels.split('').forEach(function(pixel, pixelIndex) {
+                        dots[pixelIndex].classList.toggle('is-on', pixel === '1');
+                    });
+                });
+            }
+
+            lines.forEach(createCells);
 
             function sizeLcdDots() {
                 const available = Math.max(1, screen.clientWidth - 28);
@@ -1117,6 +1157,56 @@
                 new ResizeObserver(sizeLcdDots).observe(screen);
             }
             window.addEventListener('resize', sizeLcdDots, { passive: true });
+
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                const first = LCD_TICKER_MESSAGES[0];
+                writeRow(lines[0], first.top);
+                writeRow(lines[1], first.bottom);
+                return;
+            }
+
+            let messageIndex = 0;
+            let scrollTimer = null;
+            let holdTimer = null;
+
+            function startTickerMessage(index) {
+                if (scrollTimer) window.clearInterval(scrollTimer);
+                if (holdTimer) window.clearTimeout(holdTimer);
+                messageIndex = index % LCD_TICKER_MESSAGES.length;
+                const message = LCD_TICKER_MESSAGES[messageIndex];
+                const topTrack = ' '.repeat(LCD_COLUMNS) + message.top + '    ';
+                const bottomTrack = ' '.repeat(LCD_COLUMNS) + message.bottom + '    ';
+                const lastPosition = Math.max(topTrack.length, bottomTrack.length) - LCD_COLUMNS;
+                // Show the current announcement immediately on first load;
+                // later announcements enter from the right like a ticker.
+                let position = messageIndex === 0 ? LCD_COLUMNS : 0;
+
+                module.setAttribute('aria-label', `${message.top}. ${message.bottom}.`);
+                lines[0].setAttribute('aria-label', message.top);
+                lines[1].setAttribute('aria-label', message.bottom);
+
+                function drawTickerFrame() {
+                    writeRow(lines[0], topTrack.slice(position, position + LCD_COLUMNS));
+                    writeRow(lines[1], bottomTrack.slice(position, position + LCD_COLUMNS));
+                }
+
+                drawTickerFrame();
+                holdTimer = window.setTimeout(function() {
+                    scrollTimer = window.setInterval(function() {
+                        position += 1;
+                        drawTickerFrame();
+                        if (position >= lastPosition) {
+                            window.clearInterval(scrollTimer);
+                            scrollTimer = null;
+                            holdTimer = window.setTimeout(function() {
+                                startTickerMessage(messageIndex + 1);
+                            }, 2200);
+                        }
+                    }, 115);
+                }, 1800);
+            }
+
+            startTickerMessage(0);
         }
 
         renderLcdDisplay();
