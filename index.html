@@ -604,7 +604,7 @@
             /* matte, not emissive — top highlight + bottom shadow as if lit from the video above */
             text-shadow: 0 -0.6px 0.6px rgba(255,255,255,0.11), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45);
             opacity: 0.94;
-            filter: brightness(0.96) contrast(0.98);
+            filter: brightness(0.96) contrast(0.98) drop-shadow(0px 5px 12px rgba(0,0,0,0.5));
             margin-bottom: 40px;
             text-decoration: none;
             display: block;
@@ -660,7 +660,7 @@
             /* same light field, weaker — further from the video */
             text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.14), 0 1px 0 rgba(0,0,0,0.45);
             opacity: 0.92;
-            filter: brightness(1);
+            filter: brightness(1) drop-shadow(0px 3px 8px rgba(0,0,0,0.45));
             transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color;
         }
@@ -1734,13 +1734,13 @@
                 function updateTextLight() {
                     if (!blurbEl) return;
                     if (!lumaData || glowFade <= 0.01) {
-                        blurbEl.style.filter = 'brightness(0.95) contrast(0.99)';
+                        blurbEl.style.filter = 'brightness(0.95) contrast(0.99) drop-shadow(0px 5px 12px rgba(0,0,0,0.5))';
                         blurbEl.style.opacity = '0.92';
                         blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.16), 0 1px 0 rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4)';
                         // Solid near-white fill so the clipped glyphs stay visible pre-video.
                         blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #e2e6eb 0%, #e2e6eb 100%)');
                         if (comingEl) {
-                            comingEl.style.filter = 'brightness(0.92)';
+                            comingEl.style.filter = 'brightness(0.92) drop-shadow(0px 3px 8px rgba(0,0,0,0.45))';
                             comingEl.style.opacity = '0.88';
                             comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #dde2e8 0%, #dde2e8 100%)');
                         }
@@ -1781,11 +1781,16 @@
                     const hdrBlur = (3.5 + 6.5 * avgL * flick * glowFade).toFixed(1);
                     const hdrAlpha = (0.14 + 0.22 * avgL * flick * glowFade).toFixed(3);
                     const top = `0 -0.55px 0.55px rgba(${tintR},${tintG},${tintB},${0.04 + 0.06*avgL})`;
-                    const bottom = `0 1px 0 rgba(0,0,0,${0.62 + 0.10*(1-avgL)}), 0 2px 7px rgba(0,0,0,0.46)`;
+                    const bottom = `0 1px 0 rgba(0,0,0,${0.62 + 0.10*(1-avgL)})`;
                     const hdrGlow = `0 0 ${hdrBlur}px color(srgb-linear ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.95 + 1.9*avgL).toFixed(2)} / ${hdrAlpha})`;
+                    // Realistic drop shadow: cast downward by the screen light
+                    // above — deeper and longer when the video is bright.
+                    const shadowY = (3 + 5 * avgL).toFixed(1);
+                    const shadowBlur = (8 + 16 * avgL * flick * glowFade).toFixed(1);
+                    const shadowA = (0.30 + 0.34 * avgL * flick).toFixed(3);
                     blurbEl.style.color = `rgb(${baseR},${baseG},${baseB})`;
                     blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
-                    blurbEl.style.filter = `brightness(${0.94 + 0.24*avgL*flick*glowFade}) contrast(0.99)`;
+                    blurbEl.style.filter = `brightness(${0.94 + 0.24*avgL*flick*glowFade}) contrast(0.99) drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
                     blurbEl.style.opacity = String(0.92 + 0.08*avgL*flick);
                     // Mild text shimmer: a narrow specular streak on the glyphs
                     // that crawls with the video's brightest spot, tinted by it.
@@ -1825,7 +1830,7 @@
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
                         comingEl.style.color = `rgb(${cR},${cG},${cB})`;
                         comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.07 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.5), ${cGlow}`;
-                        comingEl.style.filter = `brightness(${0.9 + 0.2*avgL*flick*glowFade})`;
+                        comingEl.style.filter = `brightness(${0.9 + 0.2*avgL*flick*glowFade}) drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
                         comingEl.style.opacity = String(0.86 + 0.08*avgL);
                         // Same bezel-light treatment as the blurb, milder: the
                         // crawling streak sits on the glyphs, slightly softer.
