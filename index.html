@@ -486,8 +486,8 @@
             position: relative;
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
-            /* darker matte decal — HDR emissive via video (see --btn-text-glow) */
-            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.68), 0 2px 6px rgba(0,0,0,0.42), 0 0 var(--btn-text-blur, 0px) color(srgb-linear 4 4 4 / var(--btn-text-alpha, 0));
+            /* darker matte decal — no text glow, just top highlight + deboss */
+            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.68), 0 2px 6px rgba(0,0,0,0.42);
             opacity: 0.90;
             filter: contrast(0.97) brightness(0.78) sepia(0.02);
             /* extruded: dark shadow + faint highlight, same base as page */
@@ -540,7 +540,7 @@
         .platform-link:hover {
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
             color: #8e949c;
-            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.64), 0 0 var(--btn-text-blur, 0px) color(srgb-linear 3 3 3 / var(--btn-text-alpha, 0));
+            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.64);
             filter: brightness(0.92);
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
