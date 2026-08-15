@@ -1762,7 +1762,8 @@
              refreshCursor();
          })();
 
-         // Motion mode: a monochrome Win3.1 cursor leads three solid RGB ghosts.
+         // Motion mode: a monochrome Win3.1 cursor leads nine solid RGB ghosts —
+         // three per channel, cycling red, green, blue down the trail.
          // Ghost placement uses the classic Windows 2000 time-based trail
          // algorithm — each ghost sits where the pointer was N ticks ago — so
          // the chain bunches up at low speed and stretches out when flicked.
@@ -1771,10 +1772,10 @@
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
-             const trailClasses = ['is-red', 'is-green', 'is-blue'];
-             const trails = trailClasses.map(function(colorClass) {
+             const colorCycle = ['is-red', 'is-green', 'is-blue'];
+             const trails = Array.from({ length: 9 }, function(_, index) {
                  const node = document.createElement('span');
-                 node.className = `mouse-trail ${colorClass}`;
+                 node.className = `mouse-trail ${colorCycle[index % colorCycle.length]}`;
                  node.setAttribute('aria-hidden', 'true');
                  document.body.appendChild(node);
                  return node;
