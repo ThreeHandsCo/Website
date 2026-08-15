@@ -1878,7 +1878,7 @@
                     }
                     const cX = wSum > 0 ? wX / wSum : 0.5;
                     const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
-                    const streakW = 34 + Math.round(18 * avgL);                  // WIDE soft light patch, not a slit
+                    const streakW = 46 + Math.round(20 * avgL);                  // HUGE soft light patch — floods most of the line
                     const peak = 0.18 + 0.42 * avgL * flick * (0.45 + 0.55 * glowFade);
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
