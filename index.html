@@ -470,7 +470,7 @@
            dark/light shadows. Feels pressed from the black, not floating
            on it. Keeps the pixel font but makes the surface tactile. */
         .platform-link {
-            color: #b8c0c8;
+            color: #7f868e;
             text-decoration: none;
             background: #0e0e0e;
             border: none;
@@ -486,10 +486,10 @@
             position: relative;
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
-            /* matte decal, lit from video above — not self-emissive */
-            text-shadow: 0 -0.45px 0.45px rgba(255,255,255,0.09), 0 1px 0 rgba(0,0,0,0.62), 0 2px 5px rgba(0,0,0,0.35);
-            opacity: 0.92;
-            filter: contrast(0.97) brightness(0.88) sepia(0.02);
+            /* darker matte decal — HDR emissive via video (see --btn-text-glow) */
+            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.68), 0 2px 6px rgba(0,0,0,0.42), 0 0 var(--btn-text-blur, 0px) color(srgb-linear 4 4 4 / var(--btn-text-alpha, 0));
+            opacity: 0.90;
+            filter: contrast(0.97) brightness(0.78) sepia(0.02);
             /* extruded: dark shadow + faint highlight, same base as page */
             box-shadow:
                 9px 9px 18px rgba(0, 0, 0, 0.92),
@@ -508,15 +508,21 @@
         .platform-link:nth-child(3) { --rot: -0.07deg; letter-spacing: 1.58px; }
         .platform-link { transform: rotate(var(--rot, 0deg)); }
 
-        /* subtle top-left sheen — sells the curved surface */
+        /* popped-out specular — mild HDR, only when not pressed */
         .platform-link::before {
             content: "";
             position: absolute;
             inset: 1px;
             border-radius: 17px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 58%);
+            background: linear-gradient(145deg, color(srgb-linear 6 6 6) 0%, rgba(255,255,255,0.07) 9%, transparent 42%);
             pointer-events: none;
-            opacity: 0.9;
+            opacity: var(--btn-specular, 0);
+            mix-blend-mode: screen;
+            will-change: opacity;
+        }
+        .platform-link.active::before,
+        .platform-link:active::before {
+            opacity: 0 !important;
         }
 
         /* real-button age: ultra-subtle grain + decal misregister, not distracting */
@@ -533,9 +539,9 @@
 
         .platform-link:hover {
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
-            color: #c2c9d1;
-            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.09), 0 1px 0 rgba(0,0,0,0.58);
-            filter: brightness(0.96);
+            color: #8e949c;
+            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.64), 0 0 var(--btn-text-blur, 0px) color(srgb-linear 3 3 3 / var(--btn-text-alpha, 0));
+            filter: brightness(0.92);
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
                 -11px -11px 22px rgba(255, 255, 255, 0.07);
@@ -544,11 +550,11 @@
         .platform-link:active,
         .platform-link.active {
             background: #0a0a0a;
-            color: #9aa0a8;
+            color: #6f767e;
             /* pressed ink, not emissive — dimmer, debossed */
-            text-shadow: 0 1px 0 rgba(0,0,0,0.65), 0 0 0.6px rgba(0,0,0,0.4);
-            opacity: 0.88;
-            filter: brightness(0.88) contrast(0.96);
+            text-shadow: 0 1px 0 rgba(0,0,0,0.70), 0 0 0.5px rgba(0,0,0,0.45);
+            opacity: 0.82;
+            filter: brightness(0.80) contrast(0.96);
             /* pressed / dented — inset shadows, same light direction */
             box-shadow:
                 inset 8px 8px 16px rgba(0, 0, 0, 0.96),
@@ -1724,26 +1730,43 @@
                     const avgL = (0.2126*rS + 0.7152*gS + 0.0722*bS)/255;
                     const flick = 0.55 + 0.45 * glowFlicker;
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
+                    // darker base, HDR emissive tint — text only as bright as video
+                    const baseR = Math.round(58 + (rS-20)*0.11), baseG = Math.round(60 + (gS-22)*0.11), baseB = Math.round(66 + (bS-28)*0.11);
                     const tintR = Math.round(208 + (rS-110)*0.14);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
-                    const top = `0 -0.55px 0.55px rgba(${tintR},${tintG},${tintB},${0.06 + 0.085*avgL})`;
-                    const bottom = `0 1px 0 rgba(0,0,0,${0.58 + 0.12*(1-avgL)}), 0 2px 7px rgba(0,0,0,0.42)`;
-                    blurbEl.style.color = `rgb(${Math.min(255,tintR)},${Math.min(255,tintG)},${Math.min(255,tintB)})`;
-                    blurbEl.style.textShadow = `${top}, ${bottom}`;
-                    blurbEl.style.filter = `brightness(${0.88 + 0.32*bright}) contrast(0.98)`;
-                    blurbEl.style.opacity = String(0.86 + 0.13*avgL*flick);
+                    const hdrBlur = (3.5 + 6.5 * avgL * flick * glowFade).toFixed(1);
+                    const hdrAlpha = (0.14 + 0.22 * avgL * flick * glowFade).toFixed(3);
+                    const top = `0 -0.55px 0.55px rgba(${tintR},${tintG},${tintB},${0.04 + 0.06*avgL})`;
+                    const bottom = `0 1px 0 rgba(0,0,0,${0.62 + 0.10*(1-avgL)}), 0 2px 7px rgba(0,0,0,0.46)`;
+                    const hdrGlow = `0 0 ${hdrBlur}px color(srgb-linear ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.9 + 1.8*avgL).toFixed(2)} ${ (0.95 + 1.9*avgL).toFixed(2)} / ${hdrAlpha})`;
+                    blurbEl.style.color = `rgb(${baseR},${baseG},${baseB})`;
+                    blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
+                    blurbEl.style.filter = `brightness(${0.66 + 0.62*avgL*flick*glowFade}) contrast(0.98)`;
+                    blurbEl.style.opacity = String(0.78 + 0.18*avgL*flick);
                     if (comingEl) {
-                        comingEl.style.color = `rgb(${Math.round(tintR*0.92)},${Math.round(tintG*0.92)},${Math.round(tintB*0.96)})`;
-                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.05 + 0.06*avgL}), 0 1px 0 rgba(0,0,0,0.52)`;
-                        comingEl.style.filter = `brightness(${0.80 + 0.28*avgL*flick})`;
-                        comingEl.style.opacity = String(0.80 + 0.12*avgL);
+                        const cR = Math.round(baseR*0.92), cG = Math.round(baseG*0.92), cB = Math.round(baseB*0.96);
+                        const cHdrBlur = (2.5 + 4.5 * avgL * flick * glowFade).toFixed(1);
+                        const cHdrA = (0.10 + 0.16 * avgL * flick * glowFade).toFixed(3);
+                        const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
+                        comingEl.style.color = `rgb(${cR},${cG},${cB})`;
+                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.04 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.58), ${cGlow}`;
+                        comingEl.style.filter = `brightness(${0.68 + 0.52*avgL*flick*glowFade})`;
+                        comingEl.style.opacity = String(0.74 + 0.14*avgL);
                     }
                     platformEls.forEach(function(btn) {
                         const isActive = btn.classList.contains('active');
-                        const b = isActive ? (0.74 + 0.22*avgL*flick) : (0.80 + 0.26*avgL*flick);
-                        btn.style.filter = `brightness(${b}) contrast(0.97)`;
-                        btn.style.opacity = isActive ? String(0.84 + 0.09*avgL) : String(0.90 + 0.08*avgL);
+                        // popped-out is very reactive, popped-in is muted
+                        const b = isActive ? (0.68 + 0.18*avgL*flick) : (0.58 + 0.62*avgL*flick*glowFade);
+                        const tBlur = isActive ? '0px' : `${(2.8 + 5.5*avgL*flick).toFixed(1)}px`;
+                        const tAlpha = isActive ? '0' : (0.09 + 0.18*avgL*flick*glowFade).toFixed(3);
+                        btn.style.filter = `brightness(${b}) contrast(0.96)`;
+                        btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.86 + 0.10*avgL);
+                        btn.style.setProperty('--btn-text-blur', tBlur);
+                        btn.style.setProperty('--btn-text-alpha', tAlpha);
+                        // specular only when popped-out
+                        const spec = isActive ? 0 : (0.12 + 0.52 * avgL * flick * glowFade);
+                        btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                     });
                     // HDR shimmering edge: top ring of video drives bezel specular
                     if (bezelEl) {
