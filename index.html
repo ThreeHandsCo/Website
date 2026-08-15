@@ -452,6 +452,9 @@
             position: relative;
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
+            /* imperfect decal + age: faint misregister, archival fade */
+            text-shadow: 0.55px 0.5px 0 rgba(0,0,0,0.42), -0.32px -0.28px 0 rgba(255,255,255,0.045);
+            filter: contrast(0.985) brightness(0.992) sepia(0.012);
             /* extruded: dark shadow + faint highlight, same base as page */
             box-shadow:
                 9px 9px 18px rgba(0, 0, 0, 0.92),
@@ -460,9 +463,15 @@
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
                 transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-                color 0.2s ease, background 0.2s ease;
+                color 0.2s ease, background 0.2s ease, filter 0.2s ease;
             dynamic-range-limit: no-limit;
         }
+
+        /* per-button decal jitter — not distracting, just not laser-perfect */
+        .platform-link:nth-child(1) { --rot: -0.14deg; letter-spacing: 1.55px; }
+        .platform-link:nth-child(2) { --rot: 0.11deg; letter-spacing: 1.68px; }
+        .platform-link:nth-child(3) { --rot: -0.07deg; letter-spacing: 1.58px; }
+        .platform-link { transform: rotate(var(--rot, 0deg)); }
 
         /* subtle top-left sheen — sells the curved surface */
         .platform-link::before {
@@ -475,8 +484,20 @@
             opacity: 0.9;
         }
 
+        /* real-button age: ultra-subtle grain + decal misregister, not distracting */
+        .platform-link::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+            opacity: 0.38;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+
         .platform-link:hover {
-            transform: translateY(-2px);
+            transform: rotate(var(--rot, 0deg)) translateY(-2px);
             color: #ffffff;
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
@@ -491,7 +512,7 @@
             box-shadow:
                 inset 8px 8px 16px rgba(0, 0, 0, 0.96),
                 inset -8px -8px 16px rgba(255, 255, 255, 0.045);
-            transform: translateY(1px) scale(0.993);
+            transform: rotate(var(--rot, 0deg)) translateY(1px) scale(0.993);
         }
 
         .platform-link:focus-visible {
