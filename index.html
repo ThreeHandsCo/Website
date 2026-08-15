@@ -695,8 +695,8 @@
             background-size: 100% 100%, calc(var(--lcd-dot) * 1.2) calc(var(--lcd-dot) * 1.2);
             opacity: 0.58;
             mix-blend-mode: screen;
-            filter: blur(0.15px);
             animation: lcd-haze 4.8s ease-in-out infinite;
+            will-change: opacity;
             pointer-events: none;
         }
 
@@ -709,6 +709,7 @@
                 radial-gradient(ellipse 82% 72% at 50% 50%, rgba(119, 207, 255, 0.13), transparent 74%),
                 linear-gradient(180deg, rgba(255,255,255,0.14), transparent 19%, transparent 76%, rgba(0,15,80,0.18));
             animation: lcd-scan 5.6s ease-in-out infinite;
+            will-change: opacity, transform;
             pointer-events: none;
         }
 
@@ -1111,6 +1112,15 @@
             let top = 0;
             let currentTop = '';
             let currentBottom = '';
+            let stripCanvas = null;
+            let stripCtx = null;
+            let stripColumns = 0;
+            let messageIndex = 0;
+            let phase = 'hold';
+            let position = LCD_COLUMNS;
+            let exitPosition = LCD_COLUMNS;
+            let phaseUntil = performance.now() + 2400;
+            let tickerTimer = null;
 
             function glyphFor(character) {
                 return LCD_GLYPHS[character] || LCD_GLYPHS[character.toUpperCase()] || LCD_GLYPHS['?'];
@@ -1135,18 +1145,26 @@
                 left = (cssWidth - dot * 6.35 * LCD_COLUMNS) / 2;
                 top = (cssHeight - (rowHeight * 2 + rowGap)) / 2;
                 screen.style.setProperty('--lcd-dot', dot.toFixed(2) + 'px');
-                drawMatrix(currentTop, currentBottom);
+                rebuildStrip();
+                drawMatrix(position);
             }
 
-            function drawMatrix(topText, bottomText) {
-                if (!cssWidth || !cssHeight) return;
-                ctx.clearRect(0, 0, cssWidth, cssHeight);
-                const rows = [topText, bottomText];
+            function rebuildStrip() {
+                if (!cssWidth || !cssHeight || !currentTop || !currentBottom) return;
+                // Add a full blank viewport after the track so the text can
+                // leave cleanly without sampling beyond the offscreen bitmap.
+                stripColumns = Math.max(currentTop.length, currentBottom.length) + LCD_COLUMNS;
+                stripCanvas = document.createElement('canvas');
+                stripCanvas.width = Math.max(1, Math.ceil((left + dot * 6.35 * stripColumns) * deviceScale));
+                stripCanvas.height = Math.max(1, Math.round(cssHeight * deviceScale));
+                stripCtx = stripCanvas.getContext('2d', { alpha: true });
+                stripCtx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+                stripCtx.imageSmoothingEnabled = false;
                 const pixelStep = dot * 1.12;
                 const cellPitch = dot * 6.35;
 
-                rows.forEach(function(text, rowIndex) {
-                    const characters = Array.from(text.padEnd(LCD_COLUMNS, ' ').slice(0, LCD_COLUMNS));
+                [currentTop, currentBottom].forEach(function(text, rowIndex) {
+                    const characters = Array.from(text.padEnd(stripColumns, ' ').slice(0, stripColumns));
                     const yBase = top + rowIndex * (rowHeight + rowGap);
                     characters.forEach(function(character, column) {
                         const glyph = glyphFor(character).join('');
@@ -1156,13 +1174,30 @@
                             const pixelY = Math.floor(pixelIndex / 5);
                             const x = xBase + pixelX * pixelStep;
                             const y = yBase + pixelY * pixelStep;
-                            ctx.fillStyle = glyph[pixelIndex] === '1'
+                            stripCtx.fillStyle = glyph[pixelIndex] === '1'
                                 ? (rowIndex === 0 ? 'rgba(210,235,255,0.94)' : 'rgba(201,229,255,0.88)')
                                 : 'rgba(134,197,255,0.23)';
-                            ctx.fillRect(x, y, dot, dot);
+                            stripCtx.fillRect(x, y, dot, dot);
                         }
                     });
                 });
+            }
+
+            function drawMatrix(scrollPosition) {
+                if (!cssWidth || !cssHeight || !stripCanvas || !stripCtx) return;
+                ctx.clearRect(0, 0, cssWidth, cssHeight);
+                const sourceX = Math.round(scrollPosition * dot * 6.35 * deviceScale);
+                ctx.drawImage(
+                    stripCanvas,
+                    sourceX,
+                    0,
+                    Math.round(cssWidth * deviceScale),
+                    Math.round(cssHeight * deviceScale),
+                    0,
+                    0,
+                    cssWidth,
+                    cssHeight
+                );
             }
 
             function updateAccessibleText(message) {
@@ -1174,14 +1209,6 @@
             if (window.ResizeObserver) new ResizeObserver(resizeCanvas).observe(screen);
             window.addEventListener('resize', resizeCanvas, { passive: true });
 
-            let messageIndex = 0;
-            let phase = 'hold';
-            let position = LCD_COLUMNS;
-            let exitPosition = LCD_COLUMNS;
-            let phaseUntil = performance.now() + 2400;
-            let lastStep = 0;
-            let tickerFrame = 0;
-
             function loadMessage(index, immediate) {
                 messageIndex = index % LCD_TICKER_MESSAGES.length;
                 const message = LCD_TICKER_MESSAGES[messageIndex];
@@ -1192,12 +1219,13 @@
                 phase = immediate ? 'hold' : 'in';
                 phaseUntil = performance.now() + (immediate ? 2400 : 0);
                 updateAccessibleText(message);
-                drawMatrix(currentTop.slice(position, position + LCD_COLUMNS), currentBottom.slice(position, position + LCD_COLUMNS));
+                rebuildStrip();
+                drawMatrix(position);
             }
 
-            function tickTicker(now) {
-                if (!document.hidden && !reducedMotion && now - lastStep >= 105) {
-                    lastStep = now;
+            function tickTicker() {
+                if (!document.hidden && !reducedMotion) {
+                    const now = performance.now();
                     if (phase === 'hold' && now >= phaseUntil) phase = 'out';
                     if (phase === 'in') {
                         position += 1;
@@ -1210,13 +1238,13 @@
                         position += 1;
                         if (position >= exitPosition) loadMessage(messageIndex + 1, false);
                     }
-                    drawMatrix(currentTop.slice(position, position + LCD_COLUMNS), currentBottom.slice(position, position + LCD_COLUMNS));
+                    drawMatrix(position);
                 }
-                tickerFrame = window.requestAnimationFrame(tickTicker);
+                tickerTimer = window.setTimeout(tickTicker, document.hidden ? 500 : 105);
             }
 
             loadMessage(0, true);
-            if (!reducedMotion) tickerFrame = window.requestAnimationFrame(tickTicker);
+            if (!reducedMotion) tickerTimer = window.setTimeout(tickTicker, 105);
         }
 
         renderLcdDisplay();
