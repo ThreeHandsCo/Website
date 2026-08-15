@@ -241,7 +241,8 @@
         .buttons-container {
             display: flex;
             gap: 40px;
-            margin-top: 48px;
+            /* #content-container supplies the shared 40px vertical rhythm. */
+            margin-top: 0;
             margin-bottom: 40px;
             flex-wrap: wrap;
             justify-content: center;
@@ -604,7 +605,7 @@
         .release-status {
             /* Match the trailer-wrap outer width exactly. */
             width: min(646px, calc(100vw - 40px));
-            margin: 0 auto 40px;
+            margin: 0 auto;
         }
 
         /* Adafruit-style 16x2 LCD module: black plastic shell around a
@@ -728,51 +729,35 @@
             }
         }
 
-        .lcd-line {
-            position: relative;
+        .lcd-matrix {
+            position: absolute;
+            inset: 0;
             z-index: 2;
-            display: flex;
-            flex: 0 0 auto;
-            align-items: center;
-            justify-content: flex-start;
-            gap: calc(var(--lcd-dot) * 0.8);
+            display: block;
             width: 100%;
-            min-height: calc(var(--lcd-dot) * 8.5);
-            color: rgba(196, 226, 255, 0.92);
+            height: 100%;
+            image-rendering: pixelated;
+            pointer-events: none;
+        }
+
+        .lcd-hitarea {
+            position: absolute;
+            inset: 0 0 50%;
+            z-index: 4;
+            display: block;
+            color: transparent;
+            font-size: 0;
             text-decoration: none;
+        }
+
+        .lcd-sr-text {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
             white-space: nowrap;
-        }
-
-        .lcd-line:hover {
-            transform: none;
-        }
-
-        .lcd-char {
-            display: grid;
-            flex: 0 0 auto;
-            grid-template-columns: repeat(5, var(--lcd-dot));
-            grid-template-rows: repeat(8, var(--lcd-dot));
-            gap: calc(var(--lcd-dot) * 0.12);
-        }
-
-        .lcd-dot {
-            width: var(--lcd-dot);
-            height: var(--lcd-dot);
-            background: rgba(134, 197, 255, 0.23);
-            box-shadow: inset 0 0 0.4px rgba(210, 238, 255, 0.3);
-        }
-
-        .lcd-dot.is-on {
-            background: rgba(201, 229, 255, 0.88);
-            box-shadow: 0 0 1.8px rgba(235, 247, 255, 0.78);
-        }
-
-        .lcd-line:first-child .lcd-dot.is-on {
-            background: rgba(210, 235, 255, 0.94);
-        }
-
-        .coming-soon {
-            color: rgba(190, 222, 255, 0.82);
         }
 
         @media (max-width: 600px) {
@@ -986,8 +971,9 @@
         <div class="release-status">
             <div class="lcd-module" role="img" aria-label="SKLESH OUT NOW. Coming soon to the App Store.">
                 <div class="lcd-screen">
-                    <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="blurb lcd-line" data-lcd-text="SKLESH OUT NOW" aria-label="SKLESH OUT NOW">SKLESH OUT NOW</a>
-                    <p class="coming-soon lcd-line" data-lcd-text="Coming soon to the App Store" aria-label="Coming soon to the App Store">Coming soon to the App Store</p>
+                    <canvas class="lcd-matrix" aria-hidden="true"></canvas>
+                    <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="lcd-hitarea blurb" aria-label="SKLESH OUT NOW"></a>
+                    <p class="lcd-sr-text coming-soon" aria-label="Coming soon to the App Store">Coming soon to the App Store</p>
                 </div>
             </div>
         </div>
@@ -1108,105 +1094,129 @@
 
         function renderLcdDisplay() {
             const screen = document.querySelector('.lcd-screen');
+            const canvas = document.querySelector('.lcd-matrix');
             const module = document.querySelector('.lcd-module');
-            const lines = Array.from(document.querySelectorAll('.lcd-line[data-lcd-text]'));
-            if (!screen || !module || lines.length < 2) return;
+            const srText = document.querySelector('.lcd-sr-text');
+            if (!screen || !canvas || !module) return;
+
+            const ctx = canvas.getContext('2d', { alpha: true });
+            const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let cssWidth = 0;
+            let cssHeight = 0;
+            let deviceScale = 1;
+            let dot = 3;
+            let rowHeight = 0;
+            let rowGap = 0;
+            let left = 0;
+            let top = 0;
+            let currentTop = '';
+            let currentBottom = '';
 
             function glyphFor(character) {
                 return LCD_GLYPHS[character] || LCD_GLYPHS[character.toUpperCase()] || LCD_GLYPHS['?'];
             }
 
-            function createCells(line) {
-                line.textContent = '';
-                for (let column = 0; column < LCD_COLUMNS; column++) {
-                    const cell = document.createElement('span');
-                    cell.className = 'lcd-char';
-                    cell.setAttribute('aria-hidden', 'true');
-                    glyphFor(' ').join('').split('').forEach(function() {
-                        const dot = document.createElement('span');
-                        dot.className = 'lcd-dot';
-                        cell.appendChild(dot);
-                    });
-                    line.appendChild(cell);
-                }
+            function resizeCanvas() {
+                cssWidth = screen.clientWidth;
+                cssHeight = screen.clientHeight;
+                deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+                canvas.width = Math.max(1, Math.round(cssWidth * deviceScale));
+                canvas.height = Math.max(1, Math.round(cssHeight * deviceScale));
+                canvas.style.width = cssWidth + 'px';
+                canvas.style.height = cssHeight + 'px';
+                ctx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+                ctx.imageSmoothingEnabled = false;
+
+                const available = Math.max(1, cssWidth - 28);
+                // 32 fixed character columns, each made from a 5x8 dot cell.
+                dot = Math.max(1.35, Math.min(7.5, available / (LCD_COLUMNS * 6.35)));
+                rowHeight = dot * (8 + 7 * 0.12);
+                rowGap = dot * 2.1;
+                left = (cssWidth - dot * 6.35 * LCD_COLUMNS) / 2;
+                top = (cssHeight - (rowHeight * 2 + rowGap)) / 2;
+                screen.style.setProperty('--lcd-dot', dot.toFixed(2) + 'px');
+                drawMatrix(currentTop, currentBottom);
             }
 
-            function writeRow(line, text) {
-                const characters = Array.from(text.padEnd(LCD_COLUMNS, ' ').slice(0, LCD_COLUMNS));
-                characters.forEach(function(character, column) {
-                    const pixels = glyphFor(character).join('');
-                    const dots = line.children[column].children;
-                    pixels.split('').forEach(function(pixel, pixelIndex) {
-                        dots[pixelIndex].classList.toggle('is-on', pixel === '1');
+            function drawMatrix(topText, bottomText) {
+                if (!cssWidth || !cssHeight) return;
+                ctx.clearRect(0, 0, cssWidth, cssHeight);
+                const rows = [topText, bottomText];
+                const pixelStep = dot * 1.12;
+                const cellPitch = dot * 6.35;
+
+                rows.forEach(function(text, rowIndex) {
+                    const characters = Array.from(text.padEnd(LCD_COLUMNS, ' ').slice(0, LCD_COLUMNS));
+                    const yBase = top + rowIndex * (rowHeight + rowGap);
+                    characters.forEach(function(character, column) {
+                        const glyph = glyphFor(character).join('');
+                        const xBase = left + column * cellPitch;
+                        for (let pixelIndex = 0; pixelIndex < glyph.length; pixelIndex++) {
+                            const pixelX = pixelIndex % 5;
+                            const pixelY = Math.floor(pixelIndex / 5);
+                            const x = xBase + pixelX * pixelStep;
+                            const y = yBase + pixelY * pixelStep;
+                            ctx.fillStyle = glyph[pixelIndex] === '1'
+                                ? (rowIndex === 0 ? 'rgba(210,235,255,0.94)' : 'rgba(201,229,255,0.88)')
+                                : 'rgba(134,197,255,0.23)';
+                            ctx.fillRect(x, y, dot, dot);
+                        }
                     });
                 });
             }
 
-            lines.forEach(createCells);
-
-            function sizeLcdDots() {
-                const available = Math.max(1, screen.clientWidth - 28);
-                // Explicit 32-column width: every unlit cell remains visible,
-                // exactly like a real 2x32 character module.
-                const unit = Math.max(1.35, Math.min(7.5, available / (LCD_COLUMNS * 6.35)));
-                screen.style.setProperty('--lcd-dot', unit.toFixed(2) + 'px');
+            function updateAccessibleText(message) {
+                module.setAttribute('aria-label', `${message.top}. ${message.bottom}.`);
+                if (srText) srText.textContent = message.bottom;
             }
 
-            sizeLcdDots();
-            if (window.ResizeObserver) {
-                new ResizeObserver(sizeLcdDots).observe(screen);
-            }
-            window.addEventListener('resize', sizeLcdDots, { passive: true });
-
-            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                const first = LCD_TICKER_MESSAGES[0];
-                writeRow(lines[0], first.top);
-                writeRow(lines[1], first.bottom);
-                return;
-            }
+            resizeCanvas();
+            if (window.ResizeObserver) new ResizeObserver(resizeCanvas).observe(screen);
+            window.addEventListener('resize', resizeCanvas, { passive: true });
 
             let messageIndex = 0;
-            let scrollTimer = null;
-            let holdTimer = null;
+            let phase = 'hold';
+            let position = LCD_COLUMNS;
+            let exitPosition = LCD_COLUMNS;
+            let phaseUntil = performance.now() + 2400;
+            let lastStep = 0;
+            let tickerFrame = 0;
 
-            function startTickerMessage(index) {
-                if (scrollTimer) window.clearInterval(scrollTimer);
-                if (holdTimer) window.clearTimeout(holdTimer);
+            function loadMessage(index, immediate) {
                 messageIndex = index % LCD_TICKER_MESSAGES.length;
                 const message = LCD_TICKER_MESSAGES[messageIndex];
-                const topTrack = ' '.repeat(LCD_COLUMNS) + message.top + '    ';
-                const bottomTrack = ' '.repeat(LCD_COLUMNS) + message.bottom + '    ';
-                const lastPosition = Math.max(topTrack.length, bottomTrack.length) - LCD_COLUMNS;
-                // Show the current announcement immediately on first load;
-                // later announcements enter from the right like a ticker.
-                let position = messageIndex === 0 ? LCD_COLUMNS : 0;
-
-                module.setAttribute('aria-label', `${message.top}. ${message.bottom}.`);
-                lines[0].setAttribute('aria-label', message.top);
-                lines[1].setAttribute('aria-label', message.bottom);
-
-                function drawTickerFrame() {
-                    writeRow(lines[0], topTrack.slice(position, position + LCD_COLUMNS));
-                    writeRow(lines[1], bottomTrack.slice(position, position + LCD_COLUMNS));
-                }
-
-                drawTickerFrame();
-                holdTimer = window.setTimeout(function() {
-                    scrollTimer = window.setInterval(function() {
-                        position += 1;
-                        drawTickerFrame();
-                        if (position >= lastPosition) {
-                            window.clearInterval(scrollTimer);
-                            scrollTimer = null;
-                            holdTimer = window.setTimeout(function() {
-                                startTickerMessage(messageIndex + 1);
-                            }, 2200);
-                        }
-                    }, 115);
-                }, 1800);
+                currentTop = ' '.repeat(LCD_COLUMNS) + message.top + '    ';
+                currentBottom = ' '.repeat(LCD_COLUMNS) + message.bottom + '    ';
+                exitPosition = Math.max(currentTop.length, currentBottom.length);
+                position = immediate ? LCD_COLUMNS : 0;
+                phase = immediate ? 'hold' : 'in';
+                phaseUntil = performance.now() + (immediate ? 2400 : 0);
+                updateAccessibleText(message);
+                drawMatrix(currentTop.slice(position, position + LCD_COLUMNS), currentBottom.slice(position, position + LCD_COLUMNS));
             }
 
-            startTickerMessage(0);
+            function tickTicker(now) {
+                if (!document.hidden && !reducedMotion && now - lastStep >= 105) {
+                    lastStep = now;
+                    if (phase === 'hold' && now >= phaseUntil) phase = 'out';
+                    if (phase === 'in') {
+                        position += 1;
+                        if (position >= LCD_COLUMNS) {
+                            position = LCD_COLUMNS;
+                            phase = 'hold';
+                            phaseUntil = now + 2200;
+                        }
+                    } else if (phase === 'out') {
+                        position += 1;
+                        if (position >= exitPosition) loadMessage(messageIndex + 1, false);
+                    }
+                    drawMatrix(currentTop.slice(position, position + LCD_COLUMNS), currentBottom.slice(position, position + LCD_COLUMNS));
+                }
+                tickerFrame = window.requestAnimationFrame(tickTicker);
+            }
+
+            loadMessage(0, true);
+            if (!reducedMotion) tickerFrame = window.requestAnimationFrame(tickTicker);
         }
 
         renderLcdDisplay();
