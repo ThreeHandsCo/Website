@@ -114,8 +114,8 @@
             padding: 8px;
             box-shadow:
                 0 12px 32px rgba(0, 0, 0, 0.90),
-                0 0 0 1px rgba(255, 255, 255, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                0 0 0 1px rgba(255, 255, 255, 0.09),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14),
                 inset 0 -1px 2px rgba(0, 0, 0, 0.60);
             dynamic-range-limit: no-limit;
         }
@@ -126,8 +126,8 @@
             position: absolute;
             inset: 0;
             border-radius: 20px;
-            padding: 1.4px;
-            background: radial-gradient(ellipse 28% 32% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%);
+            padding: 2.2px;
+            background: radial-gradient(ellipse 40% 46% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 20 20 20) 20%, color(srgb-linear 8 8 8) 40%, transparent 78%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -143,9 +143,9 @@
             position: absolute;
             inset: 1px;
             border-radius: 19px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.10) 0%, transparent 48%);
+            background: linear-gradient(145deg, rgba(255,255,255,0.13) 0%, transparent 52%);
             pointer-events: none;
-            opacity: 0.75;
+            opacity: 0.8;
         }
 
         .featured-trailer {
@@ -2483,7 +2483,7 @@
                             });
                         }
                         if (bezelEl && !ambientBezelApplied) {
-                            bezelEl.style.setProperty('--bezel-specular', '0.62');
+                            bezelEl.style.setProperty('--bezel-specular', '0.85');
                             ambientBezelApplied = true;
                         }
                         return;
@@ -2563,7 +2563,7 @@
                         }
                         topR/=topC; topG/=topC; topB/=topC;
                         const topL = (0.2126*topR + 0.7152*topG + 0.0722*topB)/255;
-                        const spec = Math.min(1, 0.72 + 0.68 * topL * flick * (0.45 + 0.55*glowFade));
+                        const spec = Math.min(1, 0.85 + 0.5 * topL * flick * (0.45 + 0.55*glowFade));
                         bezelEl.style.setProperty('--bezel-specular', String(spec.toFixed(3)));
                         // real-time location: weighted centroid -> angle around border, so highlight crawls the edge
                         let sX=0,sY=0,wSum=0;
