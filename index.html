@@ -603,14 +603,14 @@
 
         .blurb {
             text-align: center;
-            color: #d8dde3;
+            color: #ffffff;
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
             /* matte, not emissive — top highlight + bottom shadow as if lit from the video above */
-            text-shadow: 0 -0.6px 0.6px rgba(255,255,255,0.11), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45);
-            opacity: 0.94;
-            filter: brightness(0.96) contrast(0.98) drop-shadow(0px 5px 12px rgba(0,0,0,0.5));
+            text-shadow: 0 -0.45px 0.45px rgba(255,255,255,0.14), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45);
+            opacity: 1;
+            filter: brightness(1.0) contrast(1.0) drop-shadow(0px 5px 12px rgba(0,0,0,0.5));
             margin-bottom: 40px;
             text-decoration: none;
             display: block;
@@ -624,7 +624,7 @@
            crawling specular streak JS positions on the video's bright spot. */
         @supports ((-webkit-background-clip: text) or (background-clip: text)) {
             .blurb {
-                background-image: var(--blurb-sheen, linear-gradient(180deg, #d8dde3 0%, #d8dde3 100%));
+                background-image: var(--blurb-sheen, linear-gradient(180deg, #ffffff 0%, #ffffff 100%));
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 -webkit-background-clip: text;
@@ -633,7 +633,7 @@
             }
 
             .coming-soon {
-                background-image: var(--coming-sheen, linear-gradient(180deg, #e0e5ea 0%, #e0e5ea 100%));
+                background-image: var(--coming-sheen, linear-gradient(180deg, #ffffff 0%, #ffffff 100%));
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 -webkit-background-clip: text;
@@ -659,7 +659,7 @@
         }
 
         .coming-soon {
-            color: #e0e5ea;
+            color: #ffffff;
             font-family: 'Press Start 2P', cursive;
             font-size: 11px;
             letter-spacing: 1px;
