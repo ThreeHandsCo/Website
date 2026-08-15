@@ -91,16 +91,17 @@
             position: relative;
             width: min(646px, calc(100vw - 40px));
             aspect-ratio: 16 / 9;
-            /* Darker, thinner neumorphic frame — real HDR specular edge */
+            /* Neumorphic frame — real depth: dual shadows + crisp inset edge
+               lights, same language as the buttons. */
             isolation: isolate;
-            background: #070709;
-            border-radius: 14px;
-            padding: 5px;
+            background: #0b0b0d;
+            border-radius: 20px;
+            padding: 8px;
             box-shadow:
-                7px 7px 14px rgba(0, 0, 0, 0.96),
-                -7px -7px 14px rgba(255, 255, 255, 0.038),
-                inset 0 1px 0 rgba(255,255,255,0.04),
-                inset 0 -1px 1px rgba(0,0,0,0.55);
+                12px 14px 28px rgba(0, 0, 0, 0.92),
+                -10px -10px 24px rgba(255, 255, 255, 0.075),
+                inset 0 1.5px 0 rgba(255, 255, 255, 0.10),
+                inset 0 -1.5px 2px rgba(0, 0, 0, 0.62);
         }
 
         /* HDR shimmering edge — visible, crawling the border */
@@ -108,7 +109,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            border-radius: 14px;
+            border-radius: 20px;
             padding: 1.4px;
             background: radial-gradient(ellipse 28% 32% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -125,10 +126,10 @@
             content: "";
             position: absolute;
             inset: 1px;
-            border-radius: 13px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.055) 0%, transparent 42%);
+            border-radius: 19px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.10) 0%, transparent 48%);
             pointer-events: none;
-            opacity: 0.7;
+            opacity: 0.75;
         }
 
         .featured-trailer {
@@ -139,7 +140,7 @@
             height: 100%;
             object-fit: contain;
             background: transparent;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             -webkit-mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
             mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
@@ -1734,14 +1735,14 @@
                 function updateTextLight() {
                     if (!blurbEl) return;
                     if (!lumaData || glowFade <= 0.01) {
-                        blurbEl.style.filter = 'brightness(0.95) contrast(0.99) drop-shadow(0px 5px 12px rgba(0,0,0,0.5))';
-                        blurbEl.style.opacity = '0.92';
-                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.16), 0 1px 0 rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4)';
+                        blurbEl.style.filter = 'brightness(1.02) contrast(0.99) drop-shadow(0px 5px 12px rgba(0,0,0,0.5))';
+                        blurbEl.style.opacity = '0.96';
+                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.18), 0 1px 0 rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4)';
                         // Solid near-white fill so the clipped glyphs stay visible pre-video.
-                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #e2e6eb 0%, #e2e6eb 100%)');
+                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #eef2f6 0%, #eef2f6 100%)');
                         if (comingEl) {
-                            comingEl.style.filter = 'brightness(0.92) drop-shadow(0px 3px 8px rgba(0,0,0,0.45))';
-                            comingEl.style.opacity = '0.88';
+                            comingEl.style.filter = 'brightness(1.00) drop-shadow(0px 3px 8px rgba(0,0,0,0.45))';
+                            comingEl.style.opacity = '0.92';
                             comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #dde2e8 0%, #dde2e8 100%)');
                         }
                         platformEls.forEach(function(btn) {
@@ -1772,9 +1773,8 @@
                     const avgL = (0.2126*rS + 0.7152*gS + 0.0722*bS)/255;
                     const flick = 0.55 + 0.45 * glowFlicker;
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
-                    // Near-white glyphs — the video light brightens and tints
-                    // them, never darkens them below a readable white.
-                    const baseR = Math.round(208 + (rS-110)*0.18), baseG = Math.round(210 + (gS-112)*0.18), baseB = Math.round(214 + (bS-118)*0.18);
+                    // Brighter near-white — stays luminous even when video is dark, video just tints/brightens further
+                    const baseR = Math.round(228 + (rS-110)*0.14), baseG = Math.round(230 + (gS-112)*0.14), baseB = Math.round(234 + (bS-118)*0.14);
                     const tintR = Math.round(208 + (rS-110)*0.14);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
@@ -1788,10 +1788,10 @@
                     const shadowY = (3 + 5 * avgL).toFixed(1);
                     const shadowBlur = (8 + 16 * avgL * flick * glowFade).toFixed(1);
                     const shadowA = (0.30 + 0.34 * avgL * flick).toFixed(3);
-                    blurbEl.style.color = `rgb(${baseR},${baseG},${baseB})`;
+                    blurbEl.style.color = `rgb(${Math.min(255,baseR)},${Math.min(255,baseG)},${Math.min(255,baseB)})`;
                     blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
-                    blurbEl.style.filter = `brightness(${0.94 + 0.24*avgL*flick*glowFade}) contrast(0.99) drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
-                    blurbEl.style.opacity = String(0.92 + 0.08*avgL*flick);
+                    blurbEl.style.filter = `brightness(${1.02 + 0.30*avgL*flick*glowFade}) contrast(0.99) drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
+                    blurbEl.style.opacity = String(0.96 + 0.06*avgL*flick);
                     // Mild text shimmer: a narrow specular streak on the glyphs
                     // that crawls with the video's brightest spot, tinted by it.
                     // Shared by the blurb and the coming-soon line.
@@ -1809,17 +1809,22 @@
                     const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
                     const streakW = 7 + Math.round(9 * avgL);                    // narrow, mild
                     const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
+                    // Tinted linear-light helper for HDR shimmer stops.
+                    const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
                     {
-                        const pR = Math.min(255, Math.round(baseR + (tintR - baseR) * 0.55 + 60 * peak));
-                        const pG = Math.min(255, Math.round(baseG + (tintG - baseG) * 0.55 + 60 * peak));
-                        const pB = Math.min(255, Math.round(baseB + (tintB - baseB) * 0.55 + 64 * peak));
+                        // HDR peak stop: linear-light, rises above SDR white
+                        // (1.0) when the scene gets bright.
+                        const lp = 0.75 + 0.95 * peak + 0.12 * avgL;
+                        const lpR = (lp * tintLin(tintR)).toFixed(2);
+                        const lpG = (lp * tintLin(tintG)).toFixed(2);
+                        const lpB = (lp * tintLin(tintB)).toFixed(2);
                         const g0 = Math.max(0, streakX - streakW);
                         const g1 = Math.min(100, streakX + streakW);
                         blurbEl.style.setProperty('--blurb-sheen',
                             `linear-gradient(100deg,
                                 rgba(${baseR},${baseG},${baseB},1) 0%,
                                 rgba(${baseR},${baseG},${baseB},1) ${g0}%,
-                                rgba(${pR},${pG},${pB},1) ${streakX}%,
+                                color(srgb-linear ${lpR} ${lpG} ${lpB}) ${streakX}%,
                                 rgba(${baseR},${baseG},${baseB},1) ${g1}%,
                                 rgba(${baseR},${baseG},${baseB},1) 100%)`);
                     }
@@ -1830,14 +1835,16 @@
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
                         comingEl.style.color = `rgb(${cR},${cG},${cB})`;
                         comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.07 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.5), ${cGlow}`;
-                        comingEl.style.filter = `brightness(${0.9 + 0.2*avgL*flick*glowFade}) drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
-                        comingEl.style.opacity = String(0.86 + 0.08*avgL);
+                        comingEl.style.filter = `brightness(${0.98 + 0.32*avgL*flick*glowFade}) drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
+                        comingEl.style.opacity = String(0.90 + 0.08*avgL);
                         // Same bezel-light treatment as the blurb, milder: the
-                        // crawling streak sits on the glyphs, slightly softer.
+                        // crawling streak sits on the glyphs, slightly softer,
+                        // with its own HDR peak stop.
                         const cp = peak * 0.8;
-                        const cr2 = Math.min(255, Math.round(cR + (tintR - cR) * 0.5 + 46 * cp));
-                        const cg2 = Math.min(255, Math.round(cG + (tintG - cG) * 0.5 + 46 * cp));
-                        const cb2 = Math.min(255, Math.round(cB + (tintB - cB) * 0.5 + 50 * cp));
+                        const lcp = 0.72 + 0.78 * cp + 0.08 * avgL;
+                        const lcR = (lcp * tintLin(tintR)).toFixed(2);
+                        const lcG = (lcp * tintLin(tintG)).toFixed(2);
+                        const lcB = (lcp * tintLin(tintB)).toFixed(2);
                         const cW = Math.max(4, Math.round(streakW * 0.85));
                         const cg0 = Math.max(0, streakX - cW);
                         const cg1 = Math.min(100, streakX + cW);
@@ -1845,7 +1852,7 @@
                             `linear-gradient(100deg,
                                 rgba(${cR},${cG},${cB},1) 0%,
                                 rgba(${cR},${cG},${cB},1) ${cg0}%,
-                                rgba(${cr2},${cg2},${cb2},1) ${streakX}%,
+                                color(srgb-linear ${lcR} ${lcG} ${lcB}) ${streakX}%,
                                 rgba(${cR},${cG},${cB},1) ${cg1}%,
                                 rgba(${cR},${cG},${cB},1) 100%)`);
                     }
@@ -1860,7 +1867,7 @@
                         // the buttons near full brightness, bright scenes push
                         // them well past it.
                         const react = sL * flick * (0.55 + 0.45 * glowFade);
-                        const b = isActive ? (0.88 + 0.22*avgL*flick) : (0.92 + 0.62*react);
+                        const b = isActive ? (0.94 + 0.24*avgL*flick) : (0.98 + 0.68*react);
                         const tBlur = isActive ? '0px' : `${(2.8 + 5.5*sL*flick).toFixed(1)}px`;
                         const tAlpha = isActive ? '0' : (0.09 + 0.18*sL*flick*glowFade).toFixed(3);
                         const dimDisabled = btn.disabled ? 0.8 : 1;
