@@ -1774,7 +1774,7 @@
                     const flick = 0.55 + 0.45 * glowFlicker;
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
                     // Max white — pure, video just tints
-                    const baseR = Math.round(248 + (rS-110)*0.04), baseG = Math.round(250 + (gS-112)*0.04), baseB = Math.round(253 + (bS-118)*0.04);
+                    const baseR = 255, baseG = 255, baseB = 255;
                     const tintR = Math.round(208 + (rS-110)*0.14);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
@@ -1812,9 +1812,8 @@
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
                     {
-                        // HDR peak stop: linear-light, rises above SDR white
-                        // (1.0) when the scene gets bright.
-                        const lp = 0.75 + 0.95 * peak + 0.12 * avgL;
+                        // HDR peak stop: 3-4 stops (8x-16x), body stays SDR white
+                        const lp = 8 + 8 * peak + 1.2 * avgL;
                         const lpR = (lp * tintLin(tintR)).toFixed(2);
                         const lpG = (lp * tintLin(tintG)).toFixed(2);
                         const lpB = (lp * tintLin(tintB)).toFixed(2);
@@ -1829,7 +1828,7 @@
                                 rgba(${baseR},${baseG},${baseB},1) 100%)`);
                     }
                     if (comingEl) {
-                        const cR = Math.round(242 + (rS-110)*0.05), cG = Math.round(244 + (gS-112)*0.05), cB = Math.round(248 + (bS-118)*0.05);
+                        const cR = 255, cG = 255, cB = 255;
                         const cHdrBlur = (2.5 + 4.5 * avgL * flick * glowFade).toFixed(1);
                         const cHdrA = (0.10 + 0.16 * avgL * flick * glowFade).toFixed(3);
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
@@ -1841,7 +1840,7 @@
                         // crawling streak sits on the glyphs, slightly softer,
                         // with its own HDR peak stop.
                         const cp = peak * 0.8;
-                        const lcp = 0.72 + 0.78 * cp + 0.08 * avgL;
+                        const lcp = 8 + 7 * cp + 0.9 * avgL;
                         const lcR = (lcp * tintLin(tintR)).toFixed(2);
                         const lcG = (lcp * tintLin(tintG)).toFixed(2);
                         const lcB = (lcp * tintLin(tintB)).toFixed(2);
