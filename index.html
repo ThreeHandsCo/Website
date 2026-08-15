@@ -489,7 +489,7 @@
             /* extruded: dark shadow + faint highlight, same base as page */
             box-shadow:
                 9px 9px 18px rgba(0, 0, 0, 0.92),
-                -9px -9px 18px rgba(255, 255, 255, 0.055),
+                -9px -9px 18px var(--btn-edge, rgba(255, 255, 255, 0.055)),
                 inset 0 0 0 rgba(255,255,255,0);
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -504,14 +504,16 @@
         .platform-link:nth-child(3) { --rot: -0.07deg; letter-spacing: 1.58px; }
         .platform-link { transform: rotate(var(--rot, 0deg)); }
 
-        /* popped-out specular — brighter HDR, 1-2px at true peak, video-driven */
+        /* popped-out specular — brighter HDR, 1-2px at true peak, video-driven.
+           The full gradient is swapped per button so the shimmer carries the
+           color of the frame region above that button. */
         .platform-link::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: 18px;
             padding: 1.2px;
-            background: radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%);
+            background: var(--btn-spec-bg, radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -603,6 +605,19 @@
             /* lit by video — JS drives --blurb-bright and --blurb-tint */
             transition: transform 0.22s ease, filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color, text-shadow;
+        }
+
+        /* Same shimmer as the buttons, mild: gradient-lit glyphs with a
+           crawling specular streak JS positions on the video's bright spot. */
+        @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+            .blurb {
+                background-image: var(--blurb-sheen, linear-gradient(180deg, #d8dde3 0%, #d8dde3 100%));
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
         }
         
         .blurb:hover {
@@ -1707,6 +1722,8 @@
                         blurbEl.style.filter = 'brightness(0.78) contrast(0.98)';
                         blurbEl.style.opacity = '0.84';
                         blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45)';
+                        // Solid fill so the clipped glyphs stay visible pre-video.
+                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #b8bfc6 0%, #b8bfc6 100%)');
                         if (comingEl) {
                             comingEl.style.filter = 'brightness(0.76)';
                             comingEl.style.opacity = '0.78';
@@ -1720,10 +1737,15 @@
                     }
                     const w = lumaCanvas.width, h = lumaCanvas.height;
                     let rS=0,gS=0,bS=0,c=0;
+                    // Bottom band split in thirds: each button below the video
+                    // is lit by the frame region physically above it.
+                    const strips = [[0,0,0,0],[0,0,0,0],[0,0,0,0]];
                     const y0 = Math.floor(h * 0.76);
                     for (let y=y0; y<h; y++) {
                         for (let x=0; x<w; x++) {
                             const i=(y*w+x)*4;
+                            const s = strips[x < w/3 ? 0 : (x < (2*w)/3 ? 1 : 2)];
+                            s[0]+=lumaData[i]; s[1]+=lumaData[i+1]; s[2]+=lumaData[i+2]; s[3]++;
                             rS+=lumaData[i]; gS+=lumaData[i+1]; bS+=lumaData[i+2]; c++;
                         }
                     }
@@ -1745,6 +1767,36 @@
                     blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
                     blurbEl.style.filter = `brightness(${0.66 + 0.62*avgL*flick*glowFade}) contrast(0.98)`;
                     blurbEl.style.opacity = String(0.78 + 0.18*avgL*flick);
+                    // Mild text shimmer: a narrow specular streak on the glyphs
+                    // that crawls with the video's brightest spot, tinted by it.
+                    {
+                        let wX = 0, wSum = 0;
+                        for (let y = 0; y < h; y++) {
+                            for (let x = 0; x < w; x++) {
+                                const i = (y * w + x) * 4;
+                                const lum = (0.2126 * lumaData[i] + 0.7152 * lumaData[i + 1] + 0.0722 * lumaData[i + 2]) / 255;
+                                const wgt = Math.pow(Math.max(0, lum - 0.15), 1.7) + 0.0004;
+                                wX += (x / (w - 1)) * wgt;
+                                wSum += wgt;
+                            }
+                        }
+                        const cX = wSum > 0 ? wX / wSum : 0.5;
+                        const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
+                        const streakW = 7 + Math.round(9 * avgL);                    // narrow, mild
+                        const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
+                        const pR = Math.min(255, Math.round(baseR + (tintR - baseR) * 0.55 + 42 * peak));
+                        const pG = Math.min(255, Math.round(baseG + (tintG - baseG) * 0.55 + 42 * peak));
+                        const pB = Math.min(255, Math.round(baseB + (tintB - baseB) * 0.55 + 46 * peak));
+                        const g0 = Math.max(0, streakX - streakW);
+                        const g1 = Math.min(100, streakX + streakW);
+                        blurbEl.style.setProperty('--blurb-sheen',
+                            `linear-gradient(100deg,
+                                rgba(${baseR},${baseG},${baseB},1) 0%,
+                                rgba(${baseR},${baseG},${baseB},1) ${g0}%,
+                                rgba(${pR},${pG},${pB},1) ${streakX}%,
+                                rgba(${baseR},${baseG},${baseB},1) ${g1}%,
+                                rgba(${baseR},${baseG},${baseB},1) 100%)`);
+                    }
                     if (comingEl) {
                         const cR = Math.round(baseR*0.92), cG = Math.round(baseG*0.92), cB = Math.round(baseB*0.96);
                         const cHdrBlur = (2.5 + 4.5 * avgL * flick * glowFade).toFixed(1);
@@ -1755,19 +1807,45 @@
                         comingEl.style.filter = `brightness(${0.68 + 0.52*avgL*flick*glowFade})`;
                         comingEl.style.opacity = String(0.74 + 0.14*avgL);
                     }
-                    platformEls.forEach(function(btn) {
+                    platformEls.forEach(function(btn, idx) {
+                        // Light falling on this button: the frame strip above it.
+                        const strip = strips[Math.min(idx, 2)] || strips[1];
+                        const sN = strip[3] || 1;
+                        const sR = strip[0]/sN, sG = strip[1]/sN, sB = strip[2]/sN;
+                        const sL = (0.2126*sR + 0.7152*sG + 0.0722*sB)/255;
                         const isActive = btn.classList.contains('active');
                         // popped-out is very reactive — extension of glow, popped-in is muted
-                        const b = isActive ? (0.68 + 0.18*avgL*flick) : (0.52 + 0.78*avgL*flick*glowFade);
-                        const tBlur = isActive ? '0px' : `${(2.8 + 5.5*avgL*flick).toFixed(1)}px`;
-                        const tAlpha = isActive ? '0' : (0.09 + 0.18*avgL*flick*glowFade).toFixed(3);
+                        const b = isActive ? (0.68 + 0.18*avgL*flick) : (0.52 + 0.78*sL*flick*glowFade);
+                        const tBlur = isActive ? '0px' : `${(2.8 + 5.5*sL*flick).toFixed(1)}px`;
+                        const tAlpha = isActive ? '0' : (0.09 + 0.18*sL*flick*glowFade).toFixed(3);
                         btn.style.filter = `brightness(${b}) contrast(0.96)`;
-                        btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.84 + 0.12*avgL);
+                        btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.84 + 0.12*sL);
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
                         // specular only when popped-out — way brighter, very reactive
-                        const spec = isActive ? 0 : Math.min(1, 0.48 + 0.95 * avgL * flick * glowFade);
+                        const spec = isActive ? 0 : Math.min(1, 0.48 + 0.95 * sL * flick * glowFade);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
+                        // Kick-ass part: the shimmer carries the COLOR of the light
+                        // above this button. Peak/mid/low stops get a subtle hue
+                        // push from the strip average, capped so it stays glassy.
+                        const maxC = Math.max(sR, sG, sB);
+                        let mixT = 0;
+                        if (maxC > 24) {
+                            mixT = Math.min(0.45, (maxC / 255 - 0.09) * 0.8 * (0.3 + 0.7 * sL) * flick * (0.5 + 0.5 * glowFade));
+                        }
+                        const hueR = Math.min(255, Math.round(sR * 255 / Math.max(24, maxC)));
+                        const hueG = Math.min(255, Math.round(sG * 255 / Math.max(24, maxC)));
+                        const hueB = Math.min(255, Math.round(sB * 255 / Math.max(24, maxC)));
+                        const pR = Math.round(32 + (hueR - 32) * mixT * 0.85);
+                        const pG = Math.round(32 + (hueG - 32) * mixT * 0.85);
+                        const pB = Math.round(32 + (hueB - 32) * mixT * 0.85);
+                        const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
+                        const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
+                        btn.style.setProperty('--btn-spec-bg',
+                            `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
+                        // Neumorphic top edge takes the same light, softer.
+                        btn.style.setProperty('--btn-edge',
+                            `rgba(${Math.min(255, 205 + hueR * mixT * 0.3)}, ${Math.min(255, 205 + hueG * mixT * 0.3)}, ${Math.min(255, 210 + hueB * mixT * 0.3)}, ${(0.045 + 0.05 * sL).toFixed(3)})`);
                     });
                     // HDR shimmering edge: location + intensity from top edge, way brighter
                     if (bezelEl) {
