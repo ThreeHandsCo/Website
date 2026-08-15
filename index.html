@@ -437,7 +437,7 @@
            dark/light shadows. Feels pressed from the black, not floating
            on it. Keeps the pixel font but makes the surface tactile. */
         .platform-link {
-            color: #e9ecf0;
+            color: #b8c0c8;
             text-decoration: none;
             background: #0e0e0e;
             border: none;
@@ -453,9 +453,10 @@
             position: relative;
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
-            /* imperfect decal + age: faint misregister, archival fade */
-            text-shadow: 0.55px 0.5px 0 rgba(0,0,0,0.42), -0.32px -0.28px 0 rgba(255,255,255,0.045);
-            filter: contrast(0.985) brightness(0.992) sepia(0.012);
+            /* matte decal, lit from video above — not self-emissive */
+            text-shadow: 0 -0.45px 0.45px rgba(255,255,255,0.09), 0 1px 0 rgba(0,0,0,0.62), 0 2px 5px rgba(0,0,0,0.35);
+            opacity: 0.92;
+            filter: contrast(0.97) brightness(0.88) sepia(0.02);
             /* extruded: dark shadow + faint highlight, same base as page */
             box-shadow:
                 9px 9px 18px rgba(0, 0, 0, 0.92),
@@ -499,7 +500,9 @@
 
         .platform-link:hover {
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
-            color: #ffffff;
+            color: #c2c9d1;
+            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.09), 0 1px 0 rgba(0,0,0,0.58);
+            filter: brightness(0.96);
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
                 -11px -11px 22px rgba(255, 255, 255, 0.07);
@@ -508,11 +511,11 @@
         .platform-link:active,
         .platform-link.active {
             background: #0a0a0a;
-            color: #cbd1d8;
-            /* pressed ink, not emissive — slightly dimmer, soft deboss */
-            text-shadow: 0 1px 0 rgba(0,0,0,0.55), 0 0 0.6px rgba(0,0,0,0.35);
-            opacity: 0.97;
-            filter: brightness(0.94) contrast(0.97);
+            color: #9aa0a8;
+            /* pressed ink, not emissive — dimmer, debossed */
+            text-shadow: 0 1px 0 rgba(0,0,0,0.65), 0 0 0.6px rgba(0,0,0,0.4);
+            opacity: 0.88;
+            filter: brightness(0.88) contrast(0.96);
             /* pressed / dented — inset shadows, same light direction */
             box-shadow:
                 inset 8px 8px 16px rgba(0, 0, 0, 0.96),
@@ -546,21 +549,25 @@
 
         .blurb {
             text-align: center;
-            color: white;
+            color: #d8dde3;
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-            animation: pulse 2s ease-in-out infinite;
+            /* matte, not emissive — top highlight + bottom shadow as if lit from the video above */
+            text-shadow: 0 -0.6px 0.6px rgba(255,255,255,0.11), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45);
+            opacity: 0.94;
+            filter: brightness(0.96) contrast(0.98);
             margin-bottom: 40px;
             text-decoration: none;
             display: block;
-            transition: all 0.3s ease;
+            /* lit by video — JS drives --blurb-bright and --blurb-tint */
+            transition: transform 0.22s ease, filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
+            will-change: filter, color, text-shadow;
         }
         
         .blurb:hover {
-            transform: scale(1.1);
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            transform: scale(1.04);
+            filter: brightness(1.02);
         }
 
         .release-status {
@@ -575,12 +582,17 @@
         }
 
         .coming-soon {
-            color: #b8c0c8;
+            color: #c2c9d1;
             font-family: 'Press Start 2P', cursive;
             font-size: 11px;
             letter-spacing: 1px;
             text-align: center;
-            text-shadow: 0 0 8px rgba(184, 192, 200, 0.5);
+            /* same light field, weaker — further from the video */
+            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.09), 0 1px 0 rgba(0,0,0,0.5);
+            opacity: 0.88;
+            filter: brightness(0.94);
+            transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
+            will-change: filter, color;
         }
 
         @keyframes pulse {
@@ -1644,6 +1656,62 @@
                     }
                 }
 
+                // Text lit by video — not self-emissive. Sample bottom edge of luma field.
+                const blurbEl = document.querySelector('.release-status .blurb');
+                const comingEl = document.querySelector('.coming-soon');
+                const platformEls = document.querySelectorAll('.platform-link');
+                function updateTextLight() {
+                    if (!blurbEl) return;
+                    if (!lumaData || glowFade <= 0.01) {
+                        blurbEl.style.filter = 'brightness(0.78) contrast(0.98)';
+                        blurbEl.style.opacity = '0.84';
+                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45)';
+                        if (comingEl) {
+                            comingEl.style.filter = 'brightness(0.76)';
+                            comingEl.style.opacity = '0.78';
+                        }
+                        platformEls.forEach(function(btn) {
+                            btn.style.filter = btn.classList.contains('active') ? 'brightness(0.86) contrast(0.97)' : 'brightness(0.88) contrast(0.98)';
+                            btn.style.opacity = btn.classList.contains('active') ? '0.86' : '0.90';
+                        });
+                        return;
+                    }
+                    const w = lumaCanvas.width, h = lumaCanvas.height;
+                    let rS=0,gS=0,bS=0,c=0;
+                    const y0 = Math.floor(h * 0.76);
+                    for (let y=y0; y<h; y++) {
+                        for (let x=0; x<w; x++) {
+                            const i=(y*w+x)*4;
+                            rS+=lumaData[i]; gS+=lumaData[i+1]; bS+=lumaData[i+2]; c++;
+                        }
+                    }
+                    rS/=c; gS/=c; bS/=c;
+                    const avgL = (0.2126*rS + 0.7152*gS + 0.0722*bS)/255;
+                    const flick = 0.55 + 0.45 * glowFlicker;
+                    const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
+                    const tintR = Math.round(208 + (rS-110)*0.14);
+                    const tintG = Math.round(210 + (gS-115)*0.14);
+                    const tintB = Math.round(215 + (bS-122)*0.14);
+                    const top = `0 -0.55px 0.55px rgba(${tintR},${tintG},${tintB},${0.06 + 0.085*avgL})`;
+                    const bottom = `0 1px 0 rgba(0,0,0,${0.58 + 0.12*(1-avgL)}), 0 2px 7px rgba(0,0,0,0.42)`;
+                    blurbEl.style.color = `rgb(${Math.min(255,tintR)},${Math.min(255,tintG)},${Math.min(255,tintB)})`;
+                    blurbEl.style.textShadow = `${top}, ${bottom}`;
+                    blurbEl.style.filter = `brightness(${0.88 + 0.32*bright}) contrast(0.98)`;
+                    blurbEl.style.opacity = String(0.86 + 0.13*avgL*flick);
+                    if (comingEl) {
+                        comingEl.style.color = `rgb(${Math.round(tintR*0.92)},${Math.round(tintG*0.92)},${Math.round(tintB*0.96)})`;
+                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.05 + 0.06*avgL}), 0 1px 0 rgba(0,0,0,0.52)`;
+                        comingEl.style.filter = `brightness(${0.80 + 0.28*avgL*flick})`;
+                        comingEl.style.opacity = String(0.80 + 0.12*avgL);
+                    }
+                    platformEls.forEach(function(btn) {
+                        const isActive = btn.classList.contains('active');
+                        const b = isActive ? (0.74 + 0.22*avgL*flick) : (0.80 + 0.26*avgL*flick);
+                        btn.style.filter = `brightness(${b}) contrast(0.97)`;
+                        btn.style.opacity = isActive ? String(0.84 + 0.09*avgL) : String(0.90 + 0.08*avgL);
+                    });
+                }
+
                 function renderGlow(now) {
                     if (!glowBroken) {
                         const playing = !skleshTrailer.paused && !skleshTrailer.ended;
@@ -1654,6 +1722,7 @@
                         }
                     }
                     updateGlowOpacity(now, 0.025, 0.04);
+                    updateTextLight();
                     if (dustActive && !document.hidden && glowInView &&
                         now - dustLastDraw >= 33) {
                         dustLastDraw = now;
