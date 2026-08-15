@@ -103,18 +103,14 @@
                 inset 0 -1px 1px rgba(0,0,0,0.55);
         }
 
-        /* HDR shimmering edge — top-left specular, driven by video light */
+        /* HDR shimmering edge — location tracks video's brightest spot, real-time */
         .trailer-wrap::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: 14px;
-            padding: 1.2px;
-            background: linear-gradient(135deg,
-                color(srgb-linear 8 8 8) 0%,
-                color(srgb-linear 3.5 3.5 3.5) 14%,
-                rgba(255,255,255,0.09) 22%,
-                transparent 38%);
+            padding: 1.4px;
+            background: radial-gradient(ellipse 34% 44% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 16 16 16) 0%, color(srgb-linear 8 8 8) 16%, color(srgb-linear 3.2 3.2 3.2) 28%, transparent 58%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -122,7 +118,7 @@
             pointer-events: none;
             opacity: var(--bezel-specular, 0.92);
             mix-blend-mode: screen;
-            will-change: opacity;
+            will-change: opacity, background;
         }
 
         .trailer-wrap::after {
@@ -515,12 +511,7 @@
             inset: 0;
             border-radius: 18px;
             padding: 1.2px;
-            background: linear-gradient(135deg,
-                color(srgb-linear 16 16 16) 0%,
-                color(srgb-linear 9 9 9) 7%,
-                color(srgb-linear 4 4 4) 16%,
-                rgba(255,255,255,0.10) 24%,
-                transparent 42%);
+            background: radial-gradient(ellipse 42% 52% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 16 16 16) 0%, color(srgb-linear 8 8 8) 16%, color(srgb-linear 3.5 3.5 3.5) 30%, transparent 58%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -1778,7 +1769,7 @@
                         const spec = isActive ? 0 : Math.min(1, 0.32 + 0.82 * avgL * flick * glowFade);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                     });
-                    // HDR shimmering edge: top ring of video drives bezel specular
+                    // HDR shimmering edge: location tracks brightest spot, intensity from top edge
                     if (bezelEl) {
                         let topR=0, topG=0, topB=0, topC=0;
                         const topY0 = 0, topY1 = Math.floor(h * 0.22);
@@ -1792,6 +1783,27 @@
                         const topL = (0.2126*topR + 0.7152*topG + 0.0722*topB)/255;
                         const spec = 0.58 + 0.52 * topL * flick * (0.45 + 0.55*glowFade);
                         bezelEl.style.setProperty('--bezel-specular', String(spec.toFixed(3)));
+                        // real-time location: weighted centroid of brightest pixels
+                        let sX=0,sY=0,wSum=0;
+                        for (let y=0; y<h; y++) {
+                            for (let x=0; x<w; x++) {
+                                const i=(y*w+x)*4;
+                                const lum = (0.2126*lumaData[i] + 0.7152*lumaData[i+1] + 0.0722*lumaData[i+2])/255;
+                                const wgt = Math.pow(Math.max(0, lum - 0.22), 1.9) + 0.0005;
+                                sX += (x/(w-1)) * wgt; sY += (y/(h-1)) * wgt; wSum += wgt;
+                            }
+                        }
+                        const cX = wSum>0 ? sX/wSum : 0.22, cY = wSum>0 ? sY/wSum : 0.18;
+                        // map centroid (0-1) to border highlight (12-38% for bezel)
+                        bezelEl.style.setProperty('--bezel-x', (12 + cX*26).toFixed(1) + '%');
+                        bezelEl.style.setProperty('--bezel-y', (10 + cY*26).toFixed(1) + '%');
+                        // buttons get same centroid but with per-button offset for parallax
+                        platformEls.forEach(function(btn, idx) {
+                            const offX = (idx - 1) * 4; // -4, 0, +4
+                            const offY = (idx - 1) * 2;
+                            btn.style.setProperty('--btn-spec-x', (14 + cX*34 + offX).toFixed(1) + '%');
+                            btn.style.setProperty('--btn-spec-y', (12 + cY*34 + offY).toFixed(1) + '%');
+                        });
                     }
                 }
 
