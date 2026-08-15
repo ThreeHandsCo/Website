@@ -612,30 +612,46 @@
              --windows-cursor: url('/assets/windows-3.1-cursor-rgb-b.svg') 0 0, auto;
          }
 
-         @media (hover: hover) and (any-pointer: fine) {
-            html,
-            body,
-            body *,
-            iframe,
-            .embed-cursor-overlay,
-            .embed-loading,
-            .embed-error {
-                cursor: var(--windows-cursor) !important;
-            }
+        :root {
+            --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-a.svg') 10 0, auto;
+        }
+
+        :root.cursor-variant-b {
+            --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-b.svg') 10 0, auto;
+        }
+
+        html,
+        body,
+        body *,
+        iframe,
+        .embed-cursor-overlay,
+        .embed-loading,
+        .embed-error {
+            cursor: var(--windows-cursor) !important;
+        }
+
+        /* Hover — hand pointer with same trichromatic HDR gain-map */
+        html body a:hover,
+        html body button:hover,
+        html body .platform-link:hover,
+        html body .blurb:hover,
+        html body .site-footer a:hover,
+        html body .embed-cursor-overlay[href]:hover {
+            cursor: var(--windows-cursor-pointer) !important;
+        }
+
+        /* Disabled should not show hand */
+        html body .platform-link:disabled:hover,
+        html body button:disabled:hover {
+            cursor: var(--windows-cursor) !important;
         }
 
         .embed-cursor-overlay {
             position: absolute;
             inset: 0;
             z-index: 3;
-            display: none;
-        }
-
-        @media (hover: hover) and (any-pointer: fine) {
-            .embed-cursor-overlay {
-                display: block;
-                cursor: var(--windows-cursor) !important;
-            }
+            display: block;
+            cursor: var(--windows-cursor) !important;
         }
 
     </style>
@@ -1126,35 +1142,33 @@
 
         // Chromium can keep a stale cursor after a window or tab return.
         // Swap between two visually identical but byte-distinct cursors to force a refresh.
-        // This variant reasserts aggressively on every return event and on mouse moves.
-        if (window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) {
-            (function() {
-                const root = document.documentElement;
-                let variantB = false;
-                let lastRefresh = 0;
+        // Always apply - no hover/pointer media query gate.
+        (function() {
+            const root = document.documentElement;
+            let variantB = false;
+            let lastRefresh = 0;
 
-                function refreshCursor() {
-                    const now = Date.now();
-                    if (now - lastRefresh < 80) return;
-                    lastRefresh = now;
-                    variantB = !variantB;
-                    root.classList.toggle('cursor-variant-b', variantB);
-                }
+            function refreshCursor() {
+                const now = Date.now();
+                if (now - lastRefresh < 80) return;
+                lastRefresh = now;
+                variantB = !variantB;
+                root.classList.toggle('cursor-variant-b', variantB);
+            }
 
-                document.documentElement.addEventListener('mouseenter', refreshCursor);
-                document.addEventListener('mousemove', refreshCursor, { passive: true });
-                document.addEventListener('visibilitychange', function() {
-                    if (!document.hidden) refreshCursor();
-                });
-                window.addEventListener('focus', refreshCursor);
-                window.addEventListener('pageshow', refreshCursor);
-                window.addEventListener('blur', function() {
-                    // Mark for refresh on next enter
-                    lastRefresh = 0;
-                });
-                refreshCursor();
-            })();
-        }
+            document.documentElement.addEventListener('mouseenter', refreshCursor);
+            document.addEventListener('mousemove', refreshCursor, { passive: true });
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) refreshCursor();
+            });
+            window.addEventListener('focus', refreshCursor);
+            window.addEventListener('pageshow', refreshCursor);
+            window.addEventListener('blur', function() {
+                // Mark for refresh on next enter
+                lastRefresh = 0;
+            });
+            refreshCursor();
+        })();
 
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('intro-video');
