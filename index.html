@@ -155,7 +155,7 @@
 
         /* Realtime monitor glow: a downsampled copy of the current frame, blurred.
            Painted on three layers - tight bloom + wide spill + outer haze.
-           Feathered at top where it would otherwise cut abruptly. */
+           No mask/border — the canvas edge is hidden by blur + dither. */
         .trailer-glow {
             position: absolute;
             top: 50%;
@@ -168,30 +168,24 @@
             opacity: 0;
             will-change: opacity;
             image-rendering: auto;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%), radial-gradient(ellipse 88% 88% at 50% 45%, black 0%, black 28%, transparent 74%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%), radial-gradient(ellipse 88% 88% at 50% 45%, black 0%, black 28%, transparent 74%);
-            -webkit-mask-composite: source-in;
-            mask-composite: intersect;
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
         }
 
         .trailer-glow-tight {
             width: 118%;
             height: 118%;
-            filter: blur(62px) saturate(1.5);
+            filter: blur(56px) saturate(1.5);
         }
 
         .trailer-glow-wide {
             width: 170%;
             height: 170%;
-            filter: blur(140px) saturate(1.5);
+            filter: blur(130px) saturate(1.5);
         }
 
         .trailer-glow-outer {
             width: 220%;
             height: 220%;
-            filter: blur(210px) saturate(1.5);
+            filter: blur(190px) saturate(1.5);
         }
 
 
@@ -514,13 +508,13 @@
         .platform-link:nth-child(3) { --rot: -0.07deg; letter-spacing: 1.58px; }
         .platform-link { transform: rotate(var(--rot, 0deg)); }
 
-        /* popped-out specular — brighter HDR, 1-2px core at true HDR peak */
+        /* popped-out specular — soft curved highlight, not a triangle */
         .platform-link::before {
             content: "";
             position: absolute;
             inset: 1px;
             border-radius: 17px;
-            background: linear-gradient(145deg, color(srgb-linear 20 20 20) 0%, color(srgb-linear 12 12 12) 5%, color(srgb-linear 6 6 6) 11%, rgba(255,255,255,0.085) 16%, transparent 42%);
+            background: radial-gradient(ellipse 78% 58% at 22% 18%, color(srgb-linear 12 12 12) 0%, color(srgb-linear 5 5 5) 22%, rgba(255,255,255,0.065) 34%, transparent 52%);
             pointer-events: none;
             opacity: var(--btn-specular, 0);
             mix-blend-mode: screen;
