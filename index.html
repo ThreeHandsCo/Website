@@ -627,6 +627,14 @@
             flex-direction: column;
             align-items: center;
             gap: 16px;
+            /* neumorphic inset slab — normal text debossed into a physical plate */
+            padding: 26px 44px;
+            border-radius: 22px;
+            background: #0b0b0d;
+            box-shadow:
+                inset 7px 7px 16px rgba(0, 0, 0, 0.82),
+                inset -7px -7px 16px rgba(255, 255, 255, 0.045),
+                0 1px 0 rgba(255, 255, 255, 0.035);
         }
 
         .release-status .blurb {
