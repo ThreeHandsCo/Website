@@ -114,8 +114,8 @@
             padding: 8px;
             box-shadow:
                 0 12px 32px rgba(0, 0, 0, 0.90),
-                0 0 0 1px rgba(255, 255, 255, 0.09),
-                inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                0 0 0 1px rgba(255, 255, 255, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.17),
                 inset 0 -1px 2px rgba(0, 0, 0, 0.60);
             dynamic-range-limit: no-limit;
         }
@@ -126,10 +126,10 @@
             position: absolute;
             inset: 0;
             border-radius: 20px;
-            padding: 2.2px;
+            padding: 2.6px;
             /* STATIC specular parked at ~45 deg (30-60 band). Not video-driven;
                the dynamic specular lives on the LCD bar below. */
-            background: radial-gradient(ellipse 40% 46% at var(--bezel-x, 68%) var(--bezel-y, 34%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 20 20 20) 20%, color(srgb-linear 8 8 8) 40%, transparent 78%);
+            background: radial-gradient(ellipse 46% 52% at var(--bezel-x, 68%) var(--bezel-y, 34%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 26 26 26) 20%, color(srgb-linear 12 12 12) 42%, transparent 84%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -145,7 +145,7 @@
             position: absolute;
             inset: 1px;
             border-radius: 19px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.13) 0%, transparent 52%);
+            background: linear-gradient(145deg, rgba(255,255,255,0.16) 0%, transparent 58%);
             pointer-events: none;
             opacity: 0.8;
         }
@@ -669,15 +669,18 @@
             pointer-events: none;
         }
 
-        /* Dynamic specular ring on the LCD shell — position and intensity
-           crawl with the video's brightest spot (JS-driven vars). */
+        /* Dynamic specular ring on the LCD shell. The screen sits ABOVE, so its
+           light falls DOWN onto the shell's top edge: the reflection is a
+           horizontal band along the TOP border, brightest directly under the
+           video's hot spot and fading toward the sides. JS drives only the
+           horizontal position + intensity. */
         .lcd-spec-ring {
             position: absolute;
             inset: 0;
             z-index: 2;
             border-radius: 20px;
-            padding: 1.8px;
-            background: radial-gradient(ellipse 40% 46% at var(--lcd-spec-x, 30%) var(--lcd-spec-y, 20%), color(srgb-linear 20 20 20) 0%, color(srgb-linear 13 13 13) 20%, color(srgb-linear 5 5 5) 40%, transparent 75%);
+            padding: 2px;
+            background: radial-gradient(ellipse 64% 26% at var(--lcd-spec-x, 50%) var(--lcd-spec-y, 9%), color(srgb-linear 22 22 22) 0%, color(srgb-linear 13 13 13) 22%, color(srgb-linear 5 5 5) 46%, transparent 74%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -2603,10 +2606,11 @@
                         }
                         const cX = wSum>0 ? sX/wSum : 0.22, cY = wSum>0 ? sY/wSum : 0.18;
                         const ang = Math.atan2(cY - 0.5, cX - 0.5);
-                        // LCD shell: highlight on its border perimeter
-                        const bR = 0.50;
-                        lcdRingEl.style.setProperty('--lcd-spec-x', (50 + Math.cos(ang) * bR * 50).toFixed(1) + '%');
-                        lcdRingEl.style.setProperty('--lcd-spec-y', (50 + Math.sin(ang) * bR * 44).toFixed(1) + '%');
+                        // LCD shell: the reflection hugs the TOP edge (light
+                        // falls down from the screen above) and slides
+                        // horizontally under the frame's brightest column.
+                        lcdRingEl.style.setProperty('--lcd-spec-x', (cX * 100).toFixed(1) + '%');
+                        lcdRingEl.style.setProperty('--lcd-spec-y', '9%');
                         // buttons: same angle but per-button phase so they don't lockstep, still on border
                         platformEls.forEach(function(btn, idx) {
                             const ph = (idx - 1) * 0.32;
