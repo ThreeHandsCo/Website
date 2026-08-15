@@ -103,14 +103,14 @@
                 inset 0 -1px 1px rgba(0,0,0,0.55);
         }
 
-        /* HDR shimmering edge — location tracks video's brightest spot, real-time */
+        /* HDR shimmering edge — tiny specular crawling the border */
         .trailer-wrap::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: 14px;
             padding: 1.4px;
-            background: radial-gradient(ellipse 34% 44% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 16 16 16) 0%, color(srgb-linear 8 8 8) 16%, color(srgb-linear 3.2 3.2 3.2) 28%, transparent 58%);
+            background: radial-gradient(ellipse 18% 22% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 48 48 48) 0%, color(srgb-linear 18 18 18) 14%, color(srgb-linear 7 7 7) 28%, transparent 62%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -511,7 +511,7 @@
             inset: 0;
             border-radius: 18px;
             padding: 1.2px;
-            background: radial-gradient(ellipse 42% 52% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 16 16 16) 0%, color(srgb-linear 8 8 8) 16%, color(srgb-linear 3.5 3.5 3.5) 30%, transparent 58%);
+            background: radial-gradient(ellipse 18% 22% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 48 48 48) 0%, color(srgb-linear 18 18 18) 16%, color(srgb-linear 7 7 7) 30%, transparent 62%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -1765,11 +1765,11 @@
                         btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.84 + 0.12*avgL);
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
-                        // specular only when popped-out — brighter, more reactive, real HDR peak
-                        const spec = isActive ? 0 : Math.min(1, 0.32 + 0.82 * avgL * flick * glowFade);
+                        // specular only when popped-out — way brighter, very reactive
+                        const spec = isActive ? 0 : Math.min(1, 0.48 + 0.95 * avgL * flick * glowFade);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                     });
-                    // HDR shimmering edge: location tracks brightest spot, intensity from top edge
+                    // HDR shimmering edge: location + intensity from top edge, way brighter
                     if (bezelEl) {
                         let topR=0, topG=0, topB=0, topC=0;
                         const topY0 = 0, topY1 = Math.floor(h * 0.22);
@@ -1781,9 +1781,9 @@
                         }
                         topR/=topC; topG/=topC; topB/=topC;
                         const topL = (0.2126*topR + 0.7152*topG + 0.0722*topB)/255;
-                        const spec = 0.58 + 0.52 * topL * flick * (0.45 + 0.55*glowFade);
+                        const spec = Math.min(1, 0.72 + 0.68 * topL * flick * (0.45 + 0.55*glowFade));
                         bezelEl.style.setProperty('--bezel-specular', String(spec.toFixed(3)));
-                        // real-time location: weighted centroid of brightest pixels
+                        // real-time location: weighted centroid -> angle around border, so highlight crawls the edge
                         let sX=0,sY=0,wSum=0;
                         for (let y=0; y<h; y++) {
                             for (let x=0; x<w; x++) {
@@ -1794,15 +1794,18 @@
                             }
                         }
                         const cX = wSum>0 ? sX/wSum : 0.22, cY = wSum>0 ? sY/wSum : 0.18;
-                        // map centroid (0-1) to border highlight (12-38% for bezel)
-                        bezelEl.style.setProperty('--bezel-x', (12 + cX*26).toFixed(1) + '%');
-                        bezelEl.style.setProperty('--bezel-y', (10 + cY*26).toFixed(1) + '%');
-                        // buttons get same centroid but with per-button offset for parallax
+                        const ang = Math.atan2(cY - 0.5, cX - 0.5);
+                        // bezel: highlight on its border perimeter
+                        const bR = 0.46;
+                        bezelEl.style.setProperty('--bezel-x', (50 + Math.cos(ang) * bR * 50).toFixed(1) + '%');
+                        bezelEl.style.setProperty('--bezel-y', (50 + Math.sin(ang) * bR * 42).toFixed(1) + '%');
+                        // buttons: same angle but per-button phase so they don't lockstep, still on border
                         platformEls.forEach(function(btn, idx) {
-                            const offX = (idx - 1) * 4; // -4, 0, +4
-                            const offY = (idx - 1) * 2;
-                            btn.style.setProperty('--btn-spec-x', (14 + cX*34 + offX).toFixed(1) + '%');
-                            btn.style.setProperty('--btn-spec-y', (12 + cY*34 + offY).toFixed(1) + '%');
+                            const ph = (idx - 1) * 0.28;
+                            const a = ang + ph;
+                            const r = 0.44 + (idx === 1 ? 0.02 : 0);
+                            btn.style.setProperty('--btn-spec-x', (50 + Math.cos(a) * r * 50).toFixed(1) + '%');
+                            btn.style.setProperty('--btn-spec-y', (50 + Math.sin(a) * r * 38).toFixed(1) + '%');
                         });
                     }
                 }
