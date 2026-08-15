@@ -624,6 +624,15 @@
                 background-clip: text;
                 -webkit-text-fill-color: transparent;
             }
+
+            .coming-soon {
+                background-image: var(--coming-sheen, linear-gradient(180deg, #e0e5ea 0%, #e0e5ea 100%));
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
         }
         
         .blurb:hover {
@@ -1733,6 +1742,7 @@
                         if (comingEl) {
                             comingEl.style.filter = 'brightness(0.92)';
                             comingEl.style.opacity = '0.88';
+                            comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #dde2e8 0%, #dde2e8 100%)');
                         }
                         platformEls.forEach(function(btn) {
                             btn.style.filter = btn.classList.contains('active') ? 'brightness(0.86) contrast(0.97)' : 'brightness(0.88) contrast(0.98)';
@@ -1779,21 +1789,22 @@
                     blurbEl.style.opacity = String(0.92 + 0.08*avgL*flick);
                     // Mild text shimmer: a narrow specular streak on the glyphs
                     // that crawls with the video's brightest spot, tinted by it.
-                    {
-                        let wX = 0, wSum = 0;
-                        for (let y = 0; y < h; y++) {
-                            for (let x = 0; x < w; x++) {
-                                const i = (y * w + x) * 4;
-                                const lum = (0.2126 * lumaData[i] + 0.7152 * lumaData[i + 1] + 0.0722 * lumaData[i + 2]) / 255;
-                                const wgt = Math.pow(Math.max(0, lum - 0.15), 1.7) + 0.0004;
-                                wX += (x / (w - 1)) * wgt;
-                                wSum += wgt;
-                            }
+                    // Shared by the blurb and the coming-soon line.
+                    let wX = 0, wSum = 0;
+                    for (let y = 0; y < h; y++) {
+                        for (let x = 0; x < w; x++) {
+                            const i = (y * w + x) * 4;
+                            const lum = (0.2126 * lumaData[i] + 0.7152 * lumaData[i + 1] + 0.0722 * lumaData[i + 2]) / 255;
+                            const wgt = Math.pow(Math.max(0, lum - 0.15), 1.7) + 0.0004;
+                            wX += (x / (w - 1)) * wgt;
+                            wSum += wgt;
                         }
-                        const cX = wSum > 0 ? wX / wSum : 0.5;
-                        const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
-                        const streakW = 7 + Math.round(9 * avgL);                    // narrow, mild
-                        const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
+                    }
+                    const cX = wSum > 0 ? wX / wSum : 0.5;
+                    const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
+                    const streakW = 7 + Math.round(9 * avgL);                    // narrow, mild
+                    const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
+                    {
                         const pR = Math.min(255, Math.round(baseR + (tintR - baseR) * 0.55 + 60 * peak));
                         const pG = Math.min(255, Math.round(baseG + (tintG - baseG) * 0.55 + 60 * peak));
                         const pB = Math.min(255, Math.round(baseB + (tintB - baseB) * 0.55 + 64 * peak));
@@ -1816,6 +1827,22 @@
                         comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.07 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.5), ${cGlow}`;
                         comingEl.style.filter = `brightness(${0.9 + 0.2*avgL*flick*glowFade})`;
                         comingEl.style.opacity = String(0.86 + 0.08*avgL);
+                        // Same bezel-light treatment as the blurb, milder: the
+                        // crawling streak sits on the glyphs, slightly softer.
+                        const cp = peak * 0.8;
+                        const cr2 = Math.min(255, Math.round(cR + (tintR - cR) * 0.5 + 46 * cp));
+                        const cg2 = Math.min(255, Math.round(cG + (tintG - cG) * 0.5 + 46 * cp));
+                        const cb2 = Math.min(255, Math.round(cB + (tintB - cB) * 0.5 + 50 * cp));
+                        const cW = Math.max(4, Math.round(streakW * 0.85));
+                        const cg0 = Math.max(0, streakX - cW);
+                        const cg1 = Math.min(100, streakX + cW);
+                        comingEl.style.setProperty('--coming-sheen',
+                            `linear-gradient(100deg,
+                                rgba(${cR},${cG},${cB},1) 0%,
+                                rgba(${cR},${cG},${cB},1) ${cg0}%,
+                                rgba(${cr2},${cg2},${cb2},1) ${streakX}%,
+                                rgba(${cR},${cG},${cB},1) ${cg1}%,
+                                rgba(${cR},${cG},${cB},1) 100%)`);
                     }
                     platformEls.forEach(function(btn, idx) {
                         // Light falling on this button: the frame strip above it.
