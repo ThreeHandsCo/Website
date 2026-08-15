@@ -707,8 +707,9 @@
             display: flex;
             flex: 0 0 auto;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: calc(var(--lcd-dot) * 0.8);
+            width: 100%;
             min-height: calc(var(--lcd-dot) * 8.5);
             color: rgba(196, 226, 255, 0.92);
             text-decoration: none;
@@ -730,12 +731,13 @@
         .lcd-dot {
             width: var(--lcd-dot);
             height: var(--lcd-dot);
-            background: transparent;
+            background: rgba(134, 197, 255, 0.14);
+            box-shadow: inset 0 0 0.3px rgba(210, 238, 255, 0.22);
         }
 
         .lcd-dot.is-on {
             background: rgba(201, 229, 255, 0.88);
-            box-shadow: 0 0 1px rgba(235, 247, 255, 0.55);
+            box-shadow: 0 0 1px rgba(235, 247, 255, 0.7);
         }
 
         .lcd-line:first-child .lcd-dot.is-on {
@@ -1010,6 +1012,7 @@
         // HD44780/Adafruit-style 5x8 character cells for the release display.
         // Rendering the dots instead of using a normal font gives the LCD its
         // characteristic block grid, including the faint unlit matrix behind it.
+        const LCD_COLUMNS = 32;
         const LCD_GLYPHS = Object.freeze({
             A: ['01110','10001','10001','11111','10001','10001','10001','00000'],
             B: ['11110','10001','10001','11110','10001','10001','11110','00000'],
@@ -1078,27 +1081,27 @@
                 const source = line.dataset.lcdText || line.textContent.trim();
                 line.setAttribute('aria-label', source);
                 line.textContent = '';
-                    Array.from(source).forEach(function(character) {
+                    const characters = Array.from(source);
+                    for (let column = 0; column < LCD_COLUMNS; column++) {
+                        const character = characters[column] || ' ';
                         const glyph = LCD_GLYPHS[character] || LCD_GLYPHS[character.toUpperCase()] || LCD_GLYPHS['?'];
-                    const cell = document.createElement('span');
-                    cell.className = 'lcd-char';
-                    cell.setAttribute('aria-hidden', 'true');
-                    glyph.join('').split('').forEach(function(pixel) {
-                        const dot = document.createElement('span');
-                        dot.className = pixel === '1' ? 'lcd-dot is-on' : 'lcd-dot';
-                        cell.appendChild(dot);
-                    });
-                    line.appendChild(cell);
-                });
+                        const cell = document.createElement('span');
+                        cell.className = 'lcd-char';
+                        cell.setAttribute('aria-hidden', 'true');
+                        glyph.join('').split('').forEach(function(pixel) {
+                            const dot = document.createElement('span');
+                            dot.className = pixel === '1' ? 'lcd-dot is-on' : 'lcd-dot';
+                            cell.appendChild(dot);
+                        });
+                        line.appendChild(cell);
+                    }
             });
 
             function sizeLcdDots() {
-                const longest = Math.max.apply(null, lines.map(function(line) {
-                    return (line.dataset.lcdText || '').length;
-                }));
                 const available = Math.max(1, screen.clientWidth - 28);
-                // 5 columns + cell gap + character gap, shared by both rows.
-                const unit = Math.max(1.35, Math.min(7.5, available / (longest * 6.35)));
+                // Explicit 32-column width: every unlit cell remains visible,
+                // exactly like a real 2x32 character module.
+                const unit = Math.max(1.35, Math.min(7.5, available / (LCD_COLUMNS * 6.35)));
                 screen.style.setProperty('--lcd-dot', unit.toFixed(2) + 'px');
             }
 
