@@ -66,8 +66,8 @@
 
         /* Feathered soft edge - vignette into the black page background (no box) */
         #video-container video {
-            -webkit-mask-image: radial-gradient(ellipse 120% 86% at 50% 50%, black 58%, transparent 93%);
-            mask-image: radial-gradient(ellipse 120% 86% at 50% 50%, black 58%, transparent 93%);
+            -webkit-mask-image: radial-gradient(ellipse 125% 90% at 50% 50%, black 0%, black 42%, rgba(0,0,0,0.85) 58%, rgba(0,0,0,0.35) 72%, transparent 88%);
+            mask-image: radial-gradient(ellipse 125% 90% at 50% 50%, black 0%, black 42%, rgba(0,0,0,0.85) 58%, rgba(0,0,0,0.35) 72%, transparent 88%);
             -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
@@ -78,9 +78,9 @@
             width: 400px;
             height: 225px;
             margin-bottom: 40px;
-            background: black;
-            -webkit-mask-image: radial-gradient(ellipse 102% 98% at 50% 50%, black 66%, transparent 98%);
-            mask-image: radial-gradient(ellipse 102% 98% at 50% 50%, black 66%, transparent 98%);
+            background: transparent;
+            -webkit-mask-image: radial-gradient(ellipse 110% 110% at 50% 50%, black 0%, black 48%, rgba(0,0,0,0.88) 62%, rgba(0,0,0,0.4) 76%, transparent 92%);
+            mask-image: radial-gradient(ellipse 110% 110% at 50% 50%, black 0%, black 48%, rgba(0,0,0,0.88) 62%, rgba(0,0,0,0.4) 76%, transparent 92%);
             -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
@@ -102,9 +102,9 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            background: black;
-            -webkit-mask-image: radial-gradient(ellipse 102% 96% at 50% 50%, black 64%, transparent 98%);
-            mask-image: radial-gradient(ellipse 102% 96% at 50% 50%, black 64%, transparent 98%);
+            background: transparent;
+            -webkit-mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
+            mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
             -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
@@ -112,9 +112,8 @@
         }
 
         /* Realtime monitor glow: a downsampled copy of the current frame, blurred.
-           Painted on two layers - a tight bright bloom and a wide room-light spill.
-           The canvases stay small (224x126 / 96x54), so repainting is cheap and
-           the blur runs on the compositor. */
+           Painted on three layers - tight bloom + wide spill + outer haze.
+           Each layer is feathered with its own radial mask so the canvas edge never shows. */
         .trailer-glow {
             position: absolute;
             top: 50%;
@@ -127,24 +126,36 @@
             opacity: 0;
             will-change: opacity;
             image-rendering: auto;
+            -webkit-mask-image: radial-gradient(ellipse 52% 52% at 50% 50%, black 0%, black 22%, rgba(0,0,0,0.85) 38%, rgba(0,0,0,0.4) 54%, transparent 72%);
+            mask-image: radial-gradient(ellipse 52% 52% at 50% 50%, black 0%, black 22%, rgba(0,0,0,0.85) 38%, rgba(0,0,0,0.4) 54%, transparent 72%);
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
         }
 
         .trailer-glow-tight {
             width: 118%;
             height: 118%;
-            filter: blur(48px) saturate(1.5);
+            filter: blur(56px) saturate(1.5);
+            -webkit-mask-image: radial-gradient(ellipse 48% 48% at 50% 50%, black 0%, black 25%, rgba(0,0,0,0.9) 40%, transparent 68%);
+            mask-image: radial-gradient(ellipse 48% 48% at 50% 50%, black 0%, black 25%, rgba(0,0,0,0.9) 40%, transparent 68%);
         }
 
         .trailer-glow-wide {
             width: 170%;
             height: 170%;
-            filter: blur(120px) saturate(1.5);
+            filter: blur(130px) saturate(1.5);
+            -webkit-mask-image: radial-gradient(ellipse 42% 42% at 50% 50%, black 0%, black 18%, rgba(0,0,0,0.8) 32%, transparent 58%);
+            mask-image: radial-gradient(ellipse 42% 42% at 50% 50%, black 0%, black 18%, rgba(0,0,0,0.8) 32%, transparent 58%);
         }
 
         .trailer-glow-outer {
             width: 220%;
             height: 220%;
-            filter: blur(180px) saturate(1.5);
+            filter: blur(190px) saturate(1.5);
+            -webkit-mask-image: radial-gradient(ellipse 36% 36% at 50% 50%, black 0%, black 14%, rgba(0,0,0,0.75) 26%, transparent 48%);
+            mask-image: radial-gradient(ellipse 36% 36% at 50% 50%, black 0%, black 14%, rgba(0,0,0,0.75) 26%, transparent 48%);
         }
 
         /* Dust motes drifting through the monitor light. Each mote is lit by
