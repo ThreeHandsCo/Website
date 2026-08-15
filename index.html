@@ -1868,7 +1868,7 @@
                     }
                     const cX = wSum > 0 ? wX / wSum : 0.5;
                     const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
-                    const streakW = 18 + Math.round(22 * avgL);                  // wide — covers most of the emboss when lit
+                    const streakW = 28 + Math.round(30 * avgL);                  // way bigger — floods the emboss when lit
                     const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
