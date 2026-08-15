@@ -146,23 +146,7 @@
             filter: blur(190px) saturate(1.5);
         }
 
-        /* Dither hero: tiny tiled noise breaks up banding and the canvas edge
-           without a hard mask. Very low opacity, soft-light blend. */
-        .trailer-glow-dither {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            z-index: 0;
-            width: 220%;
-            height: 220%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            opacity: 0.045;
-            mix-blend-mode: soft-light;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-            background-repeat: repeat;
-            background-size: 64px 64px;
-        }
+
 
         /* Dust motes drifting through the monitor light. Each mote is lit by
            sampling the downsampled frame, so dust only shows where the glow
@@ -703,7 +687,6 @@
             <canvas class="trailer-glow trailer-glow-outer" id="trailer-glow-outer" aria-hidden="true"></canvas>
             <canvas class="trailer-glow trailer-glow-wide" id="trailer-glow-wide" aria-hidden="true"></canvas>
             <canvas class="trailer-glow trailer-glow-tight" id="trailer-glow-tight" aria-hidden="true"></canvas>
-            <div class="trailer-glow-dither" aria-hidden="true"></div>
             <canvas class="trailer-dust" id="trailer-dust" aria-hidden="true"></canvas>
             <video
                 id="sklesh-trailer"
@@ -1366,6 +1349,31 @@
                     if (skleshTrailer.readyState < 2) return true;
                     try {
                         tightCtx.drawImage(skleshTrailer, 0, 0, glowTight.width, glowTight.height);
+                        // Dithered black crush — kills the raised-black haze
+                        // without a mask. Dark grays become transparent with
+                        // Bayer dithering so the edge/banding stays invisible.
+                        (function() {
+                            const w = glowTight.width, h = glowTight.height;
+                            const img = tightCtx.getImageData(0, 0, w, h);
+                            const d = img.data;
+                            // 4x4 Bayer 0..15
+                            const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+                            for (let y = 0; y < h; y++) {
+                                const row = y * w * 4;
+                                for (let x = 0; x < w; x++) {
+                                    const i = row + x * 4;
+                                    const r = d[i], g = d[i+1], b = d[i+2];
+                                    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                                    const bayerVal = bayer[((y & 3) << 2) | (x & 3)] / 16 - 0.5;
+                                    const dithered = luma + bayerVal * 10;
+                                    let a = (dithered - 16) / (62 - 16);
+                                    if (a <= 0) a = 0;
+                                    else if (a < 1) a = a * a * (3 - 2 * a);
+                                    d[i+3] = a * 255;
+                                }
+                            }
+                            tightCtx.putImageData(img, 0, 0);
+                        })();
                         wideCtx.clearRect(0, 0, glowWide.width, glowWide.height);
                         wideCtx.drawImage(glowTight, 0, 0, glowWide.width, glowWide.height);
                         outerCtx.clearRect(0, 0, glowOuter.width, glowOuter.height);
