@@ -603,14 +603,18 @@
 
         .blurb {
             text-align: center;
-            color: #e2e6eb;
+            color: #e8ecf0;
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
-            /* white, lit from the video above — dark contact line + drop shadow */
-            text-shadow: 0 -0.5px 0.5px rgba(255,255,255,0.12), 0 1px 0 rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35);
+            /* perimeter bevel + drop — lit from video above */
+            text-shadow:
+                0 1px 0 #f2f4f6,
+                0 2px 0 #c2c9d1,
+                0 3px 3px rgba(0,0,0,0.38),
+                0 -0.6px 0.6px rgba(255,255,255,0.55);
             opacity: 1;
-            filter: brightness(1) drop-shadow(0px 5px 12px rgba(0,0,0,0.5));
+            filter: brightness(1) drop-shadow(0px 6px 14px rgba(0,0,0,0.52));
             background-color: transparent;
             margin-bottom: 40px;
             text-decoration: none;
@@ -1870,20 +1874,18 @@
                     }
                     const cX = wSum > 0 ? wX / wSum : 0.5;
                     const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
-                    const streakW = 45 + Math.round(35 * avgL);                  // floods the whole line when lit
-                    const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
+                    const streakW = 10 + Math.round(12 * avgL);                  // tight shimmer, not flood
+                    const peak = 0.18 + 0.42 * avgL * flick * (0.45 + 0.55 * glowFade);
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
                     {
-                        // HDR peak stop rides on a full-width lit base: the
-                        // light extends across the ENTIRE text, brightest at
-                        // the video's hot spot.
+                        // Beveled glyphs with a crawling HDR specular — perimeter stays defined
                         const lp = 16;
                         const lpR = (lp * tintLin(tintR)).toFixed(2);
                         const lpG = (lp * tintLin(tintG)).toFixed(2);
                         const lpB = (lp * tintLin(tintB)).toFixed(2);
-                        const g0 = 0;
-                        const g1 = 100;
+                        const g0 = Math.max(0, streakX - streakW);
+                        const g1 = Math.min(100, streakX + streakW);
                         blurbEl.style.setProperty('--blurb-sheen',
                             `linear-gradient(100deg,
                                 rgba(${baseR},${baseG},${baseB},1) 0%,
