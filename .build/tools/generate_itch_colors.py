@@ -213,8 +213,8 @@ def thumbnail_accent(image: bytes) -> str:
         selected = max(visible or hls_colors, key=lambda entry: (entry[5], entry[0], entry[1], entry[2], entry[3]))
 
     _, _, _, _, hue, lightness, saturation = selected
-    # Darkened 50% per request: keep HDR boost, lower base color brightness further.
-    normalized_lightness = clamp(lightness, 0.25, 0.37)
+    # Darkened 67% per request: keep base darker, HDR now 2 stops.
+    normalized_lightness = clamp(lightness, 0.165, 0.244)
     normalized_saturation = clamp(saturation, 0.55, 0.88)
     red, green, blue = colorsys.hls_to_rgb(hue, normalized_lightness, normalized_saturation)
     return f"{round(red * 255):02X}{round(green * 255):02X}{round(blue * 255):02X}"
