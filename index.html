@@ -508,7 +508,7 @@
         .platform-link:nth-child(3) { --rot: -0.07deg; letter-spacing: 1.58px; }
         .platform-link { transform: rotate(var(--rot, 0deg)); }
 
-        /* popped-out specular — exact same HDR border math as video bezel */
+        /* popped-out specular — brighter HDR, 1-2px at true peak, video-driven */
         .platform-link::before {
             content: "";
             position: absolute;
@@ -516,10 +516,11 @@
             border-radius: 18px;
             padding: 1.2px;
             background: linear-gradient(135deg,
-                color(srgb-linear 8 8 8) 0%,
-                color(srgb-linear 3.5 3.5 3.5) 14%,
-                rgba(255,255,255,0.09) 22%,
-                transparent 38%);
+                color(srgb-linear 16 16 16) 0%,
+                color(srgb-linear 9 9 9) 7%,
+                color(srgb-linear 4 4 4) 16%,
+                rgba(255,255,255,0.10) 24%,
+                transparent 42%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -1765,16 +1766,16 @@
                     }
                     platformEls.forEach(function(btn) {
                         const isActive = btn.classList.contains('active');
-                        // popped-out is very reactive, popped-in is muted
-                        const b = isActive ? (0.68 + 0.18*avgL*flick) : (0.58 + 0.62*avgL*flick*glowFade);
+                        // popped-out is very reactive — extension of glow, popped-in is muted
+                        const b = isActive ? (0.68 + 0.18*avgL*flick) : (0.52 + 0.78*avgL*flick*glowFade);
                         const tBlur = isActive ? '0px' : `${(2.8 + 5.5*avgL*flick).toFixed(1)}px`;
                         const tAlpha = isActive ? '0' : (0.09 + 0.18*avgL*flick*glowFade).toFixed(3);
                         btn.style.filter = `brightness(${b}) contrast(0.96)`;
-                        btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.86 + 0.10*avgL);
+                        btn.style.opacity = isActive ? String(0.80 + 0.08*avgL) : String(0.84 + 0.12*avgL);
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
-                        // specular only when popped-out
-                        const spec = isActive ? 0 : (0.12 + 0.52 * avgL * flick * glowFade);
+                        // specular only when popped-out — brighter, more reactive, real HDR peak
+                        const spec = isActive ? 0 : Math.min(1, 0.32 + 0.82 * avgL * flick * glowFade);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                     });
                     // HDR shimmering edge: top ring of video drives bezel specular
