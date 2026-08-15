@@ -127,9 +127,8 @@
             inset: 0;
             border-radius: 20px;
             padding: 2.6px;
-            /* STATIC specular parked at ~45 deg (30-60 band). Not video-driven;
-               the dynamic specular lives on the LCD bar below. */
-            background: radial-gradient(ellipse 46% 52% at var(--bezel-x, 68%) var(--bezel-y, 34%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 26 26 26) 20%, color(srgb-linear 12 12 12) 42%, transparent 84%);
+            /* STATIC specular parked dead-center top (straight), +2 stops HDR. */
+            background: radial-gradient(ellipse 46% 52% at var(--bezel-x, 50%) var(--bezel-y, 8%), color(srgb-linear 128 128 128) 0%, color(srgb-linear 104 104 104) 20%, color(srgb-linear 48 48 48) 42%, transparent 84%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -680,13 +679,13 @@
             z-index: 2;
             border-radius: 20px;
             padding: 2px;
-            background: radial-gradient(ellipse 64% 26% at var(--lcd-spec-x, 50%) var(--lcd-spec-y, 9%), color(srgb-linear 22 22 22) 0%, color(srgb-linear 13 13 13) 22%, color(srgb-linear 5 5 5) 46%, transparent 74%);
+            background: radial-gradient(ellipse 64% 26% at var(--lcd-spec-x, 50%) var(--lcd-spec-y, 9%), color(srgb-linear 13 13 13) 0%, color(srgb-linear 8 8 8) 22%, color(srgb-linear 3.5 3.5 3.5) 46%, transparent 74%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
             pointer-events: none;
-            opacity: var(--lcd-specular, 0.8);
+            opacity: var(--lcd-specular, 0.55);
             mix-blend-mode: screen;
             will-change: opacity, background;
             dynamic-range-limit: no-limit;
@@ -2510,7 +2509,7 @@
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
-                            lcdRingEl.style.setProperty('--lcd-specular', '0.8');
+                            lcdRingEl.style.setProperty('--lcd-specular', '0.5');
                             ambientLcdApplied = true;
                         }
                         return;
@@ -2592,7 +2591,7 @@
                         }
                         botR/=botC; botG/=botC; botB/=botC;
                         const botL = (0.2126*botR + 0.7152*botG + 0.0722*botB)/255;
-                        const spec = Math.min(1, 0.55 + 0.9 * botL * flick * (0.45 + 0.55*glowFade));
+                        const spec = Math.min(1, 0.38 + 0.55 * botL * flick * (0.45 + 0.55*glowFade));
                         lcdRingEl.style.setProperty('--lcd-specular', String(spec.toFixed(3)));
                         // real-time location: weighted centroid -> angle around the shell, so the highlight crawls the edge
                         let sX=0,sY=0,wSum=0;
