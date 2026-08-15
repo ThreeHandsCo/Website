@@ -1878,23 +1878,32 @@
                     }
                     const cX = wSum > 0 ? wX / wSum : 0.5;
                     const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
-                    const streakW = 10 + Math.round(12 * avgL);                  // tight shimmer, not flood
+                    const streakW = 34 + Math.round(18 * avgL);                  // WIDE soft light patch, not a slit
                     const peak = 0.18 + 0.42 * avgL * flick * (0.45 + 0.55 * glowFade);
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
                     {
-                        // Beveled glyphs with a crawling HDR specular — perimeter stays defined
+                        // Wide soft light area with a crawling HDR peak at its
+                        // heart — light washes across most of the emboss.
                         const lp = 16;
                         const lpR = (lp * tintLin(tintR)).toFixed(2);
                         const lpG = (lp * tintLin(tintG)).toFixed(2);
                         const lpB = (lp * tintLin(tintB)).toFixed(2);
+                        const mid = (2.2 + 4.5 * peak) * 0.55;
+                        const mR = (mid * tintLin(tintR)).toFixed(2);
+                        const mG = (mid * tintLin(tintG)).toFixed(2);
+                        const mB = (mid * tintLin(tintB)).toFixed(2);
                         const g0 = Math.max(0, streakX - streakW);
                         const g1 = Math.min(100, streakX + streakW);
+                        const h0 = (g0 + streakX) / 2;
+                        const h1 = (streakX + g1) / 2;
                         blurbEl.style.setProperty('--blurb-sheen',
                             `linear-gradient(100deg,
                                 rgba(${baseR},${baseG},${baseB},1) 0%,
                                 rgba(${baseR},${baseG},${baseB},1) ${g0}%,
+                                color(srgb-linear ${mR} ${mG} ${mB}) ${h0}%,
                                 color(srgb-linear ${lpR} ${lpG} ${lpB}) ${streakX}%,
+                                color(srgb-linear ${mR} ${mG} ${mB}) ${h1}%,
                                 rgba(${baseR},${baseG},${baseB},1) ${g1}%,
                                 rgba(${baseR},${baseG},${baseB},1) 100%)`);
                     }
@@ -1917,14 +1926,22 @@
                         const lcR = (lcp * tintLin(tintR)).toFixed(2);
                         const lcG = (lcp * tintLin(tintG)).toFixed(2);
                         const lcB = (lcp * tintLin(tintB)).toFixed(2);
-                        const cW = Math.max(4, Math.round(streakW * 0.85));
+                        const cW = Math.max(20, Math.round(streakW * 0.9));
                         const cg0 = Math.max(0, streakX - cW);
                         const cg1 = Math.min(100, streakX + cW);
+                        const ch0 = (cg0 + streakX) / 2;
+                        const ch1 = (streakX + cg1) / 2;
+                        const cmR = (2.2 + 4.5 * peak * 0.8) * 0.55;
+                        const cmidR = (cmR * tintLin(tintR)).toFixed(2);
+                        const cmidG = (cmR * tintLin(tintG)).toFixed(2);
+                        const cmidB = (cmR * tintLin(tintB)).toFixed(2);
                         comingEl.style.setProperty('--coming-sheen',
                             `linear-gradient(100deg,
                                 rgba(${cR},${cG},${cB},1) 0%,
                                 rgba(${cR},${cG},${cB},1) ${cg0}%,
+                                color(srgb-linear ${cmidR} ${cmidG} ${cmidB}) ${ch0}%,
                                 color(srgb-linear ${lcR} ${lcG} ${lcB}) ${streakX}%,
+                                color(srgb-linear ${cmidR} ${cmidG} ${cmidB}) ${ch1}%,
                                 rgba(${cR},${cG},${cB},1) ${cg1}%,
                                 rgba(${cR},${cG},${cB},1) 100%)`);
                     }
