@@ -603,14 +603,15 @@
 
         .blurb {
             text-align: center;
-            color: #ffffff;
+            color: #0a0a0a;
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
-            /* matte, not emissive — top highlight + bottom shadow as if lit from the video above */
-            text-shadow: 0 -0.45px 0.45px rgba(255,255,255,0.14), 0 1px 0 rgba(0,0,0,0.62), 0 2px 6px rgba(0,0,0,0.45);
+            /* embroidered into the surface — dark deboss, plainly visible via edge highlight */
+            text-shadow: 0 1px 0 rgba(255,255,255,0.055), 0 -1px 0.6px rgba(0,0,0,0.95), 0 0 0.8px rgba(0,0,0,0.9);
             opacity: 1;
-            filter: brightness(1.0) contrast(1.0) drop-shadow(0px 5px 12px rgba(0,0,0,0.5));
+            filter: none;
+            background-color: transparent;
             margin-bottom: 40px;
             text-decoration: none;
             display: block;
@@ -624,7 +625,7 @@
            crawling specular streak JS positions on the video's bright spot. */
         @supports ((-webkit-background-clip: text) or (background-clip: text)) {
             .blurb {
-                background-image: var(--blurb-sheen, linear-gradient(180deg, #ffffff 0%, #ffffff 100%));
+                background-image: var(--blurb-sheen, linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%));
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 -webkit-background-clip: text;
@@ -633,7 +634,7 @@
             }
 
             .coming-soon {
-                background-image: var(--coming-sheen, linear-gradient(180deg, #ffffff 0%, #ffffff 100%));
+                background-image: var(--coming-sheen, linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%));
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 -webkit-background-clip: text;
@@ -659,15 +660,15 @@
         }
 
         .coming-soon {
-            color: #ffffff;
+            color: #0a0a0a;
             font-family: 'Press Start 2P', cursive;
             font-size: 11px;
             letter-spacing: 1px;
             text-align: center;
-            /* same light field, weaker — further from the video */
-            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.14), 0 1px 0 rgba(0,0,0,0.45);
-            opacity: 0.92;
-            filter: brightness(1) drop-shadow(0px 3px 8px rgba(0,0,0,0.45));
+            /* embroidered — same deboss, plainly visible via edge */
+            text-shadow: 0 1px 0 rgba(255,255,255,0.045), 0 -0.7px 0.5px rgba(0,0,0,0.92);
+            opacity: 1;
+            filter: none;
             transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color;
             dynamic-range-limit: no-limit;
@@ -1475,9 +1476,40 @@
                 if (!trailerWrap || !glowTight || !glowWide || !glowOuter) return;
 
                 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                const tightCtx = glowTight.getContext('2d');
-                const wideCtx = glowWide.getContext('2d');
-                const outerCtx = glowOuter.getContext('2d');
+                // Wide-gamut glow: the saturate is SUPPOSED to exceed the
+                // video's Rec.709 colorspace into P3. We only enable it when
+                // raw P3 readback is supported, so the dither pass never
+                // double-converts (that was the earlier color-ruining bug).
+                let glowWideGamut = false;
+                const tightCtx = (function() {
+                    try {
+                        const probe = document.createElement('canvas');
+                        probe.width = 1;
+                        probe.height = 1;
+                        const pctx = probe.getContext('2d', { colorSpace: 'display-p3' });
+                        if (!pctx || !pctx.getContextAttributes || pctx.getContextAttributes().colorSpace !== 'display-p3') return null;
+                        pctx.fillStyle = '#ff0000';
+                        pctx.fillRect(0, 0, 1, 1);
+                        // If the colorSpace option is honored, the raw P3
+                        // readback (P3 red) differs from the sRGB one (sRGB
+                        // red). Identical values mean the option is ignored.
+                        const rawP3 = pctx.getImageData(0, 0, 1, 1, { colorSpace: 'display-p3' }).data;
+                        const rawSRGB = pctx.getImageData(0, 0, 1, 1, { colorSpace: 'srgb' }).data;
+                        if (rawP3[0] !== rawSRGB[0]) {
+                            glowWideGamut = true;
+                            return glowTight.getContext('2d', { colorSpace: 'display-p3' });
+                        }
+                    } catch (_e) { /* fall through to sRGB */ }
+                    return null;
+                })() || glowTight.getContext('2d');
+                const wideCtx = glowWideGamut ? glowWide.getContext('2d', { colorSpace: 'display-p3' }) : glowWide.getContext('2d');
+                const outerCtx = glowWideGamut ? glowOuter.getContext('2d', { colorSpace: 'display-p3' }) : glowOuter.getContext('2d');
+                if (glowWideGamut) {
+                    // Gamut expansion into P3 at draw time; CSS saturate(1.5)
+                    // then pushes luminance past SDR white on the no-limit
+                    // HDR raster. putImageData is unaffected by this filter.
+                    tightCtx.filter = 'saturate(1.3)';
+                }
                 // Low-res sources keep the per-frame cost near zero, but stay
                 // fine enough that no upscale blocks survive the CSS blur.
                 glowTight.width = 224;
@@ -1523,7 +1555,12 @@
                         // Bayer dithering so the edge/banding stays invisible.
                         (function() {
                             const w = glowTight.width, h = glowTight.height;
-                            const img = tightCtx.getImageData(0, 0, w, h);
+                            // Raw P3 readback on wide-gamut paths: no
+                            // color conversion, so putImageData writes the
+                            // same values back (exact round trip).
+                            const img = glowWideGamut
+                                ? tightCtx.getImageData(0, 0, w, h, { colorSpace: 'display-p3' })
+                                : tightCtx.getImageData(0, 0, w, h);
                             const d = img.data;
                             // 4x4 Bayer 0..15
                             const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
@@ -1757,15 +1794,15 @@
                 function updateTextLight() {
                     if (!blurbEl) return;
                     if (!lumaData || glowFade <= 0.01) {
-                        blurbEl.style.filter = 'brightness(1.14) contrast(0.99) drop-shadow(0px 5px 12px rgba(0,0,0,0.5))';
-                        blurbEl.style.opacity = '0.99';
-                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.22), 0 1px 0 rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4)';
-                        // Solid near-white fill so the clipped glyphs stay visible pre-video.
-                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #ffffff 0%, #ffffff 100%)');
+                        blurbEl.style.filter = 'brightness(1.0) contrast(1.0) drop-shadow(0px 5px 10px rgba(0,0,0,0.55))';
+                        blurbEl.style.opacity = '1';
+                        blurbEl.style.textShadow = '0 1px 0 rgba(255,255,255,0.055), 0 -1px 0.6px rgba(0,0,0,0.95)';
+                        // Embroidered fallback — dark deboss, plainly visible edge
+                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%)');
                         if (comingEl) {
-                            comingEl.style.filter = 'brightness(1.12) drop-shadow(0px 3px 8px rgba(0,0,0,0.45))';
-                            comingEl.style.opacity = '0.98';
-                            comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #dde2e8 0%, #dde2e8 100%)');
+                            comingEl.style.filter = 'none';
+                            comingEl.style.opacity = '1';
+                            comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%)');
                         }
                         platformEls.forEach(function(btn) {
                             btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
@@ -1795,8 +1832,8 @@
                     const avgL = (0.2126*rS + 0.7152*gS + 0.0722*bS)/255;
                     const flick = 0.55 + 0.45 * glowFlicker;
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
-                    // Max white — pure, video just tints
-                    const baseR = 255, baseG = 255, baseB = 255;
+                    // Embroidered — dark base, only specular is HDR
+                    const baseR = 10, baseG = 10, baseB = 10;
                     const tintR = Math.round(212 + (rS-110)*0.10);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
@@ -1810,9 +1847,9 @@
                     const shadowY = (3 + 5 * avgL).toFixed(1);
                     const shadowBlur = (8 + 16 * avgL * flick * glowFade).toFixed(1);
                     const shadowA = (0.30 + 0.34 * avgL * flick).toFixed(3);
-                    blurbEl.style.color = `rgb(255,255,255)`;
-                    blurbEl.style.textShadow = `${top}, ${bottom}, ${hdrGlow}`;
-                    blurbEl.style.filter = `brightness(1.0) contrast(1.0) drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
+                    blurbEl.style.color = `rgb(10,10,10)`;
+                    blurbEl.style.textShadow = `0 1px 0 rgba(255,255,255,0.055), 0 -1px 0.6px rgba(0,0,0,0.95), ${hdrGlow}`;
+                    blurbEl.style.filter = `drop-shadow(0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowA}))`;
                     blurbEl.style.opacity = '1';
                     // Mild text shimmer: a narrow specular streak on the glyphs
                     // that crawls with the video's brightest spot, tinted by it.
@@ -1850,14 +1887,14 @@
                                 rgba(${baseR},${baseG},${baseB},1) 100%)`);
                     }
                     if (comingEl) {
-                        const cR = 255, cG = 255, cB = 255;
+                        const cR = 10, cG = 10, cB = 10;
                         const cHdrBlur = (2.5 + 4.5 * avgL * flick * glowFade).toFixed(1);
                         const cHdrA = (0.10 + 0.16 * avgL * flick * glowFade).toFixed(3);
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
-                        comingEl.style.color = `rgb(${cR},${cG},${cB})`;
-                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.07 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.5), ${cGlow}`;
-                        comingEl.style.filter = `brightness(${1.10 + 0.24*avgL*flick*glowFade}) drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
-                        comingEl.style.opacity = String(0.97 + 0.03*avgL);
+                        comingEl.style.color = `rgb(10,10,10)`;
+                        comingEl.style.textShadow = `0 1px 0 rgba(255,255,255,0.045), 0 -0.7px 0.5px rgba(0,0,0,0.92), ${cGlow}`;
+                        comingEl.style.filter = `drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
+                        comingEl.style.opacity = '1';
                         // Same bezel-light treatment as the blurb, milder: the
                         // crawling streak sits on the glyphs, slightly softer,
                         // with its own HDR peak stop.
