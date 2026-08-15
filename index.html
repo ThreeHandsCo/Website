@@ -1814,11 +1814,11 @@
          // Ghost placement uses the classic Windows 2000 time-based trail
          // algorithm — each ghost sits where the pointer was N ticks ago — so
          // the chain bunches up at low speed and stretches out when flicked.
-         // The ghosts are spaced two ticks apart: close enough to read as one
-         // trail, far enough that they never bunch into a blob.
-         // When movement stops, the ghosts accelerate along the very path they
-         // traced — retracting into the modern cursor instead of cutting a
-         // straight line to it.
+         // The ghosts are spaced three ticks apart (about 100/200/300 ms).
+         // Movement must be idle for 280 ms before the trail retracts, so the
+         // brief pauses of normal motion never collapse the chain.
+         // When movement truly stops, the ghosts accelerate along the very path
+         // they traced and merge into the modern cursor.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
@@ -1830,14 +1830,16 @@
                  document.body.appendChild(node);
                  return node;
              });
-             const trailTickOffsets = [2, 4, 6];
+             const trailTickOffsets = [3, 6, 9];
+             const trailTickMs = 35;
+             const stopDelayMs = 280;
+             const collapseDuration = 190;
              const positions = Array.from(
                  { length: trailTickOffsets[trailTickOffsets.length - 1] + 1 },
                  function() {
                      return { x: 0, y: 0 };
                  }
              );
-             const collapseDuration = 190;
              let target = null;
              let pointerMode = false;
              let lastMove = 0;
@@ -1900,7 +1902,8 @@
 
              function renderCollapseFrame(now) {
                  const progress = Math.min(1, (now - collapseStart) / collapseDuration);
-                 const eased = progress * progress; // accelerating, no overshoot
+                 // Ease-out: ghosts move immediately and settle into the cursor.
+                 const eased = 1 - (1 - progress) * (1 - progress);
                  const hotspot = pointerMode ? 10 : 0;
                  trails.forEach(function(node, index) {
                      const point = pointAtDistance(collapsePath, collapseDistances[index] * (1 - eased));
@@ -1944,7 +1947,7 @@
                      return;
                  }
 
-                 if (Date.now() - lastMove > 120) {
+                 if (Date.now() - lastMove > stopDelayMs) {
                      collapseTrails();
                      return;
                  }
@@ -1987,7 +1990,7 @@
                  lastMove = Date.now();
                  if (!trailTimer) {
                      stepTrails();
-                     trailTimer = window.setInterval(stepTrails, 50);
+                     trailTimer = window.setInterval(stepTrails, trailTickMs);
                  }
              }, { passive: true });
 
