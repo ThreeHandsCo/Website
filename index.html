@@ -1534,6 +1534,14 @@
                                     const r = d[i], g = d[i+1], b = d[i+2];
                                     const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
                                     const bayerVal = bayer[((y & 3) << 2) | (x & 3)] / 16 - 0.5;
+                                    // Pre-dither RGB: +-1.2 LSB of ordered noise so
+                                    // the bilinear upscale, CSS saturate, and blur
+                                    // never requantize into visible bands. The
+                                    // noise averages to nothing after the blur.
+                                    const n = bayerVal * 2.4;
+                                    d[i] = Math.max(0, Math.min(255, r + n));
+                                    d[i+1] = Math.max(0, Math.min(255, g + n));
+                                    d[i+2] = Math.max(0, Math.min(255, b + n));
                                     const dithered = luma + bayerVal * 10;
                                     let a = (dithered - 16) / (62 - 16);
                                     if (a <= 0) a = 0;
@@ -1639,6 +1647,13 @@
                         grad.addColorStop(1, 'rgba(236, 242, 255, 0)');
                         sctx.fillStyle = grad;
                         sctx.fillRect(0, 0, 24, 24);
+                        // Dither the halo once at bake time so the soft falloff
+                        // never shows quantization rings when scaled.
+                        const sd = sctx.getImageData(0, 0, 24, 24);
+                        for (let k = 3; k < sd.data.length; k += 4) {
+                            sd.data[k] = Math.max(0, Math.min(255, sd.data[k] + (Math.random() - 0.5) * 10));
+                        }
+                        sctx.putImageData(sd, 0, 0);
                     })();
 
                     const dust = [];
