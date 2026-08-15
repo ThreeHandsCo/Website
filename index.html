@@ -603,14 +603,14 @@
 
         .blurb {
             text-align: center;
-            color: #0a0a0a;
+            color: #e2e6eb;
             font-family: 'Press Start 2P', cursive;
             font-size: 18px;
             text-transform: uppercase;
-            /* embroidered into the surface — dark deboss, plainly visible via edge highlight */
-            text-shadow: 0 1px 0 rgba(255,255,255,0.055), 0 -1px 0.6px rgba(0,0,0,0.95), 0 0 0.8px rgba(0,0,0,0.9);
+            /* white, lit from the video above — dark contact line + drop shadow */
+            text-shadow: 0 -0.5px 0.5px rgba(255,255,255,0.12), 0 1px 0 rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35);
             opacity: 1;
-            filter: none;
+            filter: brightness(1) drop-shadow(0px 5px 12px rgba(0,0,0,0.5));
             background-color: transparent;
             margin-bottom: 40px;
             text-decoration: none;
@@ -625,7 +625,7 @@
            crawling specular streak JS positions on the video's bright spot. */
         @supports ((-webkit-background-clip: text) or (background-clip: text)) {
             .blurb {
-                background-image: var(--blurb-sheen, linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%));
+                background-image: var(--blurb-sheen, linear-gradient(180deg, #e2e6eb 0%, #e2e6eb 100%));
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 -webkit-background-clip: text;
@@ -634,7 +634,7 @@
             }
 
             .coming-soon {
-                background-image: var(--coming-sheen, linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%));
+                background-image: var(--coming-sheen, linear-gradient(180deg, #e0e5ea 0%, #e0e5ea 100%));
                 background-size: 100% 100%;
                 background-repeat: no-repeat;
                 -webkit-background-clip: text;
@@ -660,15 +660,15 @@
         }
 
         .coming-soon {
-            color: #0a0a0a;
+            color: #e0e5ea;
             font-family: 'Press Start 2P', cursive;
             font-size: 11px;
             letter-spacing: 1px;
             text-align: center;
-            /* embroidered — same deboss, plainly visible via edge */
-            text-shadow: 0 1px 0 rgba(255,255,255,0.045), 0 -0.7px 0.5px rgba(0,0,0,0.92);
+            /* same light field, weaker — further from the video */
+            text-shadow: 0 -0.4px 0.4px rgba(255,255,255,0.12), 0 1px 0 rgba(0,0,0,0.45);
             opacity: 1;
-            filter: none;
+            filter: brightness(1) drop-shadow(0px 3px 8px rgba(0,0,0,0.45));
             transition: filter 0.12s linear, color 0.12s linear, text-shadow 0.12s linear, opacity 0.12s linear;
             will-change: filter, color;
             dynamic-range-limit: no-limit;
@@ -1796,15 +1796,15 @@
                 function updateTextLight() {
                     if (!blurbEl) return;
                     if (!lumaData || glowFade <= 0.01) {
-                        blurbEl.style.filter = 'brightness(1.0) contrast(1.0) drop-shadow(0px 5px 10px rgba(0,0,0,0.55))';
+                        blurbEl.style.filter = 'brightness(1.02) contrast(1.0) drop-shadow(0px 5px 10px rgba(0,0,0,0.55))';
                         blurbEl.style.opacity = '1';
-                        blurbEl.style.textShadow = '0 1px 0 rgba(255,255,255,0.055), 0 -1px 0.6px rgba(0,0,0,0.95)';
-                        // Embroidered fallback — dark deboss, plainly visible edge
-                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%)');
+                        blurbEl.style.textShadow = '0 -0.45px 0.45px rgba(255,255,255,0.14), 0 1px 0 rgba(0,0,0,0.55)';
+                        // Solid near-white fill so the glyphs stay legible pre-video.
+                        blurbEl.style.setProperty('--blurb-sheen', 'linear-gradient(180deg, #e2e6eb 0%, #e2e6eb 100%)');
                         if (comingEl) {
-                            comingEl.style.filter = 'none';
+                            comingEl.style.filter = 'brightness(1.0) drop-shadow(0px 3px 8px rgba(0,0,0,0.45))';
                             comingEl.style.opacity = '1';
-                            comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%)');
+                            comingEl.style.setProperty('--coming-sheen', 'linear-gradient(180deg, #dde2e8 0%, #dde2e8 100%)');
                         }
                         platformEls.forEach(function(btn) {
                             btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
@@ -1835,7 +1835,9 @@
                     const flick = 0.55 + 0.45 * glowFlicker;
                     const bright = (0.76 + 0.42 * avgL * flick) * (0.55 + 0.45 * glowFade);
                     // Embroidered — dark base, only specular is HDR
-                    const baseR = 10, baseG = 10, baseB = 10;
+                    // Full-width light: near-white base so EVERY glyph is
+                    // legible, washed brighter by the video, HDR streak on top.
+                    const baseR = Math.round(226 + (rS-110)*0.14), baseG = Math.round(228 + (gS-112)*0.14), baseB = Math.round(232 + (bS-118)*0.14);
                     const tintR = Math.round(212 + (rS-110)*0.10);
                     const tintG = Math.round(210 + (gS-115)*0.14);
                     const tintB = Math.round(215 + (bS-122)*0.14);
@@ -1868,18 +1870,20 @@
                     }
                     const cX = wSum > 0 ? wX / wSum : 0.5;
                     const streakX = Math.round(8 + cX * 84);                     // 8..92% along the text
-                    const streakW = 28 + Math.round(30 * avgL);                  // way bigger — floods the emboss when lit
+                    const streakW = 45 + Math.round(35 * avgL);                  // floods the whole line when lit
                     const peak = 0.10 + 0.34 * avgL * flick * (0.45 + 0.55 * glowFade);
                     // Tinted linear-light helper for HDR shimmer stops.
                     const tintLin = function(c) { return 0.8 + 0.2 * Math.max(0.85, Math.min(1.15, c / 255)); };
                     {
-                        // HDR peak stop: 4 stops forced (16x, 2000+ nits), body stays SDR white
+                        // HDR peak stop rides on a full-width lit base: the
+                        // light extends across the ENTIRE text, brightest at
+                        // the video's hot spot.
                         const lp = 16;
                         const lpR = (lp * tintLin(tintR)).toFixed(2);
                         const lpG = (lp * tintLin(tintG)).toFixed(2);
                         const lpB = (lp * tintLin(tintB)).toFixed(2);
-                        const g0 = Math.max(0, streakX - streakW);
-                        const g1 = Math.min(100, streakX + streakW);
+                        const g0 = 0;
+                        const g1 = 100;
                         blurbEl.style.setProperty('--blurb-sheen',
                             `linear-gradient(100deg,
                                 rgba(${baseR},${baseG},${baseB},1) 0%,
@@ -1889,25 +1893,24 @@
                                 rgba(${baseR},${baseG},${baseB},1) 100%)`);
                     }
                     if (comingEl) {
-                        const cR = 10, cG = 10, cB = 10;
+                        const cR = Math.round(200 + (rS-110)*0.12), cG = Math.round(202 + (gS-112)*0.12), cB = Math.round(206 + (bS-118)*0.12);
                         const cHdrBlur = (2.5 + 4.5 * avgL * flick * glowFade).toFixed(1);
                         const cHdrA = (0.10 + 0.16 * avgL * flick * glowFade).toFixed(3);
                         const cGlow = `0 0 ${cHdrBlur}px color(srgb-linear ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.85 + 1.4*avgL).toFixed(2)} ${ (0.9 + 1.5*avgL).toFixed(2)} / ${cHdrA})`;
-                        comingEl.style.color = `rgb(10,10,10)`;
-                        comingEl.style.textShadow = `0 1px 0 rgba(255,255,255,0.045), 0 -0.7px 0.5px rgba(0,0,0,0.92), ${cGlow}`;
-                        comingEl.style.filter = `drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
+                        comingEl.style.color = `rgb(${cR},${cG},${cB})`;
+                        comingEl.style.textShadow = `0 -0.35px 0.35px rgba(${tintR},${tintG},${tintB},${0.10 + 0.05*avgL}), 0 1px 0 rgba(0,0,0,0.5), ${cGlow}`;
+                        comingEl.style.filter = `brightness(${0.96 + 0.2*avgL*flick*glowFade}) drop-shadow(0px ${(2 + 3*avgL).toFixed(1)}px ${(5 + 8*avgL*flick*glowFade).toFixed(1)}px rgba(0,0,0,${(0.26 + 0.28*avgL*flick).toFixed(3)}))`;
                         comingEl.style.opacity = '1';
-                        // Same bezel-light treatment as the blurb, milder: the
-                        // crawling streak sits on the glyphs, slightly softer,
-                        // with its own HDR peak stop.
+                        // Same full-width bezel-light treatment, milder: the
+                        // whole line is lit, HDR streak rides on top.
                         const cp = peak * 0.8;
                         const lcp = 8 + 7 * cp + 0.9 * avgL;
                         const lcR = (lcp * tintLin(tintR)).toFixed(2);
                         const lcG = (lcp * tintLin(tintG)).toFixed(2);
                         const lcB = (lcp * tintLin(tintB)).toFixed(2);
                         const cW = Math.max(4, Math.round(streakW * 0.85));
-                        const cg0 = Math.max(0, streakX - cW);
-                        const cg1 = Math.min(100, streakX + cW);
+                        const cg0 = 0;
+                        const cg1 = 100;
                         comingEl.style.setProperty('--coming-sheen',
                             `linear-gradient(100deg,
                                 rgba(${cR},${cG},${cB},1) 0%,
