@@ -1839,10 +1839,13 @@
          // algorithm — each ghost sits where the pointer was N ticks ago — so
          // the chain bunches up at low speed and stretches out when flicked.
          // The ghosts are spaced three ticks apart (about 100/200/300 ms).
-         // Movement must be idle for 280 ms before the trail retracts, so the
-         // brief pauses of normal motion never collapse the chain.
-         // When movement truly stops, the ghosts accelerate along the very path
-         // they traced and merge into the modern cursor.
+         // Movement must be idle for 280 ms before the trail starts to walk
+         // back into the cursor, so the brief pauses of normal motion never
+         // collapse the chain.
+         // The walk-back is the same shift register, still ticking: each ghost
+         // steps through the exact positions the pointer sampled, one discrete
+         // tick per link, until the whole chain has been reabsorbed. No easing,
+         // no interpolation — the same mechanical cadence as the trail itself.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
@@ -1857,7 +1860,6 @@
              const trailTickOffsets = [3, 6, 9];
              const trailTickMs = 35;
              const stopDelayMs = 280;
-             const collapseDuration = 190;
              const positions = Array.from(
                  { length: trailTickOffsets[trailTickOffsets.length - 1] + 1 },
                  function() {
@@ -1867,24 +1869,16 @@
              let target = null;
              let pointerMode = false;
              let lastMove = 0;
+             let idleTicks = 0;
              let trailTimer = 0;
-             let collapseRaf = 0;
-             let collapsePath = null;
-             let collapseDistances = null;
-             let collapseStart = 0;
 
              function hideTrails() {
                  target = null;
+                 idleTicks = 0;
                  if (trailTimer) {
                      window.clearInterval(trailTimer);
                      trailTimer = 0;
                  }
-                 if (collapseRaf) {
-                     window.cancelAnimationFrame(collapseRaf);
-                     collapseRaf = 0;
-                 }
-                 collapsePath = null;
-                 collapseDistances = null;
                  trails.forEach(function(node) { node.style.opacity = '0'; });
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
@@ -1895,85 +1889,18 @@
                  return !!clickable && !(clickable.disabled || clickable.matches(':disabled'));
              }
 
-             function distanceBetween(first, second) {
-                 return Math.hypot(first.x - second.x, first.y - second.y);
-             }
-
-             function pointAtDistance(path, distance) {
-                 let remaining = distance;
-                 for (let i = 1; i < path.length; i++) {
-                     const segmentLength = distanceBetween(path[i - 1], path[i]);
-                     if (segmentLength >= remaining) {
-                         const ratio = segmentLength > 0 ? remaining / segmentLength : 0;
-                         return {
-                             x: path[i - 1].x + (path[i].x - path[i - 1].x) * ratio,
-                             y: path[i - 1].y + (path[i].y - path[i - 1].y) * ratio
-                         };
-                     }
-                     remaining -= segmentLength;
-                 }
-                 return path[path.length - 1];
-             }
-
-             function finishCollapse() {
-                 collapseRaf = 0;
-                 collapsePath = null;
-                 collapseDistances = null;
-                 trails.forEach(function(node) { node.style.opacity = '0'; });
-                 target = null;
-                 document.documentElement.classList.remove('cursor-trail-moving');
-             }
-
-             function renderCollapseFrame(now) {
-                 const progress = Math.min(1, (now - collapseStart) / collapseDuration);
-                 // Ease-out: ghosts move immediately and settle into the cursor.
-                 const eased = 1 - (1 - progress) * (1 - progress);
-                 const hotspot = pointerMode ? 10 : 0;
-                 trails.forEach(function(node, index) {
-                     const point = pointAtDistance(collapsePath, collapseDistances[index] * (1 - eased));
-                     node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
-                 });
-                 if (progress >= 1) {
-                     finishCollapse();
-                     return;
-                 }
-                 collapseRaf = window.requestAnimationFrame(renderCollapseFrame);
-             }
-
-             function collapseTrails() {
-                 if (!target || collapseRaf) return;
-                 if (trailTimer) {
-                     window.clearInterval(trailTimer);
-                     trailTimer = 0;
-                 }
-                 // Snapshot the traced path; each ghost retracts along it.
-                 collapsePath = positions.map(function(point) {
-                     return { x: point.x, y: point.y };
-                 });
-                 collapsePath[0] = { x: target.x, y: target.y };
-                 collapseDistances = trailTickOffsets.map(function(offset) {
-                     let distance = 0;
-                     for (let i = 1; i <= offset; i++) {
-                         distance += distanceBetween(collapsePath[i - 1], collapsePath[i]);
-                     }
-                     return distance;
-                 });
-                 collapseStart = performance.now();
-                 // The modern cursor takes over immediately; the ghosts
-                 // disappear beneath it as they retract along the path.
-                 document.documentElement.classList.remove('cursor-trail-moving');
-                 collapseRaf = window.requestAnimationFrame(renderCollapseFrame);
-             }
-
              function stepTrails() {
                  if (!target || document.hidden) {
                      hideTrails();
                      return;
                  }
 
-                 if (Date.now() - lastMove > stopDelayMs) {
-                     collapseTrails();
-                     return;
+                 const idle = Date.now() - lastMove > stopDelayMs;
+                 if (idle) {
+                     // The pointer has stopped: the modern cursor takes over and
+                     // the chain walks back into it, one tick-step per link.
+                     document.documentElement.classList.remove('cursor-trail-moving');
+                     idleTicks++;
                  }
 
                  for (let i = positions.length - 1; i > 0; i--) {
@@ -1982,6 +1909,12 @@
                  }
                  positions[0].x = target.x;
                  positions[0].y = target.y;
+
+                 if (idle && idleTicks >= positions.length - 1) {
+                     // Every link has walked into the cursor.
+                     hideTrails();
+                     return;
+                 }
 
                  const hotspot = pointerMode ? 10 : 0;
                  trails.forEach(function(node, index) {
@@ -1993,13 +1926,10 @@
 
              document.addEventListener('pointermove', function(event) {
                  if (event.pointerType === 'touch') return;
-                 if (collapseRaf) {
-                     window.cancelAnimationFrame(collapseRaf);
-                     collapseRaf = 0;
-                 }
                  document.documentElement.classList.add('cursor-trail-moving');
                  const wasHidden = !target;
                  target = { x: event.clientX, y: event.clientY };
+                 idleTicks = 0;
                  if (wasHidden) {
                      positions.forEach(function(point) {
                          point.x = event.clientX;
