@@ -851,6 +851,8 @@
                 height: auto;
                 overflow-y: visible;
                 touch-action: pan-y;
+                gap: 28px;
+                padding-top: calc(24px + env(safe-area-inset-top, 0px));
             }
 
             .header-video,
@@ -858,6 +860,7 @@
                 width: calc(100vw - 40px);
                 height: auto;
                 aspect-ratio: 16 / 9;
+                margin-bottom: 0;
             }
 
             .buttons-container {
