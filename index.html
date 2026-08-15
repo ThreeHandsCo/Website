@@ -118,7 +118,14 @@
                 -12px -12px 28px rgba(255, 255, 255, 0.088),
                 inset 0 1.5px 0 rgba(255, 255, 255, 0.13),
                 inset 0 -1.5px 2px rgba(0, 0, 0, 0.68);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            will-change: opacity;
             dynamic-range-limit: no-limit;
+        }
+
+        .trailer-wrap.trailer-ready {
+            opacity: 1;
         }
 
         /* HDR shimmering edge — visible, crawling the border */
@@ -861,6 +868,7 @@
                 height: auto;
                 aspect-ratio: 16 / 9;
                 margin-bottom: 0;
+                transform: translateY(-12px);
             }
 
             .buttons-container {
@@ -1724,6 +1732,7 @@
             const headerVideo = document.querySelector('.header-video');
             const headerLowPowerFrame = document.getElementById('header-low-power-frame');
             const skleshTrailer = document.getElementById('sklesh-trailer');
+            const skleshTrailerWrap = document.getElementById('sklesh-trailer-wrap');
             const skleshTrailerSource = 'https://video.akamai.steamstatic.com/store_trailers/4617070/1487669050/ee5ce0cfddebaaa617dc21e62fb7ca8700fdf8cc/1776811423/hls_264_master.m3u8?t=1776816847';
             const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1733,6 +1742,18 @@
             let skleshHls = null;
             let skleshTrailerInitialized = false;
             let iosLowPowerFallback = false;
+            let skleshTrailerRevealed = false;
+
+            function revealSkleshTrailer() {
+                if (skleshTrailerRevealed || !skleshTrailerWrap) return;
+                skleshTrailerRevealed = true;
+                skleshTrailerWrap.classList.add('trailer-ready');
+            }
+
+            // Reveal the bezel and the first decoded video frame as one unit.
+            skleshTrailer.addEventListener('loadeddata', revealSkleshTrailer);
+            skleshTrailer.addEventListener('playing', revealSkleshTrailer);
+            skleshTrailer.addEventListener('canplay', revealSkleshTrailer);
 
             function activateIosLowPowerFrame() {
                 if (!isIOSDevice || !headerLowPowerFrame) return false;
@@ -1829,12 +1850,14 @@
                     trailerPlayback = skleshTrailer.play();
                 } catch (_error) {
                     skleshTrailer.controls = true;
+                    revealSkleshTrailer();
                     return;
                 }
 
                 if (trailerPlayback !== undefined) {
                     trailerPlayback.catch(function() {
                         skleshTrailer.controls = true;
+                        revealSkleshTrailer();
                     });
                 }
             }
@@ -1863,6 +1886,7 @@
                         } else {
                             skleshHls.destroy();
                             skleshHls = null;
+                            revealSkleshTrailer();
                         }
                     });
                 } else if (skleshTrailer.canPlayType('application/vnd.apple.mpegurl')) {
@@ -1871,6 +1895,10 @@
                     skleshTrailer.crossOrigin = 'anonymous';
                     skleshTrailer.src = skleshTrailerSource;
                     startSkleshTrailer();
+                } else {
+                    // Keep the existing shell visible if this browser cannot
+                    // play HLS at all; there is no frame to synchronize.
+                    revealSkleshTrailer();
                 }
             }
 
