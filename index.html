@@ -66,8 +66,8 @@
 
         /* Feathered soft edge - vignette into the black page background (no box) */
         #video-container video {
-            -webkit-mask-image: radial-gradient(ellipse 125% 90% at 50% 50%, black 0%, black 42%, rgba(0,0,0,0.85) 58%, rgba(0,0,0,0.35) 72%, transparent 88%);
-            mask-image: radial-gradient(ellipse 125% 90% at 50% 50%, black 0%, black 42%, rgba(0,0,0,0.85) 58%, rgba(0,0,0,0.35) 72%, transparent 88%);
+            -webkit-mask-image: radial-gradient(ellipse 115% 115% at 50% 50%, black 0%, black 42%, rgba(0,0,0,0.85) 58%, rgba(0,0,0,0.35) 72%, transparent 88%);
+            mask-image: radial-gradient(ellipse 115% 115% at 50% 50%, black 0%, black 42%, rgba(0,0,0,0.85) 58%, rgba(0,0,0,0.35) 72%, transparent 88%);
             -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
@@ -107,17 +107,16 @@
             position: relative;
             width: min(646px, calc(100vw - 40px));
             aspect-ratio: 16 / 9;
-            /* Neumorphic frame — real depth: dual shadows + crisp inset edge
-               lights, same language as the buttons. */
+            /* Neumorphic frame — true symmetrical border */
             isolation: isolate;
             background: #0e0e12;
             border-radius: 20px;
             padding: 8px;
             box-shadow:
-                14px 16px 32px rgba(0, 0, 0, 0.96),
-                -12px -12px 28px rgba(255, 255, 255, 0.088),
-                inset 0 1.5px 0 rgba(255, 255, 255, 0.13),
-                inset 0 -1.5px 2px rgba(0, 0, 0, 0.68);
+                0 12px 32px rgba(0, 0, 0, 0.90),
+                0 0 0 1px rgba(255, 255, 255, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.60);
             dynamic-range-limit: no-limit;
         }
 
@@ -155,12 +154,12 @@
             z-index: 1;
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            background: transparent;
+            object-fit: cover;
+            background: black;
             border-radius: 12px;
             overflow: hidden;
-            -webkit-mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
-            mask-image: radial-gradient(ellipse 110% 105% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
+            -webkit-mask-image: radial-gradient(ellipse 110% 110% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
+            mask-image: radial-gradient(ellipse 110% 110% at 50% 50%, black 0%, black 45%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,0.45) 75%, transparent 95%);
             -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
             -webkit-mask-size: 100% 100%;
