@@ -507,7 +507,11 @@
         .platform-link:active,
         .platform-link.active {
             background: #0a0a0a;
-            color: #ffffff;
+            color: #cbd1d8;
+            /* pressed ink, not emissive — slightly dimmer, soft deboss */
+            text-shadow: 0 1px 0 rgba(0,0,0,0.55), 0 0 0.6px rgba(0,0,0,0.35);
+            opacity: 0.97;
+            filter: brightness(0.94) contrast(0.97);
             /* pressed / dented — inset shadows, same light direction */
             box-shadow:
                 inset 8px 8px 16px rgba(0, 0, 0, 0.96),
