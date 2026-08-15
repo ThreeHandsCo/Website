@@ -929,13 +929,36 @@
              --windows-cursor: url('/assets/windows-3.1-cursor-rgb-b.svg') 0 0, auto;
          }
 
-        :root {
-            --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-a.svg') 10 10, auto;
-        }
+         :root {
+             --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-a.svg') 10 10, auto;
+             --windows-cursor-trail: url('/assets/windows-3.1-cursor-rgb-a.svg');
+             --windows-cursor-pointer-trail: url('/assets/windows-3.1-cursor-pointer-rgb-a.svg');
+         }
 
-        :root.cursor-variant-b {
-            --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-b.svg') 10 10, auto;
-        }
+         :root.cursor-variant-b {
+             --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-b.svg') 10 10, auto;
+             --windows-cursor-trail: url('/assets/windows-3.1-cursor-rgb-b.svg');
+             --windows-cursor-pointer-trail: url('/assets/windows-3.1-cursor-pointer-rgb-b.svg');
+         }
+
+         /* Windows 2000-style trails: a few quiet, delayed cursor ghosts —
+            no glow, no DOM follower, only visible while a fine pointer moves. */
+         .mouse-trail {
+             position: fixed;
+             top: 0;
+             left: 0;
+             z-index: 2147483646;
+             width: 32px;
+             height: 32px;
+             background: var(--windows-cursor-trail) 0 0 / 32px 32px no-repeat;
+             opacity: 0;
+             pointer-events: none;
+             will-change: transform, opacity;
+         }
+
+         .mouse-trail.is-pointer {
+             background-image: var(--windows-cursor-pointer-trail);
+         }
 
         html,
         body,
@@ -1722,10 +1745,95 @@
                 // Mark for refresh on next enter
                 lastRefresh = 0;
             });
-            refreshCursor();
-        })();
+             refreshCursor();
+         })();
 
-        document.addEventListener('DOMContentLoaded', function() {
+         // A restrained Windows 2000 mouse trail. It only runs for a real
+         // fine pointer and sleeps completely after the pointer stops.
+         (function initMouseTrails() {
+             if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
+
+             const trailOpacities = [0.20, 0.13, 0.08, 0.045, 0.022];
+             const trails = trailOpacities.map(function(opacity) {
+                 const node = document.createElement('span');
+                 node.className = 'mouse-trail';
+                 node.setAttribute('aria-hidden', 'true');
+                 node.style.opacity = String(opacity);
+                 document.body.appendChild(node);
+                 return node;
+             });
+             const points = trails.map(function() { return { x: 0, y: 0 }; });
+             let target = null;
+             let pointerMode = false;
+             let lastMove = 0;
+             let animationFrame = 0;
+
+             function hideTrails() {
+                 target = null;
+                 trails.forEach(function(node) { node.style.opacity = '0'; });
+             }
+
+             function isPointerTarget(targetElement) {
+                 if (!targetElement || !targetElement.closest) return false;
+                 const clickable = targetElement.closest('a, button, [role="button"], .embed-cursor-overlay[href]');
+                 return !!clickable && !(clickable.disabled || clickable.matches(':disabled'));
+             }
+
+             function renderTrails(now) {
+                 if (!target || document.hidden) {
+                     animationFrame = 0;
+                     return;
+                 }
+
+                 const idle = now - lastMove;
+                 points[0].x += (target.x - points[0].x) * 0.72;
+                 points[0].y += (target.y - points[0].y) * 0.72;
+                 for (let i = 1; i < points.length; i++) {
+                     points[i].x += (points[i - 1].x - points[i].x) * 0.58;
+                     points[i].y += (points[i - 1].y - points[i].y) * 0.58;
+                 }
+
+                 const hotspot = pointerMode ? 10 : 0;
+                 const fade = idle > 650 ? Math.max(0, 1 - (idle - 650) / 550) : 1;
+                 trails.forEach(function(node, index) {
+                     const point = points[index];
+                     node.classList.toggle('is-pointer', pointerMode);
+                     node.style.opacity = String(trailOpacities[index] * fade);
+                     node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
+                 });
+
+                 if (idle > 1250 && fade <= 0) {
+                     hideTrails();
+                     animationFrame = 0;
+                     return;
+                 }
+                 animationFrame = window.requestAnimationFrame(renderTrails);
+             }
+
+             document.addEventListener('pointermove', function(event) {
+                 if (event.pointerType === 'touch') return;
+                 if (!target) {
+                     points.forEach(function(point) {
+                         point.x = event.clientX;
+                         point.y = event.clientY;
+                     });
+                 }
+                 target = { x: event.clientX, y: event.clientY };
+                 pointerMode = isPointerTarget(document.elementFromPoint(event.clientX, event.clientY));
+                 lastMove = performance.now();
+                 if (!animationFrame) animationFrame = window.requestAnimationFrame(renderTrails);
+             }, { passive: true });
+
+             document.addEventListener('pointerout', function(event) {
+                 if (!event.relatedTarget) hideTrails();
+             }, { passive: true });
+             document.addEventListener('visibilitychange', function() {
+                 if (document.hidden) hideTrails();
+             });
+             window.addEventListener('blur', hideTrails);
+         })();
+
+         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('intro-video');
             const videoContainer = document.getElementById('video-container');
             const contentContainer = document.getElementById('content-container');
