@@ -265,6 +265,15 @@
             justify-content: center;
         }
 
+        @media (min-width: 1025px) {
+            .buttons-container .platform-link {
+                /* Make the painted button edges, not just their parent,
+                   span the same 646px as the video and LCD. */
+                flex: 1 1 0;
+                min-width: 0;
+            }
+        }
+
         .widgets-container {
             display: flex;
             flex-direction: column;
