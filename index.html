@@ -103,14 +103,14 @@
                 inset 0 -1px 1px rgba(0,0,0,0.55);
         }
 
-        /* HDR shimmering edge — tiny specular crawling the border */
+        /* HDR shimmering edge — visible, crawling the border */
         .trailer-wrap::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: 14px;
             padding: 1.4px;
-            background: radial-gradient(ellipse 18% 22% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 48 48 48) 0%, color(srgb-linear 18 18 18) 14%, color(srgb-linear 7 7 7) 28%, transparent 62%);
+            background: radial-gradient(ellipse 28% 32% at var(--bezel-x, 18%) var(--bezel-y, 18%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -511,7 +511,7 @@
             inset: 0;
             border-radius: 18px;
             padding: 1.2px;
-            background: radial-gradient(ellipse 18% 22% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 48 48 48) 0%, color(srgb-linear 18 18 18) 16%, color(srgb-linear 7 7 7) 30%, transparent 62%);
+            background: radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 32 32 32) 0%, color(srgb-linear 12 12 12) 18%, color(srgb-linear 4 4 4) 32%, transparent 62%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -1795,17 +1795,17 @@
                         }
                         const cX = wSum>0 ? sX/wSum : 0.22, cY = wSum>0 ? sY/wSum : 0.18;
                         const ang = Math.atan2(cY - 0.5, cX - 0.5);
-                        // bezel: highlight on its border perimeter
-                        const bR = 0.46;
+                        // bezel: highlight on its border perimeter — pushed to edge so it's visible
+                        const bR = 0.50;
                         bezelEl.style.setProperty('--bezel-x', (50 + Math.cos(ang) * bR * 50).toFixed(1) + '%');
-                        bezelEl.style.setProperty('--bezel-y', (50 + Math.sin(ang) * bR * 42).toFixed(1) + '%');
+                        bezelEl.style.setProperty('--bezel-y', (50 + Math.sin(ang) * bR * 44).toFixed(1) + '%');
                         // buttons: same angle but per-button phase so they don't lockstep, still on border
                         platformEls.forEach(function(btn, idx) {
-                            const ph = (idx - 1) * 0.28;
+                            const ph = (idx - 1) * 0.32;
                             const a = ang + ph;
-                            const r = 0.44 + (idx === 1 ? 0.02 : 0);
+                            const r = 0.50;
                             btn.style.setProperty('--btn-spec-x', (50 + Math.cos(a) * r * 50).toFixed(1) + '%');
-                            btn.style.setProperty('--btn-spec-y', (50 + Math.sin(a) * r * 38).toFixed(1) + '%');
+                            btn.style.setProperty('--btn-spec-y', (50 + Math.sin(a) * r * 42).toFixed(1) + '%');
                         });
                     }
                 }
