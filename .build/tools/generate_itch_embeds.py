@@ -10,7 +10,6 @@ colors, which browsers may clamp.
 from __future__ import annotations
 
 import argparse
-import colorsys
 import html
 import json
 import math
@@ -155,8 +154,6 @@ def create_embed(game: dict[str, str], color: dict[str, str]) -> str:
     fg = color["fg"]
     link = color["link"]
     button_text = readable_foreground(link)
-    # Still too bright at 4x — tone down further to 2x
-    button_text_hdr = "color(srgb-linear 2 2 2)" if button_text == "FFFFFF" else "color(srgb-linear 0 0 0)"
     title = html.escape(game["title"])
     page_url = html.escape(game["page_url"], quote=True)
     fg_swatch = f"/assets/itch-hdr/{fg}.avif"
@@ -180,10 +177,6 @@ a {{ text-decoration:none; }}
 .link-frame {{ flex:0 0 auto; width:max-content; max-width:100%; box-sizing:border-box; margin-top:auto; padding:2px; background:#{link}; }}
 .link {{ display:block; box-sizing:border-box; max-width:100%; padding:10px 14px; background:#{link}; color:#{button_text}; border:0; font-size:10px; line-height:1.4; letter-spacing:1px; text-align:center; text-transform:uppercase; white-space:normal; }}
 .link:hover {{ filter:brightness(1.15); }}
-/* HDR button text — toned down further to 2x (was still hot at 4x) */
-@supports (color: color(srgb-linear 2 2 2)) {{
-  .link {{ color: {button_text_hdr}; }}
-}}
 /* Actual PQ/BT.2020 HDR swatches. Browsers that do not support HDR AVIF
    keep the generated SDR colors above; HDR-capable outputs tone-map this
    image correctly instead of clamping CSS color() values. */
