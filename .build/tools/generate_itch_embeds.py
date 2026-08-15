@@ -145,8 +145,9 @@ def relative_luminance(value: str) -> float:
 
 
 def readable_foreground(value: str) -> str:
-    # The threshold is where black and white have equal WCAG contrast.
-    return "000000" if relative_luminance(value) >= 0.179 else "FFFFFF"
+    # Button is HDR (link AVIF at 4 stops / 16x), text is SDR — judge contrast in HDR
+    hdr_luminance = relative_luminance(value) * HDR_SCALE
+    return "000000" if hdr_luminance >= 0.179 else "FFFFFF"
 
 
 def create_embed(game: dict[str, str], color: dict[str, str]) -> str:
