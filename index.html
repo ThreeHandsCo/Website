@@ -677,20 +677,27 @@
 
         @supports (color: color(srgb-linear 1 1 1)) {
             .lcd-module {
-                /* Same blue chromaticity as the screen, uniformly scaled
-                   4x: two stops above SDR white, not a hue shift. */
-                --lcd-blue-core: color(srgb-linear 0.06 0.72 22 / 0.66);
-                --lcd-blue-wide: color(srgb-linear 0.03 0.36 11 / 0.38);
+                --lcd-blue-core: color(srgb-linear 0.002 0.12 16 / 0.66);
+                --lcd-blue-wide: color(srgb-linear 0.001 0.04 5.5 / 0.38);
             }
 
             .lcd-screen {
-                background: radial-gradient(ellipse 92% 110% at 45% 34%, color(srgb-linear 0.06 0.72 22) 0%, color(srgb-linear 0.024 0.32 10) 58%, color(srgb-linear 0.008 0.10 2.88) 100%);
+                background: radial-gradient(ellipse 92% 110% at 45% 34%, color(srgb-linear 0.015 0.18 5.5) 0%, color(srgb-linear 0.006 0.08 2.5) 58%, color(srgb-linear 0.002 0.025 0.72) 100%);
                 box-shadow:
                     inset 0 2px 0 rgba(185, 225, 255, 0.35),
                     inset 0 -6px 12px rgba(0, 22, 105, 0.42),
                     0 0 34px var(--lcd-blue-core),
                     0 0 78px var(--lcd-blue-wide),
                     0 0 0 2px rgba(0, 0, 0, 0.62);
+            }
+        }
+
+        @supports (color: color(rec2020 0 0 1)) {
+            .lcd-module {
+                /* Rec.2020 blue keeps the halo saturated while the
+                   linear-light values push it beyond SDR into HDR volume. */
+                --lcd-blue-core: color(rec2020 0.002 0.08 12 / 0.70);
+                --lcd-blue-wide: color(rec2020 0.001 0.025 4.5 / 0.42);
             }
         }
 
@@ -1876,6 +1883,8 @@
                 let glowLastDraw = 0;
                 let glowInView = true;
                 let glowBroken = false;
+                const BAYER_4X4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+                let lastGlowOpacityKey = '';
 
                 if ('IntersectionObserver' in window) {
                     const glowObserver = new IntersectionObserver(function(entries) {
@@ -1903,15 +1912,14 @@
                                 ? tightCtx.getImageData(0, 0, w, h, { colorSpace: 'display-p3' })
                                 : tightCtx.getImageData(0, 0, w, h);
                             const d = img.data;
-                            // 4x4 Bayer 0..15
-                            const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+                            // 4x4 Bayer 0..15 (hoisted once; identical pixels)
                             for (let y = 0; y < h; y++) {
                                 const row = y * w * 4;
                                 for (let x = 0; x < w; x++) {
                                     const i = row + x * 4;
                                     const r = d[i], g = d[i+1], b = d[i+2];
                                     const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                                    const bayerVal = bayer[((y & 3) << 2) | (x & 3)] / 16 - 0.5;
+                                    const bayerVal = BAYER_4X4[((y & 3) << 2) | (x & 3)] / 16 - 0.5;
                                     // Pre-dither RGB: +-1.2 LSB of ordered noise so
                                     // the bilinear upscale, CSS saturate, and blur
                                     // never requantize into visible bands. The
@@ -1970,9 +1978,13 @@
                     const tight = (prefersReducedMotion ? 0.28 : 0.35 * glowFlicker) * glowFade;
                     const wide = (prefersReducedMotion ? 0.15 : 0.18 * (0.6 + 0.4 * glowFlicker)) * glowFade;
                     const outer = (prefersReducedMotion ? 0.06 : 0.08 * (0.6 + 0.4 * glowFlicker)) * glowFade;
-                    glowTight.style.opacity = String(tight);
-                    glowWide.style.opacity = String(wide);
-                    glowOuter.style.opacity = String(outer);
+                    const opacityKey = `${tight}|${wide}|${outer}`;
+                    if (opacityKey !== lastGlowOpacityKey) {
+                        lastGlowOpacityKey = opacityKey;
+                        glowTight.style.opacity = String(tight);
+                        glowWide.style.opacity = String(wide);
+                        glowOuter.style.opacity = String(outer);
+                    }
                 }
 
                 if (prefersReducedMotion) {
@@ -2048,6 +2060,8 @@
                             twinkleFreq: 0.25 + Math.random() * 0.65
                         });
                     }
+                    // Depth never changes, so sort once instead of every frame.
+                    dust.sort(function(a, b) { return a.z - b.z; });
                     let dustLastTime = 0;
                     let dustCleared = true;
 
@@ -2098,7 +2112,6 @@
                         const margin = 24 / Math.max(1, w);
                         dustCtx.clearRect(0, 0, w, h);
                         dustCtx.globalCompositeOperation = 'lighter';
-                        dust.sort(function(a, b) { return a.z - b.z; }); // far first
                         for (let i = 0; i < dust.length; i++) {
                             const p = dust[i];
                             // Slow drift: gentle sway plus a hint of buoyancy.
@@ -2130,18 +2143,31 @@
                 // Buttons + bezel lit by video — sample bottom for buttons, top for bezel specular.
                 const platformEls = document.querySelectorAll('.platform-link');
                 const bezelEl = document.querySelector('.trailer-wrap');
+                let lastAmbientButtonState = '';
+                let ambientBezelApplied = false;
                 function updateTextLight() {
                     if (!lumaData || glowFade <= 0.01) {
-                        platformEls.forEach(function(btn) {
-                            btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
-                            btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
-                            // Keep the edge visible before the trailer lights it.
-                            btn.style.setProperty('--btn-specular', '0.6');
-                            btn.style.setProperty('--btn-edge', 'rgba(255, 255, 255, 0.09)');
-                        });
-                        if (bezelEl) bezelEl.style.setProperty('--bezel-specular', '0.62');
+                        const ambientState = Array.from(platformEls).map(function(btn) {
+                            return `${btn.classList.contains('active') ? 'a' : 'i'}${btn.disabled ? 'd' : 'e'}`;
+                        }).join('');
+                        if (ambientState !== lastAmbientButtonState) {
+                            lastAmbientButtonState = ambientState;
+                            platformEls.forEach(function(btn) {
+                                btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
+                                btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
+                                // Keep the edge visible before the trailer lights it.
+                                btn.style.setProperty('--btn-specular', '0.6');
+                                btn.style.setProperty('--btn-edge', 'rgba(255, 255, 255, 0.09)');
+                            });
+                        }
+                        if (bezelEl && !ambientBezelApplied) {
+                            bezelEl.style.setProperty('--bezel-specular', '0.62');
+                            ambientBezelApplied = true;
+                        }
                         return;
                     }
+                    lastAmbientButtonState = '';
+                    ambientBezelApplied = false;
                     const w = lumaCanvas.width, h = lumaCanvas.height;
                     let rS=0,gS=0,bS=0,c=0;
                     // Bottom band split in thirds: each button below the video
