@@ -113,7 +113,7 @@
 
         /* Realtime monitor glow: a downsampled copy of the current frame, blurred.
            Painted on three layers - tight bloom + wide spill + outer haze.
-           Each layer is feathered with its own radial mask so the canvas edge never shows. */
+           No mask/border — the canvas edge is hidden by blur + dither. */
         .trailer-glow {
             position: absolute;
             top: 50%;
@@ -126,36 +126,42 @@
             opacity: 0;
             will-change: opacity;
             image-rendering: auto;
-            -webkit-mask-image: radial-gradient(ellipse 52% 52% at 50% 50%, black 0%, black 22%, rgba(0,0,0,0.85) 38%, rgba(0,0,0,0.4) 54%, transparent 72%);
-            mask-image: radial-gradient(ellipse 52% 52% at 50% 50%, black 0%, black 22%, rgba(0,0,0,0.85) 38%, rgba(0,0,0,0.4) 54%, transparent 72%);
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            -webkit-mask-size: 100% 100%;
-            mask-size: 100% 100%;
         }
 
         .trailer-glow-tight {
             width: 118%;
             height: 118%;
             filter: blur(56px) saturate(1.5);
-            -webkit-mask-image: radial-gradient(ellipse 48% 48% at 50% 50%, black 0%, black 25%, rgba(0,0,0,0.9) 40%, transparent 68%);
-            mask-image: radial-gradient(ellipse 48% 48% at 50% 50%, black 0%, black 25%, rgba(0,0,0,0.9) 40%, transparent 68%);
         }
 
         .trailer-glow-wide {
             width: 170%;
             height: 170%;
             filter: blur(130px) saturate(1.5);
-            -webkit-mask-image: radial-gradient(ellipse 42% 42% at 50% 50%, black 0%, black 18%, rgba(0,0,0,0.8) 32%, transparent 58%);
-            mask-image: radial-gradient(ellipse 42% 42% at 50% 50%, black 0%, black 18%, rgba(0,0,0,0.8) 32%, transparent 58%);
         }
 
         .trailer-glow-outer {
             width: 220%;
             height: 220%;
             filter: blur(190px) saturate(1.5);
-            -webkit-mask-image: radial-gradient(ellipse 36% 36% at 50% 50%, black 0%, black 14%, rgba(0,0,0,0.75) 26%, transparent 48%);
-            mask-image: radial-gradient(ellipse 36% 36% at 50% 50%, black 0%, black 14%, rgba(0,0,0,0.75) 26%, transparent 48%);
+        }
+
+        /* Dither hero: tiny tiled noise breaks up banding and the canvas edge
+           without a hard mask. Very low opacity, soft-light blend. */
+        .trailer-glow-dither {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 0;
+            width: 220%;
+            height: 220%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0.045;
+            mix-blend-mode: soft-light;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 64px 64px;
         }
 
         /* Dust motes drifting through the monitor light. Each mote is lit by
@@ -697,6 +703,7 @@
             <canvas class="trailer-glow trailer-glow-outer" id="trailer-glow-outer" aria-hidden="true"></canvas>
             <canvas class="trailer-glow trailer-glow-wide" id="trailer-glow-wide" aria-hidden="true"></canvas>
             <canvas class="trailer-glow trailer-glow-tight" id="trailer-glow-tight" aria-hidden="true"></canvas>
+            <div class="trailer-glow-dither" aria-hidden="true"></div>
             <canvas class="trailer-dust" id="trailer-dust" aria-hidden="true"></canvas>
             <video
                 id="sklesh-trailer"
