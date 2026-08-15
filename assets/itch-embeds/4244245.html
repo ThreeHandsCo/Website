@@ -16,9 +16,9 @@ a { text-decoration:none; }
 .link-frame { flex:0 0 auto; width:max-content; max-width:100%; box-sizing:border-box; margin-top:auto; padding:2px; background:#545454; }
 .link { display:block; box-sizing:border-box; max-width:100%; padding:10px 14px; background:#545454; color:#FFFFFF; border:0; font-size:10px; line-height:1.4; letter-spacing:1px; text-align:center; text-transform:uppercase; white-space:normal; }
 .link:hover { filter:brightness(1.15); }
-/* HDR button text — toned down from 16x (too hot) to 4x */
-@supports (color: color(srgb-linear 4 4 4)) {
-  .link { color: color(srgb-linear 4 4 4); }
+/* HDR button text — toned down further to 2x (was still hot at 4x) */
+@supports (color: color(srgb-linear 2 2 2)) {
+  .link { color: color(srgb-linear 2 2 2); }
 }
 /* Actual PQ/BT.2020 HDR swatches. Browsers that do not support HDR AVIF
    keep the generated SDR colors above; HDR-capable outputs tone-map this
