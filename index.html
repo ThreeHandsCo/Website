@@ -438,9 +438,9 @@
             color: white;
             text-decoration: none;
             background: transparent;
-            /* Paint the rim inside the button so its bottom edge cannot be clipped. */
-            border: 2px solid white;
-            border-image: url('/assets/hdr-white.avif') 1 / 2px stretch;
+            /* No outline when not active — only filled state shows */
+            border: 2px solid transparent;
+            border-image: none;
             padding: 20px;
             font-size: 16px;
             transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
@@ -582,14 +582,14 @@
             .widgets-container {
                 width: 100%;
                 transform: none;
-                gap: 6px;
+                gap: 4px;
             }
 
             .steam-widgets,
             .itch-widgets {
                 width: 100%;
                 align-items: center;
-                gap: 4px;
+                gap: 2px;
             }
 
             .steam-widgets iframe,
