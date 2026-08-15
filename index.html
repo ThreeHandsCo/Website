@@ -969,12 +969,6 @@
               mask-image: var(--pointer-trail-mask);
           }
 
-          /* Merge-in: ghosts accelerate forward into the live cursor with no
-             overshoot — a clean absorb, not a bounce. */
-          .mouse-trail.is-collapsing {
-              transition: transform 190ms cubic-bezier(0.55, 0, 1, 0.45);
-          }
-
         html,
         body,
         body *,
@@ -1769,8 +1763,9 @@
          // the chain bunches up at low speed and stretches out when flicked.
          // The ghosts are spaced two ticks apart: close enough to read as one
          // trail, far enough that they never bunch into a blob.
-         // When movement stops, the ghosts accelerate forward and merge into
-         // the modern cursor, which takes over as the chain disappears.
+         // When movement stops, the ghosts accelerate along the very path they
+         // traced — retracting into the modern cursor instead of cutting a
+         // straight line to it.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
@@ -1789,11 +1784,15 @@
                      return { x: 0, y: 0 };
                  }
              );
+             const collapseDuration = 190;
              let target = null;
              let pointerMode = false;
              let lastMove = 0;
              let trailTimer = 0;
-             let collapseTimer = 0;
+             let collapseRaf = 0;
+             let collapsePath = null;
+             let collapseDistances = null;
+             let collapseStart = 0;
 
              function hideTrails() {
                  target = null;
@@ -1801,14 +1800,13 @@
                      window.clearInterval(trailTimer);
                      trailTimer = 0;
                  }
-                 if (collapseTimer) {
-                     window.clearTimeout(collapseTimer);
-                     collapseTimer = 0;
+                 if (collapseRaf) {
+                     window.cancelAnimationFrame(collapseRaf);
+                     collapseRaf = 0;
                  }
-                 trails.forEach(function(node) {
-                     node.classList.remove('is-collapsing');
-                     node.style.opacity = '0';
-                 });
+                 collapsePath = null;
+                 collapseDistances = null;
+                 trails.forEach(function(node) { node.style.opacity = '0'; });
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
 
@@ -1818,36 +1816,73 @@
                  return !!clickable && !(clickable.disabled || clickable.matches(':disabled'));
              }
 
+             function distanceBetween(first, second) {
+                 return Math.hypot(first.x - second.x, first.y - second.y);
+             }
+
+             function pointAtDistance(path, distance) {
+                 let remaining = distance;
+                 for (let i = 1; i < path.length; i++) {
+                     const segmentLength = distanceBetween(path[i - 1], path[i]);
+                     if (segmentLength >= remaining) {
+                         const ratio = segmentLength > 0 ? remaining / segmentLength : 0;
+                         return {
+                             x: path[i - 1].x + (path[i].x - path[i - 1].x) * ratio,
+                             y: path[i - 1].y + (path[i].y - path[i - 1].y) * ratio
+                         };
+                     }
+                     remaining -= segmentLength;
+                 }
+                 return path[path.length - 1];
+             }
+
              function finishCollapse() {
-                 collapseTimer = 0;
-                 trails.forEach(function(node) {
-                     node.classList.remove('is-collapsing');
-                     node.style.opacity = '0';
-                 });
+                 collapseRaf = 0;
+                 collapsePath = null;
+                 collapseDistances = null;
+                 trails.forEach(function(node) { node.style.opacity = '0'; });
                  target = null;
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
 
+             function renderCollapseFrame(now) {
+                 const progress = Math.min(1, (now - collapseStart) / collapseDuration);
+                 const eased = progress * progress; // accelerating, no overshoot
+                 const hotspot = pointerMode ? 10 : 0;
+                 trails.forEach(function(node, index) {
+                     const point = pointAtDistance(collapsePath, collapseDistances[index] * (1 - eased));
+                     node.style.transform = `translate3d(${point.x - hotspot}px, ${point.y - hotspot}px, 0)`;
+                 });
+                 if (progress >= 1) {
+                     finishCollapse();
+                     return;
+                 }
+                 collapseRaf = window.requestAnimationFrame(renderCollapseFrame);
+             }
+
              function collapseTrails() {
-                 if (!target || collapseTimer) return;
+                 if (!target || collapseRaf) return;
                  if (trailTimer) {
                      window.clearInterval(trailTimer);
                      trailTimer = 0;
                  }
-                 // The modern cursor takes over immediately; the ghosts race
-                 // forward and disappear beneath it as they merge in.
-                 document.documentElement.classList.remove('cursor-trail-moving');
-                 const hotspot = pointerMode ? 10 : 0;
-                 trails.forEach(function(node) {
-                     node.classList.add('is-collapsing');
+                 // Snapshot the traced path; each ghost retracts along it.
+                 collapsePath = positions.map(function(point) {
+                     return { x: point.x, y: point.y };
                  });
-                 void trails[0].offsetWidth;
-                 trails.forEach(function(node) {
-                     if (node.style.opacity !== '0') {
-                         node.style.transform = `translate3d(${target.x - hotspot}px, ${target.y - hotspot}px, 0)`;
+                 collapsePath[0] = { x: target.x, y: target.y };
+                 collapseDistances = trailTickOffsets.map(function(offset) {
+                     let distance = 0;
+                     for (let i = 1; i <= offset; i++) {
+                         distance += distanceBetween(collapsePath[i - 1], collapsePath[i]);
                      }
+                     return distance;
                  });
-                 collapseTimer = window.setTimeout(finishCollapse, 210);
+                 collapseStart = performance.now();
+                 // The modern cursor takes over immediately; the ghosts
+                 // disappear beneath it as they retract along the path.
+                 document.documentElement.classList.remove('cursor-trail-moving');
+                 collapseRaf = window.requestAnimationFrame(renderCollapseFrame);
              }
 
              function stepTrails() {
@@ -1878,10 +1913,9 @@
 
              document.addEventListener('pointermove', function(event) {
                  if (event.pointerType === 'touch') return;
-                 if (collapseTimer) {
-                     window.clearTimeout(collapseTimer);
-                     collapseTimer = 0;
-                     trails.forEach(function(node) { node.classList.remove('is-collapsing'); });
+                 if (collapseRaf) {
+                     window.cancelAnimationFrame(collapseRaf);
+                     collapseRaf = 0;
                  }
                  document.documentElement.classList.add('cursor-trail-moving');
                  const wasHidden = !target;
