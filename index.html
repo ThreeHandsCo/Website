@@ -969,6 +969,12 @@
               mask-image: var(--pointer-trail-mask);
           }
 
+          /* Merge-in: ghosts accelerate forward into the live cursor with no
+             overshoot — a clean absorb, not a bounce. */
+          .mouse-trail.is-collapsing {
+              transition: transform 190ms cubic-bezier(0.55, 0, 1, 0.45);
+          }
+
         html,
         body,
         body *,
@@ -1761,9 +1767,8 @@
          // Ghost placement uses the classic Windows 2000 time-based trail
          // algorithm — each ghost sits where the pointer was N ticks ago — so
          // the chain bunches up at low speed and stretches out when flicked.
-         // When movement stops, the trail freezes in place exactly like Win2000
-         // and the live cursor returns to its modern look; the chain re-routes
-         // itself the moment the pointer moves again.
+         // When movement stops, the ghosts accelerate forward and merge into
+         // the modern cursor, which takes over as the chain disappears.
          (function initMouseTrails() {
              if (!window.matchMedia('(hover: hover) and (any-pointer: fine)').matches) return;
 
@@ -1782,6 +1787,7 @@
              let pointerMode = false;
              let lastMove = 0;
              let trailTimer = 0;
+             let collapseTimer = 0;
 
              function hideTrails() {
                  target = null;
@@ -1789,7 +1795,14 @@
                      window.clearInterval(trailTimer);
                      trailTimer = 0;
                  }
-                 trails.forEach(function(node) { node.style.opacity = '0'; });
+                 if (collapseTimer) {
+                     window.clearTimeout(collapseTimer);
+                     collapseTimer = 0;
+                 }
+                 trails.forEach(function(node) {
+                     node.classList.remove('is-collapsing');
+                     node.style.opacity = '0';
+                 });
                  document.documentElement.classList.remove('cursor-trail-moving');
              }
 
@@ -1799,6 +1812,38 @@
                  return !!clickable && !(clickable.disabled || clickable.matches(':disabled'));
              }
 
+             function finishCollapse() {
+                 collapseTimer = 0;
+                 trails.forEach(function(node) {
+                     node.classList.remove('is-collapsing');
+                     node.style.opacity = '0';
+                 });
+                 target = null;
+                 document.documentElement.classList.remove('cursor-trail-moving');
+             }
+
+             function collapseTrails() {
+                 if (!target || collapseTimer) return;
+                 if (trailTimer) {
+                     window.clearInterval(trailTimer);
+                     trailTimer = 0;
+                 }
+                 // The modern cursor takes over immediately; the ghosts race
+                 // forward and disappear beneath it as they merge in.
+                 document.documentElement.classList.remove('cursor-trail-moving');
+                 const hotspot = pointerMode ? 10 : 0;
+                 trails.forEach(function(node) {
+                     node.classList.add('is-collapsing');
+                 });
+                 void trails[0].offsetWidth;
+                 trails.forEach(function(node) {
+                     if (node.style.opacity !== '0') {
+                         node.style.transform = `translate3d(${target.x - hotspot}px, ${target.y - hotspot}px, 0)`;
+                     }
+                 });
+                 collapseTimer = window.setTimeout(finishCollapse, 210);
+             }
+
              function stepTrails() {
                  if (!target || document.hidden) {
                      hideTrails();
@@ -1806,13 +1851,7 @@
                  }
 
                  if (Date.now() - lastMove > 120) {
-                     // Pointer stopped: leave the trail frozen where it is and
-                     // shed the motion cursor. Movement resumes the shift chain.
-                     if (trailTimer) {
-                         window.clearInterval(trailTimer);
-                         trailTimer = 0;
-                     }
-                     document.documentElement.classList.remove('cursor-trail-moving');
+                     collapseTrails();
                      return;
                  }
 
@@ -1833,6 +1872,11 @@
 
              document.addEventListener('pointermove', function(event) {
                  if (event.pointerType === 'touch') return;
+                 if (collapseTimer) {
+                     window.clearTimeout(collapseTimer);
+                     collapseTimer = 0;
+                     trails.forEach(function(node) { node.classList.remove('is-collapsing'); });
+                 }
                  document.documentElement.classList.add('cursor-trail-moving');
                  const wasHidden = !target;
                  target = { x: event.clientX, y: event.clientY };
