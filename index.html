@@ -544,7 +544,7 @@
             background-clip: text, border-box, border-box;
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0.5px 0 rgba(0,0,0,0.45);
+            text-shadow: 0 1px 0 rgba(0,0,0,0.38);
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
@@ -2585,7 +2585,7 @@
                         // the buttons near full brightness, bright scenes push
                         // them well past it.
                         const react = sL * flick * (0.55 + 0.45 * glowFade);
-                        const b = isActive ? (0.94 + 0.24*avgL*flick) : (0.98 + 0.68*react);
+                        const b = isActive ? (0.94 + 0.08*avgL*flick) : (0.98 + 0.18*react);
                         const tBlur = isActive ? '0px' : `${(2.8 + 5.5*sL*flick).toFixed(1)}px`;
                         const tAlpha = isActive ? '0' : (0.09 + 0.18*sL*flick*glowFade).toFixed(3);
                         const dimDisabled = btn.disabled ? 0.8 : 1;
@@ -2593,8 +2593,8 @@
                         btn.style.opacity = String(((isActive ? 0.86 + 0.10*avgL : 0.92 + 0.08*react) * (btn.disabled ? 0.72 : 1)).toFixed(3));
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
-                        // specular only when popped-out — bright, always-visible edge
-                        const spec = isActive ? 0 : Math.min(1, 0.82 + 0.85 * react);
+                        // specular — subtle, stable, not flashing
+                        const spec = isActive ? 0 : Math.min(0.88, 0.72 + 0.22 * react);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                         // White-hot rim — video drives intensity, hue stays neutral white
                         const blueMix = Math.min(0.98, 0.68 + 0.95 * sL * flick * (0.5 + 0.5 * glowFade));
