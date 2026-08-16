@@ -530,8 +530,12 @@
             position: relative;
             cursor: pointer;
             font-family: 'M3x6', 'Press Start 2P', cursive;
-            /* darker matte decal — no text glow, just top highlight + deboss */
-            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.68), 0 2px 6px rgba(0,0,0,0.42);
+            /* worn double-shot legend — subtle bevel on the glyphs themselves */
+            text-shadow:
+                0 0.7px 0 rgba(255,255,255,0.085),
+                0 -0.45px 0.45px rgba(255,255,255,0.06),
+                0 1px 0 rgba(0,0,0,0.82),
+                0 1.8px 3px rgba(0,0,0,0.48);
             opacity: 0.90;
             filter: contrast(0.97) brightness(0.9) sepia(0.02);
             /* extruded: dark shadow + highlight edge, same base as page.
@@ -593,8 +597,12 @@
         .platform-link:hover {
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
             color: #9ba2aa;
-            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.64);
-            filter: brightness(0.92);
+            text-shadow:
+                0 0.8px 0 rgba(255,255,255,0.095),
+                0 -0.45px 0.45px rgba(255,255,255,0.07),
+                0 1.1px 0 rgba(0,0,0,0.72),
+                0 1.8px 4px rgba(0,0,0,0.42);
+            filter: brightness(0.94);
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
                 -11px -11px 22px var(--btn-edge, rgba(255, 255, 255, 0.11)),
@@ -606,8 +614,11 @@
         .platform-link.active {
             background: #0a0a0a;
             color: #7d848c;
-            /* pressed ink, not emissive — dimmer, debossed */
-            text-shadow: 0 1px 0 rgba(0,0,0,0.70), 0 0 0.5px rgba(0,0,0,0.45);
+            /* pressed legend sinks — bevel inverts, ink looks worn flat */
+            text-shadow:
+                0 -0.6px 0 rgba(0,0,0,0.88),
+                0 0.35px 0 rgba(255,255,255,0.05),
+                0 0.8px 1.5px rgba(0,0,0,0.55);
             opacity: 0.82;
             filter: brightness(0.80) contrast(0.96);
             /* pressed / dented — inset shadows, same light direction */
