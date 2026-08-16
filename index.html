@@ -544,8 +544,8 @@
             background-clip: text, border-box, border-box;
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
-            /* self-emitting HDR white — glyphs themselves are 4×, no fake glow */
-            text-shadow: 0 1px 0 rgba(0,0,0,0.55);
+            /* flat HDR white — no bevel */
+            text-shadow: none;
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
@@ -611,7 +611,7 @@
 
         .platform-link:hover {
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
-            text-shadow: 0 0.7px 0 rgba(0,0,0,0.32);
+            text-shadow: none;
             box-shadow:
                 0 -4px 12px var(--btn-glow, rgba(38, 130, 235, 0.025)),
                 11px 11px 22px rgba(0, 0, 0, 0.96),
@@ -630,7 +630,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            text-shadow: 0 0.7px 0 rgba(0,0,0,0.32);
+            text-shadow: none;
             opacity: 0.82;
             filter: brightness(0.80) contrast(0.96);
             /* pressed / dented — inset shadows, same light direction */
@@ -659,7 +659,7 @@
             background-clip: text, border-box, border-box;
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0.7px 0 rgba(0,0,0,0.32);
+            text-shadow: none;
             filter: brightness(0.88);
             opacity: 0.92;
             cursor: not-allowed;
