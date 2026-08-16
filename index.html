@@ -929,9 +929,25 @@
             display: block;
             margin-top: 14px;
             color: #4a5058;
-            font-size: 32px;
+            font-size: 16px;
             letter-spacing: 1px;
             text-transform: lowercase;
+            line-height: 1.4;
+        }
+
+        .site-footer-credit a {
+            color: inherit;
+            font-size: inherit;
+            letter-spacing: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-color: rgba(74, 80, 88, 0.45);
+            transition: color 0.2s ease, text-decoration-color 0.2s ease;
+        }
+
+        .site-footer-credit a:hover {
+            color: #6a7078;
+            text-decoration-color: rgba(106, 112, 120, 0.75);
         }
 
         /* Desktop landing rhythm: keep the hero stack comfortably above the
@@ -1236,7 +1252,7 @@
         </div>
         <footer class="site-footer">
             <a href="mailto:info@threehands.dev" aria-label="Email Three Hands at info@threehands.dev">info@threehands.dev</a>
-            <span class="site-footer-credit">font m3x6 by daniel linssen</span>
+            <span class="site-footer-credit">font <a href="https://managore.itch.io/m3x6" target="_blank" rel="noopener">m3x6</a> by daniel linssen · <a href="https://fonts.google.com/specimen/Press+Start+2P" target="_blank" rel="noopener">press start 2p</a> by codeman38 · <a href="https://github.com/video-dev/hls.js" target="_blank" rel="noopener">hls.js</a> by video-dev</span>
         </footer>
     </div>
 
