@@ -522,7 +522,7 @@
                     #ffffff 0%, #ffffff 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
-            border: none;
+            border: 1px solid rgba(255,255,255,0.92);
             border-radius: 12px;
             height: clamp(72px, 9vw, 84px);
             padding: 0 26px;
@@ -540,11 +540,11 @@
             cursor: pointer;
             font-family: 'M3x6', 'Press Start 2P', cursive;
             /* Pastel rainbow — L-to-R gradient through clear plastic,
-               pure refracted light, no outer glow. Flat legend, minimal bevel. */
+               pure refracted light. Flat legend. */
             background-clip: text, border-box, border-box;
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 1px 0 rgba(0,0,0,0.62);
+            text-shadow: 0 0.5px 0 rgba(0,0,0,0.45);
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
