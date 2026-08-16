@@ -541,10 +541,10 @@
             /* extruded: dark shadow + highlight edge, same base as page.
                A crisp 1px top light + 1px bottom dark makes the boundary read. */
             box-shadow:
-                0 0 22px var(--btn-glow, rgba(110, 160, 255, 0.22)),
-                9px 9px 18px rgba(0, 0, 0, 0.96),
-                -9px -9px 18px var(--btn-edge, rgba(110, 160, 255, 0.11)),
-                inset 0 1px 0 rgba(110, 160, 255, 0.08),
+                0 -8px 24px var(--btn-glow, rgba(110, 160, 255, 0.22)),
+                9px 9px 18px rgba(0, 0, 0, 0.92),
+                -9px -9px 18px var(--btn-edge, rgba(125, 175, 255, 0.18)),
+                inset 0 1px 0 rgba(130, 180, 255, 0.12),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.6);
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -606,8 +606,8 @@
             filter: brightness(0.94);
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
-                -11px -11px 22px var(--btn-edge, rgba(255, 255, 255, 0.11)),
-                inset 0 1px 0 rgba(120, 170, 255, 0.10),
+                -11px -11px 22px var(--btn-edge, rgba(125, 175, 255, 0.18)),
+                inset 0 1px 0 rgba(130, 180, 255, 0.14),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.6);
         }
 
@@ -2479,7 +2479,7 @@
                                 btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
                                 // Keep the edge visible before the trailer lights it — bluish from the LCD.
                                 btn.style.setProperty('--btn-specular', '0.6');
-                                btn.style.setProperty('--btn-edge', 'rgba(110, 160, 255, 0.09)');
+                                btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.13)');
                                 btn.style.setProperty('--btn-glow', 'rgba(110, 160, 255, 0.22)');
                             });
                         }
@@ -2542,7 +2542,7 @@
                             `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
                         // Bluish top edge — same LCD light, softer.
                         btn.style.setProperty('--btn-edge',
-                            `rgba(110, 160, 255, ${(0.09 + 0.11 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                            `rgba(125, 175, 255, ${(0.13 + 0.16 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                         // Surrounding gradient — soft bluish halo that contours the whole button, video-driven
                         btn.style.setProperty('--btn-glow', `rgba(110, 160, 255, ${(0.20 + 0.28 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                     });
