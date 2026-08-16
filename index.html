@@ -522,9 +522,13 @@
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             border: none;
             border-radius: 20px;
-            padding: 20px 26px;
+            height: clamp(72px, 9vw, 84px);
+            padding: 0 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 32px;
-            line-height: 1.35;
+            line-height: 1;
             text-align: center;
             min-width: 180px;
             text-transform: uppercase;
@@ -573,7 +577,7 @@
             inset: 0;
             border-radius: 20px;
             padding: 2.6px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 120 120 120) 0%, color(srgb-linear 45 45 45) 18%, color(srgb-linear 16 16 16) 32%, transparent 62%));
+            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 190 190 190) 0%, color(srgb-linear 70 70 70) 18%, color(srgb-linear 24 24 24) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -2558,8 +2562,8 @@
                         const spec = isActive ? 0 : Math.min(1, 0.75 + 0.8 * react);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                         // White-hot rim — video drives intensity, hue stays neutral white
-                        const blueMix = Math.min(0.96, 0.62 + 0.95 * sL * flick * (0.5 + 0.5 * glowFade));
-                        const peak = Math.round(155 + 100 * blueMix);
+                        const blueMix = Math.min(0.98, 0.68 + 0.95 * sL * flick * (0.5 + 0.5 * glowFade));
+                        const peak = Math.round(190 + 65 * blueMix);
                         const pR = peak, pG = peak, pB = peak;
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
