@@ -538,8 +538,8 @@
                A crisp 1px top light + 1px bottom dark makes the boundary read. */
             box-shadow:
                 9px 9px 18px rgba(0, 0, 0, 0.96),
-                -9px -9px 18px var(--btn-edge, rgba(255, 255, 255, 0.09)),
-                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                -9px -9px 18px var(--btn-edge, rgba(110, 160, 255, 0.11)),
+                inset 0 1px 0 rgba(110, 160, 255, 0.08),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.6);
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -563,7 +563,7 @@
             inset: 0;
             border-radius: 20px;
             padding: 2px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 30% 38% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 60 60 60) 0%, color(srgb-linear 22 22 22) 18%, color(srgb-linear 8 8 8) 32%, transparent 62%));
+            background: var(--btn-spec-bg, radial-gradient(ellipse 30% 38% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 30 60 110) 0%, color(srgb-linear 12 24 45) 18%, color(srgb-linear 5 10 20) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -598,7 +598,7 @@
             box-shadow:
                 11px 11px 22px rgba(0, 0, 0, 0.98),
                 -11px -11px 22px var(--btn-edge, rgba(255, 255, 255, 0.11)),
-                inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                inset 0 1px 0 rgba(120, 170, 255, 0.10),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.6);
         }
 
@@ -2465,9 +2465,9 @@
                             platformEls.forEach(function(btn) {
                                 btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
                                 btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
-                                // Keep the edge visible before the trailer lights it.
+                                // Keep the edge visible before the trailer lights it — bluish from the LCD.
                                 btn.style.setProperty('--btn-specular', '0.6');
-                                btn.style.setProperty('--btn-edge', 'rgba(255, 255, 255, 0.09)');
+                                btn.style.setProperty('--btn-edge', 'rgba(110, 160, 255, 0.09)');
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
@@ -2517,27 +2517,19 @@
                         // specular only when popped-out — bright, always-visible edge
                         const spec = isActive ? 0 : Math.min(1, 0.75 + 0.8 * react);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
-                        // The shimmer carries the COLOR of the light above this
-                        // button. Peak/mid/low stops get a subtle hue push from
-                        // the strip average, capped so it stays glassy.
-                        const maxC = Math.max(sR, sG, sB);
-                        let mixT = 0;
-                        if (maxC > 24) {
-                            mixT = Math.min(0.45, (maxC / 255 - 0.09) * 0.8 * (0.3 + 0.7 * sL) * flick * (0.5 + 0.5 * glowFade));
-                        }
-                        const hueR = Math.min(255, Math.round(sR * 255 / Math.max(24, maxC)));
-                        const hueG = Math.min(255, Math.round(sG * 255 / Math.max(24, maxC)));
-                        const hueB = Math.min(255, Math.round(sB * 255 / Math.max(24, maxC)));
-                        const pR = Math.round(60 + (hueR - 60) * mixT * 0.85);
-                        const pG = Math.round(60 + (hueG - 60) * mixT * 0.85);
-                        const pB = Math.round(60 + (hueB - 60) * mixT * 0.85);
+                        // Bluish contour from the LCD backlight — fixed blue hue,
+                        // intensity driven by the video strip above this button.
+                        const blueMix = Math.min(0.6, 0.24 + 0.62 * sL * flick * (0.5 + 0.5 * glowFade));
+                        const pR = Math.round(30 + (102 - 30) * blueMix);
+                        const pG = Math.round(60 + (168 - 60) * blueMix);
+                        const pB = Math.round(110 + (255 - 110) * blueMix);
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
                         btn.style.setProperty('--btn-spec-bg',
                             `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
-                        // Neumorphic top edge takes the same light, softer.
+                        // Bluish top edge — same LCD light, softer.
                         btn.style.setProperty('--btn-edge',
-                            `rgba(${Math.min(255, 212 + hueR * mixT * 0.3)}, ${Math.min(255, 212 + hueG * mixT * 0.3)}, ${Math.min(255, 217 + hueB * mixT * 0.3)}, ${(0.10 + 0.10 * sL).toFixed(3)})`);
+                            `rgba(110, 160, 255, ${(0.09 + 0.11 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                     });
                     // Dynamic HDR specular on the LCD bar: intensity from the
                     // video's bottom band (the light falling on it), position
