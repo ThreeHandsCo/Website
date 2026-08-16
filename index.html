@@ -679,7 +679,7 @@
             height: 2px;
             border-radius: 999px;
             background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.02));
-            opacity: 0.55;
+            opacity: 0.275;
             pointer-events: none;
         }
 
@@ -704,7 +704,7 @@
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
             pointer-events: none;
-            opacity: var(--lcd-specular, 0.55);
+            opacity: var(--lcd-specular, 0.275);
             mix-blend-mode: screen;
             will-change: opacity, background;
             dynamic-range-limit: no-limit;
@@ -2471,7 +2471,7 @@
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
-                            lcdRingEl.style.setProperty('--lcd-specular', '0.5');
+                            lcdRingEl.style.setProperty('--lcd-specular', '0.25');
                             ambientLcdApplied = true;
                         }
                         return;
@@ -2553,7 +2553,7 @@
                         }
                         botR/=botC; botG/=botC; botB/=botC;
                         const botL = (0.2126*botR + 0.7152*botG + 0.0722*botB)/255;
-                        const spec = Math.min(1, 0.38 + 0.55 * botL * flick * (0.45 + 0.55*glowFade));
+                        const spec = Math.min(0.6, 0.19 + 0.275 * botL * flick * (0.45 + 0.55*glowFade));
                         lcdRingEl.style.setProperty('--lcd-specular', String(spec.toFixed(3)));
                         // real-time location: weighted centroid -> angle around the shell, so the highlight crawls the edge
                         let sX=0,sY=0,wSum=0;
