@@ -519,7 +519,7 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    #ffffff 0%, #ffffff 100%),
+                    color(srgb-linear 4 4 4) 0%, color(srgb-linear 4 4 4) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             border: none;
@@ -545,7 +545,7 @@
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
             /* self-emitting subtle white-blue, same family as the LCD */
-            text-shadow: 0 0 6px rgba(180, 210, 255, 0.42), 0 0 12px rgba(110, 160, 255, 0.20), 0 1px 0 rgba(0,0,0,0.55);
+            text-shadow: 0 0 6px color(srgb-linear 4 4 4), 0 0 12px color(srgb-linear 2 2 2 / 0.7), 0 1px 0 rgba(0,0,0,0.55);
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
@@ -624,8 +624,8 @@
         .platform-link.active {
             background-color: #0a0a0a;
             background-image: linear-gradient(90deg,
-                #ffffff 0%, #ffffff 18%, #ffffff 32%,
-                #ffffff 48%, #ffffff 64%, #ffffff 80%, #ffffff 100%);
+                color(srgb-linear 4 4 4) 0%, color(srgb-linear 4 4 4) 18%, color(srgb-linear 4 4 4) 32%,
+                color(srgb-linear 4 4 4) 48%, color(srgb-linear 4 4 4) 64%, color(srgb-linear 4 4 4) 80%, color(srgb-linear 4 4 4) 100%);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -653,7 +653,7 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    #ffffff 0%, #ffffff 100%),
+                    color(srgb-linear 4 4 4) 0%, color(srgb-linear 4 4 4) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             background-clip: text, border-box, border-box;
