@@ -673,13 +673,13 @@
         .lcd-module::before {
             content: "";
             position: absolute;
-            top: 3px;
-            right: 12%;
-            left: 12%;
-            height: 3px;
+            top: 2px;
+            right: 6px;
+            left: 6px;
+            height: 2px;
             border-radius: 999px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.02));
-            opacity: 0.7;
+            background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.02));
+            opacity: 0.55;
             pointer-events: none;
         }
 
@@ -694,7 +694,11 @@
             z-index: 2;
             border-radius: 20px;
             padding: 2px;
-            background: radial-gradient(ellipse 64% 26% at var(--lcd-spec-x, 50%) var(--lcd-spec-y, 9%), color(srgb-linear 13 13 13) 0%, color(srgb-linear 8 8 8) 22%, color(srgb-linear 3.5 3.5 3.5) 46%, transparent 74%);
+            /* Full-width baseline: the screen above lights the ENTIRE top
+               edge; the moving hotspot rides on top of it. */
+            background:
+                linear-gradient(180deg, color(srgb-linear 3.5 3.5 3.5) 0%, color(srgb-linear 1 1 1) 50%, transparent 96%),
+                radial-gradient(ellipse 64% 26% at var(--lcd-spec-x, 50%) var(--lcd-spec-y, 9%), color(srgb-linear 13 13 13) 0%, color(srgb-linear 8 8 8) 22%, color(srgb-linear 3.5 3.5 3.5) 46%, transparent 74%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
