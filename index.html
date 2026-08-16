@@ -1062,7 +1062,7 @@
           }
 
           /* Three solid channel ghosts placed by the time-based trail chain.
-             Fills are PQ/BT.2020 AVIF primaries one stop above SDR white,
+             Fills are PQ/BT.2020 AVIF primaries two stops above SDR white,
              with a CSS HDR color cascade at the same level underneath. */
           .mouse-trail {
               position: fixed;
@@ -1087,25 +1087,25 @@
           .mouse-trail.is-green { --trail-color: #00ff00; --trail-hdr-image: url('/assets/hdr-green.avif'); }
           .mouse-trail.is-blue { --trail-color: #0000ff; --trail-hdr-image: url('/assets/hdr-blue.avif'); }
 
-          @supports (color: color(display-p3 2 0 0)) {
-              .mouse-trail.is-red { --trail-color: color(display-p3 2 0 0); }
-              .mouse-trail.is-green { --trail-color: color(display-p3 0 2 0); }
-              .mouse-trail.is-blue { --trail-color: color(display-p3 0 0 2); }
+          @supports (color: color(display-p3 4 0 0)) {
+              .mouse-trail.is-red { --trail-color: color(display-p3 4 0 0); }
+              .mouse-trail.is-green { --trail-color: color(display-p3 0 4 0); }
+              .mouse-trail.is-blue { --trail-color: color(display-p3 0 0 4); }
           }
-          @supports (color: oklab(1.2 0.4 0.3)) {
-              .mouse-trail.is-red { --trail-color: oklab(1.2 0.45 0.25); }
-              .mouse-trail.is-green { --trail-color: oklab(1.2 -0.55 0.45); }
-              .mouse-trail.is-blue { --trail-color: oklab(1.2 -0.15 -0.55); }
+          @supports (color: oklab(1.55 0.4 0.3)) {
+              .mouse-trail.is-red { --trail-color: oklab(1.55 0.45 0.25); }
+              .mouse-trail.is-green { --trail-color: oklab(1.55 -0.55 0.45); }
+              .mouse-trail.is-blue { --trail-color: oklab(1.55 -0.15 -0.55); }
           }
-          @supports (color: color(srgb-linear 2 0 0)) {
-              .mouse-trail.is-red { --trail-color: color(srgb-linear 2 0 0); }
-              .mouse-trail.is-green { --trail-color: color(srgb-linear 0 2 0); }
-              .mouse-trail.is-blue { --trail-color: color(srgb-linear 0 0 2); }
+          @supports (color: color(srgb-linear 4 0 0)) {
+              .mouse-trail.is-red { --trail-color: color(srgb-linear 4 0 0); }
+              .mouse-trail.is-green { --trail-color: color(srgb-linear 0 4 0); }
+              .mouse-trail.is-blue { --trail-color: color(srgb-linear 0 0 4); }
           }
-          @supports (color: color(rec2020 2 0 0)) {
-              .mouse-trail.is-red { --trail-color: color(rec2020 2 0 0); }
-              .mouse-trail.is-green { --trail-color: color(rec2020 0 2 0); }
-              .mouse-trail.is-blue { --trail-color: color(rec2020 0 0 2); }
+          @supports (color: color(rec2020 4 0 0)) {
+              .mouse-trail.is-red { --trail-color: color(rec2020 4 0 0); }
+              .mouse-trail.is-green { --trail-color: color(rec2020 0 4 0); }
+              .mouse-trail.is-blue { --trail-color: color(rec2020 0 0 4); }
           }
 
           .mouse-trail.is-pointer {

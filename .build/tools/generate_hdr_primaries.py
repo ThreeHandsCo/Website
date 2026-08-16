@@ -2,10 +2,10 @@
 """Regenerate assets/hdr-red.avif, hdr-green.avif, hdr-blue.avif.
 
 Solid PQ/BT.2020 AVIF primaries used to fill the cursor-trail ghosts.
-Each primary is encoded one stop above SDR white (406 nits), matching the
-site's HDR accents without blooming at full ceiling brightness.
+Each primary is encoded two stops above SDR white (812 nits): clearly HDR
+against the black page without blooming at full ceiling brightness.
 
-203 nits is SDR diffuse white. One stop above it is 2x (406 nits).
+203 nits is SDR diffuse white. Two stops above it is 4x (812 nits).
 """
 import subprocess
 import tempfile
@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SIZE = 32
 
 REFERENCE_WHITE_NITS = 203.0
-TRAIL_PRIMARY_NITS = 406.0  # one stop above SDR white
+TRAIL_PRIMARY_NITS = 812.0  # two stops above SDR white
 
 
 def pq_encode(nits: float) -> float:
