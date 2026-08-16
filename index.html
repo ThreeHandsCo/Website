@@ -578,8 +578,9 @@
             position: absolute;
             inset: 0;
             border-radius: 12px;
-            padding: 2.6px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 4 4 4) 0%, color(srgb-linear 1.8 1.8 1.8) 18%, color(srgb-linear 0.7 0.7 0.7) 32%, transparent 62%));
+            padding: 3.4px;
+            background: var(--btn-spec-bg, radial-gradient(ellipse 34% 42% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 6 6 6) 0%, color(srgb-linear 2.6 2.6 2.6) 18%, color(srgb-linear 1.1 1.1 1.1) 32%, transparent 62%)),
+                linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 18%, transparent 42%, rgba(0,0,0,0.10) 100%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -2597,7 +2598,7 @@
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                         // White-hot rim — video drives intensity, hue stays neutral white
                         const blueMix = Math.min(0.98, 0.68 + 0.95 * sL * flick * (0.5 + 0.5 * glowFade));
-                        const peak = (3.6 + 1.1 * blueMix).toFixed(2);
+                        const peak = (4.8 + 1.4 * blueMix).toFixed(2);
                         const pR = peak, pG = peak, pB = peak;
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
