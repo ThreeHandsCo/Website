@@ -573,7 +573,7 @@
             inset: 0;
             border-radius: 20px;
             padding: 2.6px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 36 68 124) 0%, color(srgb-linear 15 30 54) 18%, color(srgb-linear 6 12 24) 32%, transparent 62%));
+            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 52 88 152) 0%, color(srgb-linear 22 38 68) 18%, color(srgb-linear 9 16 32) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -2538,10 +2538,10 @@
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
                         // Bluish contour from the LCD backlight — fixed blue hue,
                         // intensity driven by the video strip above this button.
-                        const blueMix = Math.min(0.6, 0.24 + 0.62 * sL * flick * (0.5 + 0.5 * glowFade));
-                        const pR = Math.round(30 + (102 - 30) * blueMix);
-                        const pG = Math.round(60 + (168 - 60) * blueMix);
-                        const pB = Math.round(110 + (255 - 110) * blueMix);
+                        const blueMix = Math.min(0.72, 0.32 + 0.78 * sL * flick * (0.5 + 0.5 * glowFade));
+                        const pR = Math.round(45 + (138 - 45) * blueMix);
+                        const pG = Math.round(85 + (195 - 85) * blueMix);
+                        const pB = Math.round(150 + (255 - 150) * blueMix);
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
                         btn.style.setProperty('--btn-spec-bg',
