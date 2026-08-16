@@ -544,7 +544,8 @@
             background-clip: text, border-box, border-box;
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0.7px 0 rgba(0,0,0,0.32);
+            /* self-emitting subtle white-blue, same family as the LCD */
+            text-shadow: 0 0 6px rgba(180, 210, 255, 0.42), 0 0 12px rgba(110, 160, 255, 0.20), 0 1px 0 rgba(0,0,0,0.55);
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
@@ -2558,8 +2559,10 @@
                         if (ambientState !== lastAmbientButtonState) {
                             lastAmbientButtonState = ambientState;
                             platformEls.forEach(function(btn) {
-                                btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
-                                btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
+                                btn.style.filter = 'brightness(1) contrast(0.96)';
+                                btn.style.opacity = '1';
+                                btn.style.setProperty('--btn-text-blur', '4px');
+                                btn.style.setProperty('--btn-text-alpha', '0.16');
                                 // Keep the edge visible before the trailer lights it — bluish from the LCD.
                                 btn.style.setProperty('--btn-specular', '0.85');
                                 btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.08)');
@@ -2598,16 +2601,12 @@
                         const sR = strip[0]/sN, sG = strip[1]/sN, sB = strip[2]/sN;
                         const sL = (0.2126*sR + 0.7152*sG + 0.0722*sB)/255;
                         const isActive = btn.classList.contains('active');
-                        // The video above is the light source: dark scenes keep
-                        // the buttons near full brightness, bright scenes push
-                        // them well past it.
-                        const react = sL * flick * (0.55 + 0.45 * glowFade);
-                        const b = isActive ? (0.94 + 0.08*avgL*flick) : (0.98 + 0.18*react);
-                        const tBlur = isActive ? '0px' : `${(2.8 + 5.5*sL*flick).toFixed(1)}px`;
-                        const tAlpha = isActive ? '0' : (0.09 + 0.18*sL*flick*glowFade).toFixed(3);
-                        const dimDisabled = btn.disabled ? 0.8 : 1;
-                        btn.style.filter = `brightness(${b * dimDisabled}) contrast(0.96)`;
-                        btn.style.opacity = String(((isActive ? 0.86 + 0.10*avgL : 0.92 + 0.08*react) * (btn.disabled ? 0.72 : 1)).toFixed(3));
+                        // Text is self-emitting — never video-driven, same white-blue as the LCD
+                        const tBlur = '4px';
+                        const tAlpha = '0.16';
+                        const dimDisabled = 1;
+                        btn.style.filter = `brightness(1) contrast(0.96)`;
+                        btn.style.opacity = String(isActive ? 0.88 : 1);
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
                         // specular — subtle, stable, not flashing
