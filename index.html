@@ -1009,10 +1009,17 @@
               --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-rgb-b.svg') 10 10, auto;
           }
 
-          /* During motion, the live cursor sheds the RGB treatment. */
+          /* During motion, the live cursor sheds the RGB treatment. Variant B
+             keeps the byte-distinct swap working so Chromium repaints the
+             cursor when the motion state flips mid-hover. */
           :root.cursor-trail-moving {
               --windows-cursor: url('/assets/windows-3.1-cursor.svg') 0 0, auto;
               --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer.svg') 10 10, auto;
+          }
+
+          :root.cursor-trail-moving.cursor-variant-b {
+              --windows-cursor: url('/assets/windows-3.1-cursor-b.svg') 0 0, auto;
+              --windows-cursor-pointer: url('/assets/windows-3.1-cursor-pointer-b.svg') 10 10, auto;
           }
 
           /* Three solid channel ghosts placed by the time-based trail chain.
@@ -1827,9 +1834,10 @@
 
         setItchEmbedSources();
 
-        // Chromium can keep a stale cursor after a window or tab return.
-        // Swap between two visually identical but byte-distinct cursors to force a refresh.
-        // Always apply - no hover/pointer media query gate.
+        // Chromium can keep a stale cursor after a window or tab return, and
+        // can ignore a mid-hover cursor change (the motion-shed state).
+        // Swapping between visually identical byte-distinct cursors forces a
+        // repaint. Re-applied at most every 80 ms while the pointer moves.
         (function() {
             const root = document.documentElement;
             let variantB = false;
@@ -1844,6 +1852,7 @@
             }
 
             document.documentElement.addEventListener('mouseenter', refreshCursor);
+            document.addEventListener('mousemove', refreshCursor, { passive: true });
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) refreshCursor();
             });
@@ -1853,6 +1862,7 @@
                 // Mark for refresh on next enter
                 lastRefresh = 0;
             });
+            window.refreshCustomCursor = refreshCursor;
              refreshCursor();
          })();
 
@@ -1903,7 +1913,10 @@
                      trailTimer = 0;
                  }
                  trails.forEach(function(node) { node.style.opacity = '0'; });
-                 document.documentElement.classList.remove('cursor-trail-moving');
+                 if (document.documentElement.classList.contains('cursor-trail-moving')) {
+                     document.documentElement.classList.remove('cursor-trail-moving');
+                     if (window.refreshCustomCursor) window.refreshCustomCursor();
+                 }
              }
 
              function isPointerTarget(targetElement) {
@@ -1923,6 +1936,8 @@
                      // The pointer has stopped: the modern cursor takes over and
                      // the chain walks back into it, one tick-step per link.
                      document.documentElement.classList.remove('cursor-trail-moving');
+                     // No mousemove will fire now, so force the cursor repaint.
+                     if (window.refreshCustomCursor) window.refreshCustomCursor();
                      idleTicks++;
                  }
 
@@ -1949,7 +1964,13 @@
 
              document.addEventListener('pointermove', function(event) {
                  if (event.pointerType === 'touch') return;
+                 const wasMoving = document.documentElement.classList.contains('cursor-trail-moving');
                  document.documentElement.classList.add('cursor-trail-moving');
+                 if (!wasMoving && window.refreshCustomCursor) {
+                     // Fresh identity so Chromium repaints the shed state now;
+                     // the throttled mousemove swap keeps it fresh during motion.
+                     window.refreshCustomCursor();
+                 }
                  const wasHidden = !target;
                  target = { x: event.clientX, y: event.clientY };
                  idleTicks = 0;
