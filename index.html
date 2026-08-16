@@ -514,9 +514,9 @@
            dark/light shadows. Feels pressed from the black, not floating
            on it. Keeps the pixel font but makes the surface tactile. */
         .platform-link {
-            color: #9097a0;
+            color: #8a9199;
             text-decoration: none;
-            background: #0e0e0e;
+            background: #0a0a0a;
             border: none;
             border-radius: 20px;
             padding: 20px 26px;
@@ -530,22 +530,21 @@
             position: relative;
             cursor: pointer;
             font-family: 'M3x6', 'Press Start 2P', cursive;
-            /* worn double-shot legend — subtle bevel on the glyphs themselves */
+            /* cheap office keycap — slightly darker ABS, more matte, worn legend */
             text-shadow:
-                0 0.7px 0 rgba(255,255,255,0.085),
-                0 -0.45px 0.45px rgba(255,255,255,0.06),
-                0 1px 0 rgba(0,0,0,0.82),
-                0 1.8px 3px rgba(0,0,0,0.48);
+                0 0.6px 0 rgba(255,255,255,0.055),
+                0 -0.4px 0.4px rgba(255,255,255,0.045),
+                0 1px 0 rgba(0,0,0,0.78),
+                0 1.6px 2.5px rgba(0,0,0,0.42);
             opacity: 0.90;
-            filter: contrast(0.97) brightness(0.9) sepia(0.02);
-            /* extruded: dark shadow + highlight edge, same base as page.
-               A crisp 1px top light + 1px bottom dark makes the boundary read. */
+            filter: contrast(0.96) brightness(0.88) sepia(0.015);
+            /* toned-down glow, top-heavy still, but subtler */
             box-shadow:
-                0 -8px 24px var(--btn-glow, rgba(110, 160, 255, 0.22)),
-                9px 9px 18px rgba(0, 0, 0, 0.92),
-                -9px -9px 18px var(--btn-edge, rgba(125, 175, 255, 0.18)),
-                inset 0 1px 0 rgba(130, 180, 255, 0.12),
-                inset 0 -1px 1px rgba(0, 0, 0, 0.6);
+                0 -6px 18px var(--btn-glow, rgba(110, 160, 255, 0.14)),
+                9px 9px 16px rgba(0, 0, 0, 0.88),
+                -9px -9px 16px var(--btn-edge, rgba(125, 175, 255, 0.11)),
+                inset 0 1px 0 rgba(130, 180, 255, 0.07),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.55);
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
                 transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -605,9 +604,9 @@
                 0 1.8px 4px rgba(0,0,0,0.42);
             filter: brightness(0.94);
             box-shadow:
-                11px 11px 22px rgba(0, 0, 0, 0.98),
-                -11px -11px 22px var(--btn-edge, rgba(125, 175, 255, 0.18)),
-                inset 0 1px 0 rgba(130, 180, 255, 0.14),
+                11px 11px 22px rgba(0, 0, 0, 0.96),
+                -11px -11px 22px var(--btn-edge, rgba(125, 175, 255, 0.12)),
+                inset 0 1px 0 rgba(130, 180, 255, 0.09),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.6);
         }
 
@@ -2479,8 +2478,8 @@
                                 btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
                                 // Keep the edge visible before the trailer lights it — bluish from the LCD.
                                 btn.style.setProperty('--btn-specular', '0.6');
-                                btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.13)');
-                                btn.style.setProperty('--btn-glow', 'rgba(110, 160, 255, 0.22)');
+                                btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.08)');
+                                btn.style.setProperty('--btn-glow', 'rgba(110, 160, 255, 0.14)');
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
@@ -2542,9 +2541,9 @@
                             `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
                         // Bluish top edge — same LCD light, softer.
                         btn.style.setProperty('--btn-edge',
-                            `rgba(125, 175, 255, ${(0.13 + 0.16 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
-                        // Surrounding gradient — soft bluish halo that contours the whole button, video-driven
-                        btn.style.setProperty('--btn-glow', `rgba(110, 160, 255, ${(0.20 + 0.28 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                            `rgba(125, 175, 255, ${(0.08 + 0.10 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                        // Surrounding gradient — soft bluish halo, toned down for cheap office plastic
+                        btn.style.setProperty('--btn-glow', `rgba(110, 160, 255, ${(0.13 + 0.18 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                     });
                     // Dynamic HDR specular on the LCD bar: intensity from the
                     // video's bottom band (the light falling on it), position
