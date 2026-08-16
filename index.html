@@ -573,7 +573,7 @@
             inset: 0;
             border-radius: 20px;
             padding: 2.6px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 60 60 60) 0%, color(srgb-linear 22 22 22) 18%, color(srgb-linear 8 8 8) 32%, transparent 62%));
+            background: var(--btn-spec-bg, radial-gradient(ellipse 32% 40% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 120 120 120) 0%, color(srgb-linear 45 45 45) 18%, color(srgb-linear 16 16 16) 32%, transparent 62%));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -2505,7 +2505,7 @@
                                 btn.style.filter = btn.classList.contains('active') ? 'brightness(0.92) contrast(0.97)' : 'brightness(0.96) contrast(0.98)';
                                 btn.style.opacity = btn.classList.contains('active') ? '0.88' : '0.96';
                                 // Keep the edge visible before the trailer lights it — bluish from the LCD.
-                                btn.style.setProperty('--btn-specular', '0.6');
+                                btn.style.setProperty('--btn-specular', '0.78');
                                 btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.08)');
                                 btn.style.setProperty('--btn-glow', 'rgba(110, 160, 255, 0.14)');
                             });
@@ -2557,10 +2557,9 @@
                         // specular only when popped-out — bright, always-visible edge
                         const spec = isActive ? 0 : Math.min(1, 0.75 + 0.8 * react);
                         btn.style.setProperty('--btn-specular', String(spec.toFixed(3)));
-                        // Bluish contour from the LCD backlight — fixed blue hue,
-                        // intensity driven by the video strip above this button.
-                        const blueMix = Math.min(0.72, 0.32 + 0.78 * sL * flick * (0.5 + 0.5 * glowFade));
-                        const peak = Math.round(70 + 118 * blueMix);
+                        // White-hot rim — video drives intensity, hue stays neutral white
+                        const blueMix = Math.min(0.96, 0.62 + 0.95 * sL * flick * (0.5 + 0.5 * glowFade));
+                        const peak = Math.round(155 + 100 * blueMix);
                         const pR = peak, pG = peak, pB = peak;
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
