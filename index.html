@@ -2601,12 +2601,14 @@
                         const sR = strip[0]/sN, sG = strip[1]/sN, sB = strip[2]/sN;
                         const sL = (0.2126*sR + 0.7152*sG + 0.0722*sB)/255;
                         const isActive = btn.classList.contains('active');
-                        // Text is self-emitting — never video-driven, same white-blue as the LCD
+                        const react = sL * flick * (0.55 + 0.45 * glowFade);
+                        // Text is self-emitting — never video-driven
                         const tBlur = '4px';
                         const tAlpha = '0.16';
-                        const dimDisabled = 1;
-                        btn.style.filter = `brightness(1) contrast(0.96)`;
-                        btn.style.opacity = String(isActive ? 0.88 : 1);
+                        const b = isActive ? (0.94 + 0.08*avgL*flick) : (0.98 + 0.18*react);
+                        const dimDisabled = btn.disabled ? 0.8 : 1;
+                        btn.style.filter = `brightness(${b * dimDisabled}) contrast(0.96)`;
+                        btn.style.opacity = String(((isActive ? 0.86 + 0.10*avgL : 0.92 + 0.08*react) * (btn.disabled ? 0.72 : 1)).toFixed(3));
                         btn.style.setProperty('--btn-text-blur', tBlur);
                         btn.style.setProperty('--btn-text-alpha', tAlpha);
                         // specular — subtle, stable, not flashing
