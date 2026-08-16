@@ -517,9 +517,6 @@
             color: #9097a0;
             text-decoration: none;
             background: #0e0e0e;
-            background-image:
-                radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.045) 0%, transparent 62%),
-                linear-gradient(180deg, rgba(255,255,255,0.035) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.14) 100%);
             border: none;
             border-radius: 20px;
             padding: 20px 26px;
@@ -533,22 +530,17 @@
             position: relative;
             cursor: pointer;
             font-family: 'M3x6', 'Press Start 2P', cursive;
-            /* keycap bevel — subtle top highlight + deep bottom, worn double-shot legend */
-            text-shadow:
-                0 0.8px 0 rgba(0,0,0,0.82),
-                0 -0.6px 0.6px rgba(255,255,255,0.09),
-                0 1.5px 3px rgba(0,0,0,0.45);
+            /* darker matte decal — no text glow, just top highlight + deboss */
+            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.68), 0 2px 6px rgba(0,0,0,0.42);
             opacity: 0.90;
             filter: contrast(0.97) brightness(0.9) sepia(0.02);
-            /* extruded keycap: outer drop + bluish LCD edge + multi-step inset bevel for dish + wear */
+            /* extruded: dark shadow + highlight edge, same base as page.
+               A crisp 1px top light + 1px bottom dark makes the boundary read. */
             box-shadow:
-                6px 8px 16px rgba(0, 0, 0, 0.92),
-                -6px -6px 14px var(--btn-edge, rgba(110, 160, 255, 0.11)),
-                inset 0 1px 0 rgba(255,255,255,0.14),
-                inset 0 1.5px 2px rgba(255,255,255,0.06),
-                inset 0 -2px 3px rgba(0,0,0,0.72),
-                inset 0 -4px 8px rgba(0,0,0,0.48),
-                inset 1px 1px 2px rgba(255,255,255,0.04);
+                9px 9px 18px rgba(0, 0, 0, 0.96),
+                -9px -9px 18px var(--btn-edge, rgba(110, 160, 255, 0.11)),
+                inset 0 1px 0 rgba(110, 160, 255, 0.08),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.6);
             transition:
                 box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
                 transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -601,36 +593,27 @@
         .platform-link:hover {
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
             color: #9ba2aa;
-            text-shadow:
-                0 0.9px 0 rgba(0,0,0,0.78),
-                0 -0.6px 0.6px rgba(255,255,255,0.10),
-                0 1.5px 4px rgba(0,0,0,0.42);
-            filter: brightness(0.94);
+            text-shadow: 0 -0.35px 0.35px rgba(255,255,255,0.07), 0 1px 0 rgba(0,0,0,0.64);
+            filter: brightness(0.92);
             box-shadow:
-                8px 10px 20px rgba(0, 0, 0, 0.96),
-                -8px -8px 16px var(--btn-edge, rgba(110, 160, 255, 0.13)),
-                inset 0 1px 0 rgba(255,255,255,0.16),
-                inset 0 1.5px 2px rgba(255,255,255,0.07),
-                inset 0 -2px 3px rgba(0,0,0,0.70),
-                inset 0 -4px 8px rgba(0,0,0,0.46);
+                11px 11px 22px rgba(0, 0, 0, 0.98),
+                -11px -11px 22px var(--btn-edge, rgba(255, 255, 255, 0.11)),
+                inset 0 1px 0 rgba(120, 170, 255, 0.10),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.6);
         }
 
         .platform-link:active,
         .platform-link.active {
             background: #0a0a0a;
             color: #7d848c;
-            /* pressed keycap — legend sinks, top bevel inverts */
-            text-shadow:
-                0 -0.8px 0 rgba(0,0,0,0.85),
-                0 0.4px 0 rgba(255,255,255,0.05),
-                0 1px 2px rgba(0,0,0,0.6);
+            /* pressed ink, not emissive — dimmer, debossed */
+            text-shadow: 0 1px 0 rgba(0,0,0,0.70), 0 0 0.5px rgba(0,0,0,0.45);
             opacity: 0.82;
-            filter: brightness(0.82) contrast(0.96);
-            /* dented — dish collapses, shadows invert */
+            filter: brightness(0.80) contrast(0.96);
+            /* pressed / dented — inset shadows, same light direction */
             box-shadow:
-                inset 5px 6px 12px rgba(0, 0, 0, 0.96),
-                inset -5px -5px 10px rgba(255, 255, 255, 0.035),
-                inset 0 1.5px 2px rgba(0,0,0,0.85);
+                inset 8px 8px 16px rgba(0, 0, 0, 0.96),
+                inset -8px -8px 16px rgba(255, 255, 255, 0.045);
             transform: rotate(var(--rot, 0deg)) translateY(1px) scale(0.993);
         }
 
