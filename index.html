@@ -732,6 +732,30 @@
             dynamic-range-limit: no-limit;
         }
 
+        /* Mobile Safari only: fix 1-2px corner inlet — non-concentric
+           content-box radii + compositing on rounded overflow. No impact
+           on Chrome/desktop. */
+        @supports (-webkit-touch-callout: none) {
+            .lcd-module,
+            .trailer-wrap {
+                transform: translateZ(0);
+            }
+            .lcd-spec-ring {
+                /* Use a real border so inner/outer radii stay concentric
+                   (outer 20px / inner 18px). Padding+mask gives 20px on
+                   both boxes, which leaves a subpixel gap at the corners
+                   on iOS. */
+                padding: 0;
+                border: 2px solid transparent;
+                background:
+                    linear-gradient(180deg, color(srgb-linear 3.5 3.5 3.5) 0%, color(srgb-linear 1 1 1) 50%, transparent 96%),
+                    radial-gradient(ellipse 64% 26% at var(--lcd-spec-x, 50%) var(--lcd-spec-y, 9%), color(srgb-linear 13 13 13) 0%, color(srgb-linear 8 8 8) 22%, color(srgb-linear 3.5 3.5 3.5) 46%, transparent 74%) border-box;
+                -webkit-mask: none;
+                mask: none;
+                background-clip: border-box;
+            }
+        }
+
         .lcd-module::after {
             content: "";
             position: absolute;
