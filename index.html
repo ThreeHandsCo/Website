@@ -664,7 +664,7 @@
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             animation: none;
-            transition: background-image 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.25s ease;
+            transition: background-image 0.15s cubic-bezier(0.4, 0, 0.2, 1), filter 0.15s ease;
         }
 
         .platform-link:focus-visible {
@@ -2902,7 +2902,7 @@
                     steamWidgets.classList.add('visible');
                     const activeBtn = document.querySelector('[data-platform="steam"]');
                     activeBtn.classList.add('active');
-                    setTimeout(() => activeBtn.classList.add('settled'), 500);
+                    setTimeout(() => activeBtn.classList.add('settled'), 300);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(steamWidgets);
@@ -2913,7 +2913,7 @@
                     itchWidgets.classList.add('visible');
                     const activeBtn = document.querySelector('[data-platform="itch"]');
                     activeBtn.classList.add('active');
-                    setTimeout(() => activeBtn.classList.add('settled'), 500);
+                    setTimeout(() => activeBtn.classList.add('settled'), 300);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(itchWidgets);
