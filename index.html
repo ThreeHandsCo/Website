@@ -538,7 +538,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 48px;
             line-height: 1;
             text-align: center;
             min-width: 180px;
@@ -630,7 +630,7 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    color(srgb-linear 65 1 1) 0%, color(srgb-linear 65 1 1) 18%, color(srgb-linear 2 65 2) 34%, color(srgb-linear 2 2 65) 56%, color(srgb-linear 65 1 1) 78%, color(srgb-linear 65 1 1) 100%),
+                    color(srgb-linear 65 1 1) 0%, color(srgb-linear 65 1 1) 12%, color(srgb-linear 2 65 2) 24%, color(srgb-linear 2 2 65) 36%, color(srgb-linear 65 1 1) 48%, color(srgb-linear 65 1 1) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             background-size: 200% 100%, auto, auto;
@@ -2927,7 +2927,7 @@
 
                 // Auto-scroll to the newly revealed widgets so a tap doesn't require
                 // a manual swipe that starts on the same button area and re-fires the haptic.
-                // 0.25s delay before scrolling — lets the haptic tick and button
+                // 0.33s delay before scrolling — lets the haptic tick and button
                 // settled animation play before the viewport moves.
                 // If the user scrolls manually during the delay, cancel the forced scroll.
                 (function scrollToTarget() {
@@ -2979,7 +2979,7 @@
                                     try { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' }); } catch (_e2) {}
                                 }
                                 setTimeout(function() { window._hapticsAutoScrolling = false; }, 900);
-                            }, 250);
+                            }, 330);
                         });
                     });
                 })();
