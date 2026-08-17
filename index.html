@@ -879,7 +879,15 @@
                 inset 0 -6px 12px rgba(0, 22, 105, 0.42),
                 0 0 26px rgba(0, 116, 255, 0.25),
                 0 0 0 2px rgba(0, 0, 0, 0.62);
+            /* Real backlight: slight RC lag, not instant */
+            transition: background 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.42s ease,
+                filter 0.18s ease;
             dynamic-range-limit: no-limit;
+        }
+
+        .lcd-screen.lcd-switching {
+            filter: brightness(0.72) contrast(1.1);
         }
 
         @supports (color: color(srgb-linear 1 1 1)) {
@@ -1455,18 +1463,27 @@
         ]);
 
         // LCD backlight: tap cycles blue -> green -> red -> blue, holistically.
+        // Real 32x2 char LCD has RC lag and a faint flicker as the
+        // backlight driver switches — dim, swap, then bloom back in.
         (function() {
             const lcdModuleEl = document.querySelector('.lcd-module');
             if (!lcdModuleEl) return;
             lcdModuleEl.addEventListener('click', function() {
-                if (lcdModuleEl.classList.contains('lcd-green')) {
-                    lcdModuleEl.classList.remove('lcd-green');
-                    lcdModuleEl.classList.add('lcd-red');
-                } else if (lcdModuleEl.classList.contains('lcd-red')) {
-                    lcdModuleEl.classList.remove('lcd-red');
-                } else {
-                    lcdModuleEl.classList.add('lcd-green');
-                }
+                const screen = lcdModuleEl.querySelector('.lcd-screen');
+                if (screen) screen.classList.add('lcd-switching');
+                setTimeout(function() {
+                    if (lcdModuleEl.classList.contains('lcd-green')) {
+                        lcdModuleEl.classList.remove('lcd-green');
+                        lcdModuleEl.classList.add('lcd-red');
+                    } else if (lcdModuleEl.classList.contains('lcd-red')) {
+                        lcdModuleEl.classList.remove('lcd-red');
+                    } else {
+                        lcdModuleEl.classList.add('lcd-green');
+                    }
+                    setTimeout(function() {
+                        if (screen) screen.classList.remove('lcd-switching');
+                    }, 180);
+                }, 90);
             });
             lcdModuleEl.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' || e.key === ' ') {
