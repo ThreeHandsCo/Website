@@ -630,7 +630,7 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    color(srgb-linear 65 1 1) 0%, color(srgb-linear 65 1 1) 12%, color(srgb-linear 2 65 2) 24%, color(srgb-linear 2 2 65) 36%, color(srgb-linear 65 1 1) 48%, color(srgb-linear 65 1 1) 100%),
+                    color(srgb-linear 4 0.08 0.08) 0%, color(srgb-linear 4 0.08 0.08) 10%, color(srgb-linear 0.08 4 0.08) 22%, color(srgb-linear 0.08 0.08 4) 34%, color(srgb-linear 4 0.08 0.08) 46%, color(srgb-linear 4 0.08 0.08) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             background-size: 200% 100%, auto, auto;
@@ -2929,7 +2929,7 @@
                 // a manual swipe that starts on the same button area and re-fires the haptic.
                 // 0.33s delay before scrolling — lets the haptic tick and button
                 // settled animation play before the viewport moves.
-                // If the user scrolls manually during the delay, cancel the forced scroll.
+                // If the user scrolls or moves the pointer during the delay, cancel the forced scroll.
                 (function scrollToTarget() {
                     const target = platform === 'steam'
                         ? document.querySelector('.steam-widgets.visible')
@@ -2945,10 +2945,14 @@
                                 window.removeEventListener('scroll', onUserScroll, true);
                                 window.removeEventListener('wheel', onUserScroll, true);
                                 window.removeEventListener('touchmove', onUserScroll, true);
+                                window.removeEventListener('mousemove', onUserScroll, true);
+                                window.removeEventListener('pointermove', onUserScroll, true);
                                 if (contentContainerEl) {
                                     contentContainerEl.removeEventListener('scroll', onUserScroll, true);
                                     contentContainerEl.removeEventListener('wheel', onUserScroll, true);
                                     contentContainerEl.removeEventListener('touchmove', onUserScroll, true);
+                                    contentContainerEl.removeEventListener('mousemove', onUserScroll, true);
+                                    contentContainerEl.removeEventListener('pointermove', onUserScroll, true);
                                 }
                             }
                             function onUserScroll() {
@@ -2960,10 +2964,14 @@
                             window.addEventListener('scroll', onUserScroll, { passive: true, capture: true });
                             window.addEventListener('wheel', onUserScroll, { passive: true, capture: true });
                             window.addEventListener('touchmove', onUserScroll, { passive: true, capture: true });
+                            window.addEventListener('mousemove', onUserScroll, { passive: true, capture: true });
+                            window.addEventListener('pointermove', onUserScroll, { passive: true, capture: true });
                             if (contentContainerEl) {
                                 contentContainerEl.addEventListener('scroll', onUserScroll, { passive: true, capture: true });
                                 contentContainerEl.addEventListener('wheel', onUserScroll, { passive: true, capture: true });
                                 contentContainerEl.addEventListener('touchmove', onUserScroll, { passive: true, capture: true });
+                                contentContainerEl.addEventListener('mousemove', onUserScroll, { passive: true, capture: true });
+                                contentContainerEl.addEventListener('pointermove', onUserScroll, { passive: true, capture: true });
                             }
                             scrollTimeout = setTimeout(function() {
                                 cleanupScrollListeners();
