@@ -2728,7 +2728,7 @@
                     steamWidgets.classList.add('visible');
                     const activeBtn = document.querySelector('[data-platform="steam"]');
                     activeBtn.classList.add('active');
-                    setTimeout(() => activeBtn.classList.add('settled'), 1000);
+                    setTimeout(() => activeBtn.classList.add('settled'), 250);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(steamWidgets);
@@ -2739,7 +2739,7 @@
                     itchWidgets.classList.add('visible');
                     const activeBtn = document.querySelector('[data-platform="itch"]');
                     activeBtn.classList.add('active');
-                    setTimeout(() => activeBtn.classList.add('settled'), 1000);
+                    setTimeout(() => activeBtn.classList.add('settled'), 250);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(itchWidgets);
