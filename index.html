@@ -1404,6 +1404,23 @@
         let itch429PauseUntil = 0;
         const widgetGroups = Array.from(document.querySelectorAll('.steam-widgets, .itch-widgets'));
 
+        // --- Sexy cache: HTTP immutable (nginx) + local restore/prefetch ---
+        const TH_CACHE_VERSION = ITCH_EMBED_ASSET_VERSION;
+        const TH_PLATFORM_KEY = 'th_platform_' + TH_CACHE_VERSION;
+        const TH_READY_KEY = 'th_ready_' + TH_CACHE_VERSION;
+        function thGetPlatform() { try { return localStorage.getItem(TH_PLATFORM_KEY) || sessionStorage.getItem(TH_PLATFORM_KEY); } catch(_e) { return null; } }
+        function thSetPlatform(p) { try { localStorage.setItem(TH_PLATFORM_KEY, p); sessionStorage.setItem(TH_PLATFORM_KEY, p); } catch(_e) {} }
+        function thGetReadySet() { try { const raw = localStorage.getItem(TH_READY_KEY) || sessionStorage.getItem(TH_READY_KEY) || '[]'; return new Set(JSON.parse(raw)); } catch(_e) { return new Set(); } }
+        function thAddReadyKey(k) { if(!k) return; try { const s = thGetReadySet(); if(s.has(k)) return; s.add(k); const arr = JSON.stringify([...s]); localStorage.setItem(TH_READY_KEY, arr); sessionStorage.setItem(TH_READY_KEY, arr); } catch(_e) {} }
+        function thEmbedKey(frame, shell) {
+            if (frame.dataset.itchId) return 'itch:' + frame.dataset.itchId;
+            const src = frame.dataset.src || frame.getAttribute('src') || '';
+            const m = src.match(/widget\/(\d+)/);
+            if (m) return 'steam:' + m[1];
+            return 'shell:' + (shell ? shell.dataset.embedIndex : '0') + ':' + (frame.title || '');
+        }
+        function thIsCached(frame, shell) { try { return thGetReadySet().has(thEmbedKey(frame, shell)); } catch(_e) { return false; } }
+
         // HD44780/Adafruit-style 5x8 character cells for the release display.
         // Rendering the dots instead of using a normal font gives the LCD its
         // characteristic block grid, including the faint unlit matrix behind it.
@@ -1787,6 +1804,7 @@
             shell.classList.remove('embed-failed');
             if (shell.classList.contains('embed-ready')) return;
             shell.classList.add('embed-ready');
+            thAddReadyKey(thEmbedKey(frame, shell));
             frame.removeAttribute('tabindex');
             const group = shell.closest('.steam-widgets, .itch-widgets');
             if (group && group.classList.contains('visible')) {
@@ -1862,6 +1880,11 @@
             const pending = Array.from(group.querySelectorAll('iframe[data-src]:not([src])'));
             if (!pending.length) return;
             pending.forEach(function(frame) {
+                var shell = frame.closest('.embed-shell');
+                if (thIsCached(frame, shell) && group.classList.contains('visible')) {
+                    startEmbedLoad(frame);
+                    return;
+                }
                 var isItch = isItchFrame(frame);
                 var isPriority = frame.dataset._wasEager === 'true' || frame.loading !== 'lazy';
                 if (isPriority && group.classList.contains('visible')) {
@@ -2281,6 +2304,12 @@
                 }
 
                 initializeSkleshTrailer();
+                // Sexy cache: restore last open tab instantly (still with fade)
+                window.setTimeout(function() {
+                    if (!widgetsContainer.classList.contains('visible')) {
+                        try { restoreCachedPlatform(); } catch(_e) {}
+                    }
+                }, 220);
             }
 
             function markIntroPlaying() {
@@ -2878,7 +2907,9 @@
                 });
             })();
 
-            function showPlatformWidgets(platform) {
+            function showPlatformWidgets(platform, opts) {
+                opts = opts || {};
+                if (platform === 'steam' || platform === 'itch') thSetPlatform(platform);
                 const steamWidgets = document.querySelector('.steam-widgets');
                 const itchWidgets = document.querySelector('.itch-widgets');
                 
@@ -2925,12 +2956,22 @@
                 // Show widgets container
                 widgetsContainer.classList.add('visible');
 
+                // Prefetch idle platform in background — keeps the other tab sexy-instant
+                window.setTimeout(function() {
+                    const idle = platform === 'steam' ? itchWidgets : steamWidgets;
+                    if (!idle) return;
+                    idle.querySelectorAll('iframe[data-src]:not([src])').forEach(function(f, idx) {
+                        window.setTimeout(function(){ startEmbedLoad(f); }, 180 + idx * 70);
+                    });
+                }, 900);
+
                 // Auto-scroll to the newly revealed widgets so a tap doesn't require
                 // a manual swipe that starts on the same button area and re-fires the haptic.
                 // 0.33s delay before scrolling — lets the haptic tick and button
                 // settled animation play before the viewport moves.
                 // If the user scrolls or moves the pointer during the delay, cancel the forced scroll.
                 (function scrollToTarget() {
+                    if (opts.fromCache || opts.skipScroll) return;
                     const target = platform === 'steam'
                         ? document.querySelector('.steam-widgets.visible')
                         : document.querySelector('.itch-widgets.visible');
@@ -2991,6 +3032,13 @@
                         });
                     });
                 })();
+            }
+
+            function restoreCachedPlatform() {
+                const cached = thGetPlatform();
+                if (cached === 'steam' || cached === 'itch') {
+                    showPlatformWidgets(cached, { fromCache: true });
+                }
             }
 
             // Web Haptics with iOS 26.5+ direct-tap fix — https://github.com/lochie/web-haptics/issues/41

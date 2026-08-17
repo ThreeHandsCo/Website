@@ -2,6 +2,7 @@ name: threehands-website
 
 services:
   site-sync:
+    network_mode: host
     image: registry.k8s.io/git-sync/git-sync:v4.7.1
     container_name: threehands-site-sync
     user: "0:0"
@@ -34,17 +35,12 @@ services:
       TS_AUTH_ONCE: "true"
       TS_STATE_DIR: /var/lib/tailscale
       TS_SERVE_CONFIG: /config/serve.json
-      TS_USERSPACE: "false"
+      TS_USERSPACE: "true"
       TS_ENABLE_HEALTH_CHECK: "true"
       TS_LOCAL_ADDR_PORT: 127.0.0.1:9002
     volumes:
       - tailscale-state:/var/lib/tailscale
       - ./config:/config:ro
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9002/healthz"]
       interval: 30s
