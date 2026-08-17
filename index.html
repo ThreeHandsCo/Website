@@ -594,7 +594,7 @@
         }
         .platform-link.active::before,
         .platform-link:active::before {
-            opacity: 0.18 !important;
+            opacity: 0.12 !important;
         }
 
         /* real-button age: ultra-subtle grain + decal misregister, not distracting */
@@ -633,9 +633,9 @@
             text-shadow: none;
             opacity: 0.82;
             filter: brightness(0.80) contrast(0.96);
-            /* pressed — still has a whisper of rim */
+            /* pressed — whisper of rim, more subtle */
             box-shadow:
-                0 0 0 1px rgba(255,255,255,0.09),
+                0 0 0 1px rgba(255,255,255,0.06),
                 inset 8px 8px 16px rgba(0, 0, 0, 0.96),
                 inset -8px -8px 16px rgba(255, 255, 255, 0.045);
             transform: rotate(var(--rot, 0deg)) translateY(1px) scale(0.993);
