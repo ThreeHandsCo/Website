@@ -630,7 +630,7 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    color(srgb-linear 32 2 18) 0%, color(srgb-linear 32 2 18) 14%, color(srgb-linear 2 65 2) 36%, color(srgb-linear 2 2 65) 64%, color(srgb-linear 32 2 18) 86%, color(srgb-linear 32 2 18) 100%),
+                    color(srgb-linear 60 2 2) 0%, color(srgb-linear 60 2 2) 16%, color(srgb-linear 2 60 2) 36%, color(srgb-linear 2 2 60) 62%, color(srgb-linear 60 2 2) 86%, color(srgb-linear 60 2 2) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             background-size: 200% 100%, auto, auto;
@@ -743,7 +743,10 @@
             /* Keep native appearance load-bearing — stripping it kills the haptic. */
             clip-path: inset(0 round 12px);
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+            /* pan-y lets a vertical swipe starting on the button/LCD scroll the page
+               instead of being captured as a tap. The native switch still fires on a
+               clean tap, but a drag cancels the click — see JS threshold. */
+            touch-action: pan-y;
             z-index: 5;
         }
 
@@ -2924,6 +2927,8 @@
 
                 // Auto-scroll to the newly revealed widgets so a tap doesn't require
                 // a manual swipe that starts on the same button area and re-fires the haptic.
+                // 0.33s delay before scrolling — lets the haptic tick and button
+                // settled animation play before the viewport moves.
                 (function scrollToTarget() {
                     const target = platform === 'steam'
                         ? document.querySelector('.steam-widgets.visible')
@@ -2932,17 +2937,19 @@
                     if (!el) return;
                     requestAnimationFrame(function() {
                         requestAnimationFrame(function() {
-                            const contentContainerEl = document.getElementById('content-container');
-                            const sc = contentContainerEl && getComputedStyle(contentContainerEl);
-                            const isContentScrollable = sc && sc.overflowY === 'auto' && contentContainerEl.scrollHeight > contentContainerEl.clientHeight;
-                            if (isContentScrollable) {
-                                const top = el.getBoundingClientRect().top - contentContainerEl.getBoundingClientRect().top + contentContainerEl.scrollTop - 16;
-                                try { contentContainerEl.scrollTo({ top: Math.max(0, top), behavior: 'smooth' }); } catch (_e) { contentContainerEl.scrollTop = Math.max(0, top); }
-                            } else {
-                                try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_e) {}
-                                // Fallback for older Safari when scrollIntoView smooth is ignored
-                                try { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' }); } catch (_e2) {}
-                            }
+                            setTimeout(function() {
+                                const contentContainerEl = document.getElementById('content-container');
+                                const sc = contentContainerEl && getComputedStyle(contentContainerEl);
+                                const isContentScrollable = sc && sc.overflowY === 'auto' && contentContainerEl.scrollHeight > contentContainerEl.clientHeight;
+                                if (isContentScrollable) {
+                                    const top = el.getBoundingClientRect().top - contentContainerEl.getBoundingClientRect().top + contentContainerEl.scrollTop - 16;
+                                    try { contentContainerEl.scrollTo({ top: Math.max(0, top), behavior: 'smooth' }); } catch (_e) { contentContainerEl.scrollTop = Math.max(0, top); }
+                                } else {
+                                    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_e) {}
+                                    // Fallback for older Safari when scrollIntoView smooth is ignored
+                                    try { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' }); } catch (_e2) {}
+                                }
+                            }, 330);
                         });
                     });
                 })();
@@ -3022,7 +3029,7 @@
                 // toggles the native switch and re-fires the button.
                 let hSwitchStart = null;
                 let hSwitchSuppressNextChange = false;
-                const H_SWITCH_DRAG_THRESHOLD = 12;
+                const H_SWITCH_DRAG_THRESHOLD = 8;
                 hSwitch.addEventListener('pointerdown', function(e) {
                     hSwitchStart = { x: e.clientX, y: e.clientY };
                     hSwitchSuppressNextChange = false;
@@ -3047,8 +3054,6 @@
                     if (hSwitchSuppressNextChange) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
-                        // Revert the toggle that would have fired change
-                        hSwitch.checked = !hSwitch.checked;
                         hSwitchSuppressNextChange = false;
                         hSwitchStart = null;
                         return;
@@ -3073,10 +3078,10 @@
 
                 // iOS direct tap: switch toggle fires the system tick automatically.
                 // Forward to widget logic and also fire Android vibrate (harmless on iOS).
+                // If the gesture was a drag-to-scroll, the click was already cancelled above
+                // so no toggle/haptic occurs — scrolling stays smooth.
                 hSwitch.addEventListener('change', function() {
                     if (hSwitchSuppressNextChange) {
-                        // Drag-to-scroll, not a tap — revert and ignore.
-                        hSwitch.checked = !hSwitch.checked;
                         hSwitchSuppressNextChange = false;
                         hSwitchStart = null;
                         return;
@@ -3116,7 +3121,7 @@
                 let lcdLast = 0;
                 let lcdStart = null;
                 let lcdSuppress = false;
-                const LCD_THRESHOLD = 12;
+                const LCD_THRESHOLD = 8;
                 lcdSwitch.addEventListener('pointerdown', function(e) {
                     lcdStart = { x: e.clientX, y: e.clientY };
                     lcdSuppress = false;
@@ -3148,7 +3153,6 @@
                     if (lcdSuppress) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
-                        lcdSwitch.checked = !lcdSwitch.checked;
                         lcdSuppress = false;
                         lcdStart = null;
                         return;
@@ -3167,7 +3171,6 @@
                 }
                 lcdSwitch.addEventListener('change', function() {
                     if (lcdSuppress) {
-                        lcdSwitch.checked = !lcdSwitch.checked;
                         lcdSuppress = false;
                         lcdStart = null;
                         return;
