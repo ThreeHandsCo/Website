@@ -544,7 +544,7 @@
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
             box-shadow:
-                0 -3px 10px var(--btn-glow, rgba(38, 130, 235, 0.025)),
+                0 0 18px var(--btn-glow, rgba(38, 130, 235, 0.06)),
                 9px 9px 16px rgba(0, 0, 0, 0.88),
                 -9px -9px 16px var(--btn-edge, rgba(125, 175, 255, 0.11)),
                 inset 0 1px 0 rgba(130, 180, 255, 0.07),
@@ -607,7 +607,7 @@
             transform: rotate(var(--rot, 0deg)) translateY(-2px);
             text-shadow: none;
             box-shadow:
-                0 -4px 12px var(--btn-glow, rgba(38, 130, 235, 0.025)),
+                0 0 20px var(--btn-glow, rgba(38, 130, 235, 0.06)),
                 11px 11px 22px rgba(0, 0, 0, 0.96),
                 -11px -11px 22px var(--btn-edge, rgba(125, 175, 255, 0.12)),
                 inset 0 1px 0 rgba(130, 180, 255, 0.09),
@@ -2548,7 +2548,7 @@
                                 // Keep the edge visible before the trailer lights it — bluish from the LCD.
                                 btn.style.setProperty('--btn-specular', '0.85');
                                 btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.08)');
-                                btn.style.setProperty('--btn-glow', 'rgba(38, 130, 235, 0.025)');
+                                btn.style.setProperty('--btn-glow', 'rgba(38, 130, 235, 0.06)');
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
@@ -2608,7 +2608,7 @@
                         btn.style.setProperty('--btn-edge',
                             `rgba(125, 175, 255, ${(0.08 + 0.10 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                         // Surrounding gradient — soft bluish halo, toned down for cheap office plastic
-                        btn.style.setProperty('--btn-glow', `rgba(38, 130, 235, ${(0.025 + 0.04 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                        btn.style.setProperty('--btn-glow', `rgba(38, 130, 235, ${(0.06 + 0.08 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                     });
                     // Dynamic HDR specular on the LCD bar: intensity from the
                     // video's bottom band (the light falling on it), position
