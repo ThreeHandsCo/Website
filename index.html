@@ -514,13 +514,10 @@
            dark/light shadows. Feels pressed from the black, not floating
            on it. Keeps the pixel font but makes the surface tactile. */
         .platform-link {
-            color: transparent;
+            color: #6e7680;
             text-decoration: none;
-            background-color: #0a0a0a;
+            background: #0a0a0a;
             background-image:
-                linear-gradient(90deg,
-                    #ff8fa3 0%, #ffbe8a 18%, #f9f871 32%,
-                    #8affa7 48%, #8ac6ff 64%, #b99cff 80%, #ff8af0 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             border: none;
@@ -540,8 +537,8 @@
             position: relative;
             cursor: pointer;
             font-family: 'M3x6', 'Press Start 2P', cursive;
-            /* flat HDR white — glyphs themselves are SDR-white ×6, no fake glow */
             text-shadow: none;
+            -webkit-text-fill-color: initial;
             -webkit-text-fill-color: initial;
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
