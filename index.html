@@ -654,17 +654,12 @@
         }
 
         .platform-link:disabled {
-            color: transparent;
-            background-color: #0a0a0a;
+            color: #6e7680;
+            background: #0a0a0a;
             background-image:
-                linear-gradient(90deg,
-                    #ff8fa3 0%, #ffbe8a 18%, #f9f871 32%,
-                    #8affa7 48%, #8ac6ff 64%, #b99cff 80%, #f0abfc 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
-            background-clip: text, border-box, border-box;
-            -webkit-background-clip: text, border-box, border-box;
-            -webkit-text-fill-color: transparent;
+            -webkit-text-fill-color: initial;
             text-shadow: none;
             filter: brightness(0.92);
             cursor: not-allowed;
