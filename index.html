@@ -631,7 +631,7 @@
             text-shadow: 0 0 4px color(srgb-linear 12 12 12 / 0.38), 0 0 10px color(srgb-linear 6 6 6 / 0.22);
             opacity: 1;
             filter: brightness(1) contrast(1);
-            animation: rgb-shift 1.2s linear infinite;
+            animation: rgb-shift 1s linear infinite;
             /* pressed — whisper of rim, more subtle */
             box-shadow:
                 0 0 0 1px rgba(255,255,255,0.06),
@@ -2728,7 +2728,7 @@
                     steamWidgets.classList.add('visible');
                     const activeBtn = document.querySelector('[data-platform="steam"]');
                     activeBtn.classList.add('active');
-                    setTimeout(() => activeBtn.classList.add('settled'), 250);
+                    setTimeout(() => activeBtn.classList.add('settled'), 500);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(steamWidgets);
@@ -2739,7 +2739,7 @@
                     itchWidgets.classList.add('visible');
                     const activeBtn = document.querySelector('[data-platform="itch"]');
                     activeBtn.classList.add('active');
-                    setTimeout(() => activeBtn.classList.add('settled'), 250);
+                    setTimeout(() => activeBtn.classList.add('settled'), 500);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(itchWidgets);
