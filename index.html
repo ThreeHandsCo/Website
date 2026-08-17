@@ -630,7 +630,7 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    color(srgb-linear 65 2 2) 0%, color(srgb-linear 65 2 2) 14%, color(srgb-linear 2 65 2) 36%, color(srgb-linear 2 2 65) 64%, color(srgb-linear 65 2 2) 86%, color(srgb-linear 65 2 2) 100%),
+                    color(srgb-linear 32 2 18) 0%, color(srgb-linear 32 2 18) 14%, color(srgb-linear 2 65 2) 36%, color(srgb-linear 2 2 65) 64%, color(srgb-linear 32 2 18) 86%, color(srgb-linear 32 2 18) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             background-size: 200% 100%, auto, auto;
@@ -2833,6 +2833,31 @@
                 
                 // Show widgets container
                 widgetsContainer.classList.add('visible');
+
+                // Auto-scroll to the newly revealed widgets so a tap doesn't require
+                // a manual swipe that starts on the same button area and re-fires the haptic.
+                (function scrollToTarget() {
+                    const target = platform === 'steam'
+                        ? document.querySelector('.steam-widgets.visible')
+                        : document.querySelector('.itch-widgets.visible');
+                    const el = target || widgetsContainer;
+                    if (!el) return;
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            const contentContainerEl = document.getElementById('content-container');
+                            const sc = contentContainerEl && getComputedStyle(contentContainerEl);
+                            const isContentScrollable = sc && sc.overflowY === 'auto' && contentContainerEl.scrollHeight > contentContainerEl.clientHeight;
+                            if (isContentScrollable) {
+                                const top = el.getBoundingClientRect().top - contentContainerEl.getBoundingClientRect().top + contentContainerEl.scrollTop - 16;
+                                try { contentContainerEl.scrollTo({ top: Math.max(0, top), behavior: 'smooth' }); } catch (_e) { contentContainerEl.scrollTop = Math.max(0, top); }
+                            } else {
+                                try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_e) {}
+                                // Fallback for older Safari when scrollIntoView smooth is ignored
+                                try { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' }); } catch (_e2) {}
+                            }
+                        });
+                    });
+                })();
             }
 
             // Web Haptics with iOS 26.5+ direct-tap fix — https://github.com/lochie/web-haptics/issues/41
@@ -2904,17 +2929,80 @@
                     showPlatformWidgets(button.dataset.platform);
                 };
 
+                // Distinguish a tap from a scroll-starting drag on the overlay.
+                // Without this, a swipe to scroll that begins on the button area
+                // toggles the native switch and re-fires the button.
+                let hSwitchStart = null;
+                let hSwitchSuppressNextChange = false;
+                const H_SWITCH_DRAG_THRESHOLD = 12;
+                hSwitch.addEventListener('pointerdown', function(e) {
+                    hSwitchStart = { x: e.clientX, y: e.clientY };
+                    hSwitchSuppressNextChange = false;
+                }, { passive: true });
+                hSwitch.addEventListener('pointermove', function(e) {
+                    if (!hSwitchStart) return;
+                    if (Math.hypot(e.clientX - hSwitchStart.x, e.clientY - hSwitchStart.y) > H_SWITCH_DRAG_THRESHOLD) {
+                        hSwitchSuppressNextChange = true;
+                    }
+                }, { passive: true });
+                hSwitch.addEventListener('pointerup', function() {
+                    // Keep flag for the upcoming click/change; reset after a short window.
+                    if (hSwitchSuppressNextChange) {
+                        setTimeout(function() { hSwitchSuppressNextChange = false; hSwitchStart = null; }, 300);
+                    }
+                }, { passive: true });
+                hSwitch.addEventListener('pointercancel', function() {
+                    hSwitchStart = null;
+                    hSwitchSuppressNextChange = false;
+                }, { passive: true });
+                hSwitch.addEventListener('click', function(e) {
+                    if (hSwitchSuppressNextChange) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        // Revert the toggle that would have fired change
+                        hSwitch.checked = !hSwitch.checked;
+                        hSwitchSuppressNextChange = false;
+                        hSwitchStart = null;
+                        return;
+                    }
+                    hSwitchStart = null;
+                });
+                // Also handle touch fallback for browsers without pointer events
+                hSwitch.addEventListener('touchstart', function(e) {
+                    const t = e.touches[0];
+                    if (!t) return;
+                    hSwitchStart = { x: t.clientX, y: t.clientY };
+                    hSwitchSuppressNextChange = false;
+                }, { passive: true });
+                hSwitch.addEventListener('touchmove', function(e) {
+                    if (!hSwitchStart) return;
+                    const t = e.touches[0];
+                    if (!t) return;
+                    if (Math.hypot(t.clientX - hSwitchStart.x, t.clientY - hSwitchStart.y) > H_SWITCH_DRAG_THRESHOLD) {
+                        hSwitchSuppressNextChange = true;
+                    }
+                }, { passive: true });
+
                 // iOS direct tap: switch toggle fires the system tick automatically.
                 // Forward to widget logic and also fire Android vibrate (harmless on iOS).
-                hSwitch.addEventListener('change', () => {
+                hSwitch.addEventListener('change', function() {
+                    if (hSwitchSuppressNextChange) {
+                        // Drag-to-scroll, not a tap — revert and ignore.
+                        hSwitch.checked = !hSwitch.checked;
+                        hSwitchSuppressNextChange = false;
+                        hSwitchStart = null;
+                        return;
+                    }
+                    hSwitchStart = null;
                     handleHapticActivation();
                 });
 
                 // Keyboard / assistive / desktop fallback lands on the <button> itself
                 // (switch is tabindex -1). This handler also covers non-overlay pointer paths.
-                button.addEventListener('click', () => {
+                button.addEventListener('click', function() {
                     // Direct taps hit the switch overlay (z-index 2) and do not reach the button,
                     // so this only runs for keyboard and fallback pointer paths — no double-fire.
+                    // Avoid double-trigger when change already handled this tap.
                     handleHapticActivation();
                 });
             });
