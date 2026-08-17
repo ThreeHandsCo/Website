@@ -778,6 +778,15 @@
             dynamic-range-limit: no-limit;
         }
 
+        .lcd-module {
+            cursor: pointer;
+        }
+
+        .lcd-module:focus-visible {
+            outline: 2px solid rgba(100, 180, 255, 0.6);
+            outline-offset: 2px;
+        }
+
         .lcd-module::before {
             content: "";
             position: absolute;
@@ -881,6 +890,35 @@
                     inset 0 -6px 12px rgba(0, 22, 105, 0.42),
                     0 0 34px color(srgb-linear 0.01 0.10 4.5 / 0.54),
                     0 0 78px color(srgb-linear 0.002 0.035 1.4 / 0.28),
+                    0 0 0 2px rgba(0, 0, 0, 0.62);
+            }
+        }
+
+        .lcd-module.lcd-green .lcd-screen {
+            background: linear-gradient(180deg, #08a030 0%, #076a1d 48%, #034a12 100%);
+        }
+
+        .lcd-module.lcd-red .lcd-screen {
+            background: linear-gradient(180deg, #e90808 0%, #a80606 48%, #5a0404 100%);
+        }
+
+        @supports (color: color(srgb-linear 1 1 1)) {
+            .lcd-module.lcd-green .lcd-screen {
+                background: radial-gradient(ellipse 92% 110% at 45% 34%, color(srgb-linear 0.08 0.45 0.12) 0%, color(srgb-linear 0.04 0.20 0.05) 58%, color(srgb-linear 0.015 0.06 0.018) 100%);
+                box-shadow:
+                    inset 0 2px 0 rgba(185, 255, 185, 0.35),
+                    inset 0 -6px 12px rgba(0, 70, 20, 0.42),
+                    0 0 34px color(srgb-linear 0.08 0.45 0.12 / 0.54),
+                    0 0 78px color(srgb-linear 0.02 0.12 0.03 / 0.28),
+                    0 0 0 2px rgba(0, 0, 0, 0.62);
+            }
+            .lcd-module.lcd-red .lcd-screen {
+                background: radial-gradient(ellipse 92% 110% at 45% 34%, color(srgb-linear 0.45 0.08 0.08) 0%, color(srgb-linear 0.20 0.04 0.04) 58%, color(srgb-linear 0.06 0.015 0.015) 100%);
+                box-shadow:
+                    inset 0 2px 0 rgba(255, 185, 185, 0.35),
+                    inset 0 -6px 12px rgba(105, 20, 20, 0.42),
+                    0 0 34px color(srgb-linear 0.45 0.08 0.08 / 0.54),
+                    0 0 78px color(srgb-linear 0.12 0.02 0.02 / 0.28),
                     0 0 0 2px rgba(0, 0, 0, 0.62);
             }
         }
@@ -1275,25 +1313,26 @@
             <canvas class="trailer-glow trailer-glow-wide" id="trailer-glow-wide" aria-hidden="true"></canvas>
             <canvas class="trailer-glow trailer-glow-tight" id="trailer-glow-tight" aria-hidden="true"></canvas>
             <canvas class="trailer-dust" id="trailer-dust" aria-hidden="true"></canvas>
-            <video
-                id="sklesh-trailer"
-                class="featured-trailer"
-                autoplay
-                muted
-                loop
-                playsinline
-                preload="metadata"
-                aria-label="Sklesh trailer"
-                poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
-                <a href="https://store.steampowered.com/app/4617070/Sklesh/">Watch the Sklesh trailer on Steam</a>
-            </video>
+            <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" aria-label="Watch the Sklesh trailer on Steam" style="display: block; width: 100%; height: 100%; z-index: 1; position: relative; border-radius: 12px; overflow: hidden;">
+                <video
+                    id="sklesh-trailer"
+                    class="featured-trailer"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                    aria-label="Sklesh trailer"
+                    poster="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/257323788/19e5f5d66c58041af628d51ee1bdf432e879ca1f/movie_600x337.jpg?t=1776816847">
+                </video>
+            </a>
         </div>
         <div class="release-status">
-            <div class="lcd-module" role="img" aria-label="SKLESH OUT NOW. Coming soon to the App Store.">
+            <div class="lcd-module" role="button" tabindex="0" aria-label="Tap to cycle backlight color">
                 <span class="lcd-spec-ring" aria-hidden="true"></span>
                 <div class="lcd-screen">
                     <canvas class="lcd-matrix" aria-hidden="true"></canvas>
-                    <a href="https://store.steampowered.com/app/4617070/Sklesh/" target="_blank" rel="noopener" class="lcd-hitarea blurb" aria-label="SKLESH OUT NOW"></a>
+                    <div class="lcd-hitarea blurb" aria-hidden="true"></div>
                     <p class="lcd-sr-text coming-soon" aria-label="Coming soon to the App Store">Coming soon to the App Store</p>
                 </div>
             </div>
@@ -1414,6 +1453,28 @@
             { top: 'ONE-OFFS', bottom: 'Available on itch.io' },
             { top: 'SKLESH', bottom: 'Now playing on Steam' }
         ]);
+
+        // LCD backlight: tap cycles blue -> green -> red -> blue, holistically.
+        (function() {
+            const lcdModuleEl = document.querySelector('.lcd-module');
+            if (!lcdModuleEl) return;
+            lcdModuleEl.addEventListener('click', function() {
+                if (lcdModuleEl.classList.contains('lcd-green')) {
+                    lcdModuleEl.classList.remove('lcd-green');
+                    lcdModuleEl.classList.add('lcd-red');
+                } else if (lcdModuleEl.classList.contains('lcd-red')) {
+                    lcdModuleEl.classList.remove('lcd-red');
+                } else {
+                    lcdModuleEl.classList.add('lcd-green');
+                }
+            });
+            lcdModuleEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    lcdModuleEl.click();
+                }
+            });
+        })();
 
         function renderLcdDisplay() {
             const screen = document.querySelector('.lcd-screen');
