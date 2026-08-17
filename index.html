@@ -514,12 +514,10 @@
            dark/light shadows. Feels pressed from the black, not floating
            on it. Keeps the pixel font but makes the surface tactile. */
         .platform-link {
-            color: transparent;
+            color: color(srgb-linear 6 6 6);
             text-decoration: none;
-            background-color: #0a0a0a;
+            background: #0a0a0a;
             background-image:
-                linear-gradient(90deg,
-                    color(srgb-linear 6 6 6) 0%, color(srgb-linear 6 6 6) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
             border: none;
@@ -539,13 +537,9 @@
             position: relative;
             cursor: pointer;
             font-family: 'M3x6', 'Press Start 2P', cursive;
-            /* Pastel rainbow — L-to-R gradient through clear plastic,
-               pure refracted light. Flat legend. */
-            background-clip: text, border-box, border-box;
-            -webkit-background-clip: text, border-box, border-box;
-            -webkit-text-fill-color: transparent;
-            /* flat HDR white — no bevel, no glow */
+            /* flat HDR white — glyphs themselves are SDR-white ×6, no fake glow */
             text-shadow: none;
+            -webkit-text-fill-color: initial;
             opacity: 1;
             filter: contrast(1) brightness(1) sepia(0);
             /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
@@ -622,14 +616,9 @@
 
         .platform-link:active,
         .platform-link.active {
-            background-color: #0a0a0a;
-            background-image: linear-gradient(90deg,
-                color(srgb-linear 6 6 6) 0%, color(srgb-linear 6 6 6) 18%, color(srgb-linear 6 6 6) 32%,
-                color(srgb-linear 6 6 6) 48%, color(srgb-linear 6 6 6) 64%, color(srgb-linear 6 6 6) 80%, color(srgb-linear 6 6 6) 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
+            background: #0a0a0a;
+            color: color(srgb-linear 6 6 6);
+            -webkit-text-fill-color: initial;
             text-shadow: none;
             opacity: 0.82;
             filter: brightness(0.80) contrast(0.96);
@@ -650,18 +639,10 @@
         }
 
         .platform-link:disabled {
-            color: transparent;
-            background-color: #0a0a0a;
-            background-image:
-                linear-gradient(90deg,
-                    color(srgb-linear 6 6 6) 0%, color(srgb-linear 6 6 6) 100%),
-                radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
-                linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
-            background-clip: text, border-box, border-box;
-            -webkit-background-clip: text, border-box, border-box;
-            -webkit-text-fill-color: transparent;
+            color: color(srgb-linear 6 6 6);
+            -webkit-text-fill-color: initial;
             text-shadow: none;
-            filter: brightness(0.88);
+            filter: brightness(0.92);
             opacity: 0.92;
             cursor: not-allowed;
             box-shadow:
