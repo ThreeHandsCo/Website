@@ -19,6 +19,17 @@
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js" integrity="sha384-5E8B0pTlZZJMabWpC0fyYf6OUpe15jJij34BqBAh4NXoHAlLNOjCPRrwtOXOQFAn" crossorigin="anonymous"></script>
     <script src="/assets/itch-embed-colors.js"></script>
+    <script type="module">
+        // web-haptics 0.0.6 — haptics.lochie.me
+        // Android/desktop: imperative trigger via navigator.vibrate() (with PWM intensity).
+        // iOS 26.5+: direct-tap native switch overlay — see .haptic-switch CSS and
+        // https://github.com/lochie/web-haptics/issues/41 plus
+        // https://github.com/m1ckc3s/project-fathom. The switch tick is the only
+        // haptic available on this iOS path (no custom waveforms).
+        import { WebHaptics } from "https://cdn.jsdelivr.net/npm/web-haptics@0.0.6/dist/index.mjs";
+        window.WebHaptics = WebHaptics;
+        try { window._webHaptics = new WebHaptics(); } catch (_e) {}
+    </script>
     <style>
         /* m3x6 by Daniel Linssen — free with attribution.
            https://managore.itch.io/m3x6 (use size 16, 32, 48, ...) */
@@ -687,6 +698,57 @@
             box-shadow:
                 5px 5px 12px rgba(0, 0, 0, 0.62),
                 -5px -5px 12px rgba(255, 255, 255, 0.032);
+        }
+
+        /* Web Haptics — iOS 26.5+ direct-tap fix (issue #41).
+           See https://github.com/lochie/web-haptics/issues/41 and
+           https://github.com/m1ckc3s/project-fathom for the native
+           switch overlay pattern. The visible button is decoration;
+           the transparent native switch underneath is the real tap
+           target so iOS plays its system tick on a direct finger tap.
+           Android and other browsers use navigator.vibrate() via
+           web-haptics imperatively. clip-path rounds the *hit* area,
+           not just paint — overflow+radius leaves dead corners. */
+        .haptic-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .haptic-wrap .platform-link {
+            width: 100%;
+            flex: 1 1 0;
+        }
+
+        @media (min-width: 1025px) {
+            .buttons-container .haptic-wrap {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+            .haptic-wrap {
+                width: 100%;
+            }
+        }
+
+        .haptic-switch {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            opacity: 0;
+            cursor: pointer;
+            /* Keep native appearance load-bearing — stripping it kills the haptic. */
+            clip-path: inset(0 round 12px);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            z-index: 2;
+        }
+
+        .haptic-wrap:has(.platform-link:disabled) .haptic-switch {
+            cursor: not-allowed;
         }
 
         .release-status {
@@ -2702,6 +2764,27 @@
                     requestAnimationFrame(renderGlow);
                 }
                 requestAnimationFrame(renderGlow);
+
+                // If the user leaves the page (link opens in new tab) and
+                // comes back, the tab was hidden: videos may be paused and
+                // the glow faded to 0. Kick everything back on immediately
+                // so the return isn't a black screen. Also handles bfcache.
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        if (skleshTrailer.paused) skleshTrailer.play().catch(function(){});
+                        const hv = document.querySelector('.header-video');
+                        if (hv && hv.paused) hv.play().catch(function(){});
+                        glowFade = Math.max(glowFade, 0.35);
+                        requestAnimationFrame(renderGlow);
+                    }
+                });
+                window.addEventListener('pageshow', function(e) {
+                    if (e.persisted) {
+                        if (skleshTrailer.paused) skleshTrailer.play().catch(function(){});
+                        glowFade = Math.max(glowFade, 0.35);
+                        requestAnimationFrame(renderGlow);
+                    }
+                });
             })();
 
             function showPlatformWidgets(platform) {
@@ -2752,11 +2835,87 @@
                 widgetsContainer.classList.add('visible');
             }
 
-            // Add click event listeners to platform buttons
+            // Web Haptics with iOS 26.5+ direct-tap fix — https://github.com/lochie/web-haptics/issues/41
+            // Android: web-haptics trigger("light") → navigator.vibrate() (with PWM intensity).
+            // iOS 26.5+: native <input type="checkbox" switch> overlay provides the system tick on direct tap.
+            // The overlay is opacity:0 (not display:none), clipped to the button shape, native appearance preserved.
+            // Imperative trigger remains for Android; iOS path does not rely on programmatic .click().
+            // iOS direct-tap limitation: only the system tick is available, custom waveforms stay Android-only.
+            function triggerHaptic(preset = "light") {
+                try {
+                    if (window._webHaptics && window._webHaptics.trigger) {
+                        window._webHaptics.trigger(preset);
+                        return;
+                    }
+                    if (window.WebHaptics) {
+                        try {
+                            const inst = window._webHaptics || new window.WebHaptics();
+                            window._webHaptics = inst;
+                            inst.trigger(preset);
+                            return;
+                        } catch (_e2) {}
+                    }
+                    if (navigator.vibrate) {
+                        const patterns = {
+                            light: [15],
+                            medium: [25],
+                            heavy: [35],
+                            success: [30, 60, 40],
+                            selection: [8],
+                            nudge: [80, 80, 50],
+                            rigid: [10]
+                        };
+                        const pat = patterns[preset] || [20];
+                        navigator.vibrate(pat);
+                    }
+                } catch (_e) {}
+            }
+
+            // Wrap each platform button in a haptic target that contains the iOS switch overlay.
+            // The switch itself is the direct tap target on iOS; the button keeps the accessible name.
             platformButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    if (button.disabled) return;
+                if (button.closest('.haptic-wrap')) return;
+                const wrap = document.createElement('span');
+                wrap.className = 'haptic-wrap';
+                wrap.dataset.hapticPlatform = button.dataset.platform || '';
+                button.parentNode.insertBefore(wrap, button);
+                wrap.appendChild(button);
+
+                const hSwitch = document.createElement('input');
+                hSwitch.type = 'checkbox';
+                hSwitch.setAttribute('switch', '');
+                hSwitch.className = 'haptic-switch';
+                // Button keeps the label; switch is invisible direct-tap surface.
+                // aria-hidden + tabindex -1 keeps semantics clean — screen readers see only the button.
+                hSwitch.setAttribute('aria-hidden', 'true');
+                hSwitch.tabIndex = -1;
+                wrap.appendChild(hSwitch);
+
+                let lastActivation = 0;
+                const handleHapticActivation = () => {
+                    const now = Date.now();
+                    if (now - lastActivation < 100) return;
+                    lastActivation = now;
+                    if (button.disabled) {
+                        triggerHaptic('light');
+                        return;
+                    }
+                    triggerHaptic('light');
                     showPlatformWidgets(button.dataset.platform);
+                };
+
+                // iOS direct tap: switch toggle fires the system tick automatically.
+                // Forward to widget logic and also fire Android vibrate (harmless on iOS).
+                hSwitch.addEventListener('change', () => {
+                    handleHapticActivation();
+                });
+
+                // Keyboard / assistive / desktop fallback lands on the <button> itself
+                // (switch is tabindex -1). This handler also covers non-overlay pointer paths.
+                button.addEventListener('click', () => {
+                    // Direct taps hit the switch overlay (z-index 2) and do not reach the button,
+                    // so this only runs for keyboard and fallback pointer paths — no double-fire.
+                    handleHapticActivation();
                 });
             });
 
