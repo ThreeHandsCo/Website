@@ -514,7 +514,7 @@
            dark/light shadows. Feels pressed from the black, not floating
            on it. Keeps the pixel font but makes the surface tactile. */
         .platform-link {
-            color: color(srgb-linear 16 16 16);
+            color: #6e7680;
             text-decoration: none;
             background: #0a0a0a;
             background-image:
@@ -617,11 +617,11 @@
         .platform-link:active,
         .platform-link.active {
             background: #0a0a0a;
-            color: color(srgb-linear 16 16 16);
+            color: color(srgb-linear 25 25 25);
             -webkit-text-fill-color: initial;
             text-shadow: none;
-            opacity: 0.82;
-            filter: brightness(0.80) contrast(0.96);
+            opacity: 1;
+            filter: brightness(1) contrast(1);
             /* pressed — whisper of rim, more subtle */
             box-shadow:
                 0 0 0 1px rgba(255,255,255,0.06),
@@ -639,10 +639,10 @@
         }
 
         .platform-link:disabled {
-            color: color(srgb-linear 16 16 16);
+            color: #6e7680;
             -webkit-text-fill-color: initial;
             text-shadow: none;
-            filter: brightness(0.92);
+            filter: none;
             opacity: 0.92;
             cursor: not-allowed;
             box-shadow:
