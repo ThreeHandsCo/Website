@@ -628,10 +628,11 @@
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            text-shadow: none;
+            /* subtle glow that match color but raise whites */
+            text-shadow: 0 0 4px color(srgb-linear 12 12 12 / 0.38), 0 0 10px color(srgb-linear 6 6 6 / 0.22);
             opacity: 1;
             filter: brightness(1) contrast(1);
-            animation: rgb-shift 0.6s linear infinite;
+            animation: rgb-shift 1.8s linear infinite;
             /* pressed — whisper of rim, more subtle */
             box-shadow:
                 0 0 0 1px rgba(255,255,255,0.06),
@@ -643,6 +644,17 @@
         @keyframes rgb-shift {
             0% { background-position: 0% 0%, 0% 0%, 0% 0%; }
             100% { background-position: 200% 0%, 0% 0%, 0% 0%; }
+        }
+
+        /* After 1s the rainbow settles to static HDR white */
+        .platform-link.active.settled {
+            background-image:
+                linear-gradient(90deg,
+                    color(srgb-linear 12 12 12) 0%, color(srgb-linear 12 12 12) 100%),
+                radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
+                linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
+            animation: none;
+            transition: background-image 0.5s ease;
         }
 
         .platform-link:focus-visible {
@@ -2698,7 +2710,10 @@
                 const itchWidgets = document.querySelector('.itch-widgets');
                 
                 // Reset all buttons
-                platformButtons.forEach(btn => btn.classList.remove('active'));
+                platformButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.remove('settled');
+                });
                 
                 // Hide all widgets first
                 steamWidgets.classList.remove('visible');
@@ -2712,7 +2727,9 @@
                 // Show selected platform widgets
                 if (platform === 'steam') {
                     steamWidgets.classList.add('visible');
-                    document.querySelector('[data-platform="steam"]').classList.add('active');
+                    const activeBtn = document.querySelector('[data-platform="steam"]');
+                    activeBtn.classList.add('active');
+                    setTimeout(() => activeBtn.classList.add('settled'), 1000);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(steamWidgets);
@@ -2721,7 +2738,9 @@
                     });
                 } else if (platform === 'itch') {
                     itchWidgets.classList.add('visible');
-                    document.querySelector('[data-platform="itch"]').classList.add('active');
+                    const activeBtn = document.querySelector('[data-platform="itch"]');
+                    activeBtn.classList.add('active');
+                    setTimeout(() => activeBtn.classList.add('settled'), 1000);
                     window.requestAnimationFrame(function() {
                         window.requestAnimationFrame(function() {
                             observeLazyEmbeds(itchWidgets);
