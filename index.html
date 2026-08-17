@@ -619,24 +619,30 @@
             background-color: #0a0a0a;
             background-image:
                 linear-gradient(90deg,
-                    #ff8fa3 0%, #ffbe8a 18%, #f9f871 32%,
-                    #8affa7 48%, #8ac6ff 64%, #b99cff 80%, #f0abfc 100%),
+                    color(srgb-linear 43.75 12.2 16.4) 0%, color(srgb-linear 43.75 20.8 8.2) 18%, color(srgb-linear 43.75 43.75 13.1) 32%,
+                    color(srgb-linear 16.4 43.75 20.8) 48%, color(srgb-linear 8.2 20.8 43.75) 64%, color(srgb-linear 20.8 13.1 43.75) 80%, color(srgb-linear 43.75 12.2 24.5) 100%),
                 radial-gradient(ellipse 85% 58% at 50% 22%, rgba(255,255,255,0.022) 0%, transparent 62%),
                 linear-gradient(180deg, rgba(255,255,255,0.018) 0%, transparent 18%, transparent 84%, rgba(0,0,0,0.08) 100%);
+            background-size: 200% 100%, auto, auto;
             background-clip: text, border-box, border-box;
             -webkit-background-clip: text, border-box, border-box;
             -webkit-text-fill-color: transparent;
             color: transparent;
             text-shadow: none;
             opacity: 1;
-            filter: brightness(0.96) contrast(1);
-            transition-delay: 45ms;
+            filter: brightness(1) contrast(1);
+            animation: rgb-shift 0.6s linear infinite;
             /* pressed — whisper of rim, more subtle */
             box-shadow:
                 0 0 0 1px rgba(255,255,255,0.06),
                 inset 8px 8px 16px rgba(0, 0, 0, 0.96),
                 inset -8px -8px 16px rgba(255, 255, 255, 0.045);
             transform: rotate(var(--rot, 0deg)) translateY(1px) scale(0.993);
+        }
+
+        @keyframes rgb-shift {
+            0% { background-position: 0% 0%, 0% 0%, 0% 0%; }
+            100% { background-position: 200% 0%, 0% 0%, 0% 0%; }
         }
 
         .platform-link:focus-visible {
