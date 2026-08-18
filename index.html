@@ -576,12 +576,14 @@
             -webkit-text-fill-color: initial;
             opacity: 1;
             filter: blur(0.32px) contrast(1.9) brightness(1) sepia(0);
-            /* cheap office keycap — subtle dish + beveled rim, top-heavy glow */
+            /* cheap office keycap — subtle dish + beveled rim, top-heavy glow
+               --btn-glow / --btn-edge / --btn-highlight are tinted to the
+               LCD backlight (blue/green/red) — see getLcdGlowPalette(). */
             box-shadow:
                 0 0 18px var(--btn-glow, rgba(38, 130, 235, 0.06)),
                 9px 9px 16px rgba(0, 0, 0, 0.88),
                 -9px -9px 16px var(--btn-edge, rgba(125, 175, 255, 0.11)),
-                inset 0 1px 0 rgba(130, 180, 255, 0.07),
+                inset 0 1px 0 var(--btn-highlight, rgba(130, 180, 255, 0.07)),
                 inset 0 1.5px 2px rgba(255,255,255,0.035),
                 inset 0 -2px 3px rgba(0,0,0,0.60),
                 inset 0 -4px 8px rgba(0,0,0,0.36),
@@ -644,7 +646,7 @@
                 0 0 20px var(--btn-glow, rgba(38, 130, 235, 0.06)),
                 11px 11px 22px rgba(0, 0, 0, 0.96),
                 -11px -11px 22px var(--btn-edge, rgba(125, 175, 255, 0.12)),
-                inset 0 1px 0 rgba(130, 180, 255, 0.09),
+                inset 0 1px 0 var(--btn-highlight, rgba(130, 180, 255, 0.09)),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.6);
         }
 
@@ -1521,6 +1523,18 @@
         (function() {
             const lcdModuleEl = document.querySelector('.lcd-module');
             if (!lcdModuleEl) return;
+            function syncButtonGlowToLcd() {
+                const pal = lcdModuleEl.classList.contains('lcd-green')
+                    ? { edge: [125, 255, 155], glow: [38, 200, 85], highlight: [140, 255, 165] }
+                    : lcdModuleEl.classList.contains('lcd-red')
+                    ? { edge: [255, 155, 125], glow: [235, 55, 45], highlight: [255, 180, 175] }
+                    : { edge: [125, 175, 255], glow: [38, 130, 235], highlight: [130, 180, 255] };
+                document.querySelectorAll('.platform-link').forEach(function(btn) {
+                    btn.style.setProperty('--btn-edge', `rgba(${pal.edge.join(', ')}, 0.08)`);
+                    btn.style.setProperty('--btn-glow', `rgba(${pal.glow.join(', ')}, 0.06)`);
+                    btn.style.setProperty('--btn-highlight', `rgba(${pal.highlight.join(', ')}, 0.07)`);
+                });
+            }
             lcdModuleEl.addEventListener('click', function() {
                 const screen = lcdModuleEl.querySelector('.lcd-screen');
                 if (screen) screen.classList.add('lcd-switching');
@@ -1533,6 +1547,7 @@
                     } else {
                         lcdModuleEl.classList.add('lcd-green');
                     }
+                    syncButtonGlowToLcd();
                     setTimeout(function() {
                         if (screen) screen.classList.remove('lcd-switching');
                     }, 80);
@@ -2765,13 +2780,26 @@
                 // Buttons + LCD bar lit by video — sample bottom for buttons, bottom band for the LCD specular.
                 const platformEls = document.querySelectorAll('.platform-link');
                 const lcdRingEl = document.querySelector('.lcd-spec-ring');
+                const lcdModuleForGlow = document.querySelector('.lcd-module');
+                // LCD-tinted glow: buttons echo the backlight color (blue / green / red).
+                function getLcdGlowPalette() {
+                    if (lcdModuleForGlow && lcdModuleForGlow.classList.contains('lcd-green')) {
+                        return { edge: [125, 255, 155], glow: [38, 200, 85], highlight: [140, 255, 165] };
+                    }
+                    if (lcdModuleForGlow && lcdModuleForGlow.classList.contains('lcd-red')) {
+                        return { edge: [255, 155, 125], glow: [235, 55, 45], highlight: [255, 180, 175] };
+                    }
+                    return { edge: [125, 175, 255], glow: [38, 130, 235], highlight: [130, 180, 255] };
+                }
                 let lastAmbientButtonState = '';
                 let ambientLcdApplied = false;
                 function updateTextLight() {
+                    const lcdPal = getLcdGlowPalette();
+                    const lcdKey = lcdPal.edge.join(',') + '|' + lcdPal.glow.join(',');
                     if (!lumaData || glowFade <= 0.01) {
                         const ambientState = Array.from(platformEls).map(function(btn) {
                             return `${btn.classList.contains('active') ? 'a' : 'i'}${btn.disabled ? 'd' : 'e'}`;
-                        }).join('');
+                        }).join('') + '|' + lcdKey;
                         if (ambientState !== lastAmbientButtonState) {
                             lastAmbientButtonState = ambientState;
                             platformEls.forEach(function(btn) {
@@ -2779,10 +2807,11 @@
                                 btn.style.opacity = '1';
                                 btn.style.setProperty('--btn-text-blur', '4px');
                                 btn.style.setProperty('--btn-text-alpha', '0.16');
-                                // Keep the edge visible before the trailer lights it — bluish from the LCD.
+                                // Keep the edge visible before the trailer lights it — tinted to LCD.
                                 btn.style.setProperty('--btn-specular', '0.85');
-                                btn.style.setProperty('--btn-edge', 'rgba(125, 175, 255, 0.08)');
-                                btn.style.setProperty('--btn-glow', 'rgba(38, 130, 235, 0.06)');
+                                btn.style.setProperty('--btn-edge', `rgba(${lcdPal.edge.join(', ')}, 0.08)`);
+                                btn.style.setProperty('--btn-glow', `rgba(${lcdPal.glow.join(', ')}, 0.06)`);
+                                btn.style.setProperty('--btn-highlight', `rgba(${lcdPal.highlight.join(', ')}, 0.07)`);
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
@@ -2838,11 +2867,12 @@
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
                         btn.style.setProperty('--btn-spec-bg',
                             `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
-                        // Bluish top edge — same LCD light, softer.
+                        // LCD-tinted edge & halo — same intensity from video,
+                        // hue from backlight so buttons breathe green/red with the LCD.
                         btn.style.setProperty('--btn-edge',
-                            `rgba(125, 175, 255, ${(0.08 + 0.10 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
-                        // Surrounding gradient — soft bluish halo, toned down for cheap office plastic
-                        btn.style.setProperty('--btn-glow', `rgba(38, 130, 235, ${(0.06 + 0.08 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                            `rgba(${lcdPal.edge.join(', ')}, ${(0.08 + 0.10 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                        btn.style.setProperty('--btn-glow', `rgba(${lcdPal.glow.join(', ')}, ${(0.06 + 0.08 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
+                        btn.style.setProperty('--btn-highlight', `rgba(${lcdPal.highlight.join(', ')}, ${(0.06 + 0.03 * sL * flick * (0.5 + 0.5*glowFade)).toFixed(3)})`);
                     });
                     // Dynamic HDR specular on the LCD bar: intensity from the
                     // video's bottom band (the light falling on it), position
