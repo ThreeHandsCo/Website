@@ -3,6 +3,16 @@
   "algorithm": "thumbnail-accent-v1",
   "games": [
     {
+      "id": "4952720",
+      "title": "PEGME!",
+      "page_url": "https://p3rv3rt.itch.io/pegme",
+      "visual_baseline": {
+        "thumbnail_sha256": "efbf4977a54977214a8f6f143f97499762805da23d21ff94a1fb034380729eb3",
+        "accent": "545454",
+        "source": "approved-thumbnail-baseline"
+      }
+    },
+    {
       "id": "4823129",
       "title": "One Second to Midnight",
       "page_url": "https://threehands.itch.io/one-second-to-midnight",

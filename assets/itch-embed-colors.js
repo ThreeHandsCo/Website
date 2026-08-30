@@ -35,5 +35,9 @@ window.THREEHANDS_ITCH_EMBED_COLORS = Object.freeze({
   "4826672": {
     "fg": "415011",
     "link": "415011"
+  },
+  "4952720": {
+    "fg": "545454",
+    "link": "545454"
   }
 });
