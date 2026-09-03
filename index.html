@@ -611,7 +611,7 @@
             inset: 0;
             border-radius: 12px;
             padding: 3.4px;
-            background: var(--btn-spec-bg, radial-gradient(ellipse 34% 42% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 6 6 6) 0%, color(srgb-linear 2.6 2.6 2.6) 18%, color(srgb-linear 1.1 1.1 1.1) 32%, transparent 62%)),
+            background: var(--btn-spec-bg, radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 5.75 5.75 5.75) 0%, color(srgb-linear 2 2 2) 18%, color(srgb-linear 1 1 1) 32%, transparent 62%)),
                 linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 18%, transparent 42%, rgba(0,0,0,0.10) 100%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -2803,16 +2803,26 @@
                         }).join('') + '|' + lcdKey;
                         if (ambientState !== lastAmbientButtonState) {
                             lastAmbientButtonState = ambientState;
-                            platformEls.forEach(function(btn) {
+                            // Ambient state = the video branch's zero-light
+                            // frame (sL=0): same specular gradient geometry,
+                            // stops, border positions and intensity, so the
+                            // handoff when the trailer decodes is invisible.
+                            const ang = Math.atan2(0.18 - 0.5, 0.22 - 0.5);
+                            platformEls.forEach(function(btn, idx) {
                                 btn.style.filter = 'brightness(1) contrast(0.96)';
                                 btn.style.opacity = '1';
                                 btn.style.setProperty('--btn-text-blur', '4px');
                                 btn.style.setProperty('--btn-text-alpha', '0.16');
-                                // Keep the edge visible before the trailer lights it — tinted to LCD.
-                                btn.style.setProperty('--btn-specular', '0.85');
+                                // Edge visible before the trailer lights it — tinted to LCD.
+                                btn.style.setProperty('--btn-specular', '0.72');
+                                btn.style.setProperty('--btn-spec-bg',
+                                    'radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear 5.75 5.75 5.75) 0%, color(srgb-linear 2 2 2) 18%, color(srgb-linear 1 1 1) 32%, transparent 62%), linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 18%, transparent 42%, rgba(0,0,0,0.10) 100%)');
+                                const a = ang + (idx - 1) * 0.32;
+                                btn.style.setProperty('--btn-spec-x', (50 + Math.cos(a) * 25).toFixed(1) + '%');
+                                btn.style.setProperty('--btn-spec-y', (50 + Math.sin(a) * 21).toFixed(1) + '%');
                                 btn.style.setProperty('--btn-edge', `rgba(${lcdPal.edge.join(', ')}, 0.08)`);
                                 btn.style.setProperty('--btn-glow', `rgba(${lcdPal.glow.join(', ')}, 0.06)`);
-                                btn.style.setProperty('--btn-highlight', `rgba(${lcdPal.highlight.join(', ')}, 0.07)`);
+                                btn.style.setProperty('--btn-highlight', `rgba(${lcdPal.highlight.join(', ')}, 0.06)`);
                             });
                         }
                         if (lcdRingEl && !ambientLcdApplied) {
@@ -2867,7 +2877,7 @@
                         const mR = Math.round(pR * 0.375), mG = Math.round(pG * 0.375), mB = Math.round(pB * 0.375);
                         const lR = Math.round(pR * 0.125), lG = Math.round(pG * 0.125), lB = Math.round(pB * 0.125);
                         btn.style.setProperty('--btn-spec-bg',
-                            `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%)`);
+                            `radial-gradient(ellipse 26% 32% at var(--btn-spec-x, 22%) var(--btn-spec-y, 20%), color(srgb-linear ${pR} ${pG} ${pB}) 0%, color(srgb-linear ${mR} ${mG} ${mB}) 18%, color(srgb-linear ${lR} ${lG} ${lB}) 32%, transparent 62%), linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 18%, transparent 42%, rgba(0,0,0,0.10) 100%)`);
                         // LCD-tinted edge & halo — same intensity from video,
                         // hue from backlight so buttons breathe green/red with the LCD.
                         btn.style.setProperty('--btn-edge',
