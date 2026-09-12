@@ -212,6 +212,7 @@ a {{ text-decoration:none; }}
   const thumbFrame = document.querySelector('.thumb-frame');
   const meta = document.querySelector('.meta');
   const title = document.querySelector('.title');
+  const linkFrame = document.querySelector('.link-frame');
   if (!embed || !thumbFrame || !meta || !title) return;
 
   const MIN_FONT_SIZE = 7;
@@ -219,8 +220,9 @@ a {{ text-decoration:none; }}
 
   function titleFits(size) {{
     title.style.fontSize = `${{size}}px`;
-    return title.scrollWidth <= title.clientWidth + 1
-      && title.scrollHeight <= title.clientHeight + 1;
+    // Strict: a 1px tolerance lets the bottom pixel row of a pixel font clip.
+    return title.scrollWidth <= title.clientWidth + 0.5
+      && title.scrollHeight <= title.clientHeight + 0.5;
   }}
 
   function fitTitle() {{
@@ -241,8 +243,17 @@ a {{ text-decoration:none; }}
   }}
 
   function syncEmbedLayout() {{
-    const height = thumbFrame.getBoundingClientRect().height;
-    if (height > 0) meta.style.height = `${{height}}px`;
+    // The thumb column can be taller than the iframe (mobile breakpoint fires
+    // for scaled-down desktop iframes too). Clamp meta so thumb + gap + button
+    // always fit inside the embed box, or the button and title get clipped.
+    const thumbH = thumbFrame.getBoundingClientRect().height;
+    const embedH = embed.getBoundingClientRect().height;
+    const embedStyle = getComputedStyle(embed);
+    const pad = (parseFloat(embedStyle.paddingTop) || 0) + (parseFloat(embedStyle.paddingBottom) || 0);
+    const gap = (parseFloat(getComputedStyle(meta).rowGap) || 0);
+    const linkH = linkFrame ? linkFrame.getBoundingClientRect().height : 0;
+    const metaH = Math.min(thumbH, embedH - pad - gap - linkH);
+    if (thumbH > 0 && metaH > 0) meta.style.height = `${{metaH}}px`;
     fitTitle();
   }}
 
