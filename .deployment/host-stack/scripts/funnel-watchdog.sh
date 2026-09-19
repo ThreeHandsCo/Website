@@ -1,39 +1,81 @@
 #!/bin/sh
 
+# Funnel watchdog for the Three Hands website origin.
+#
+# Probes the PUBLIC funnel path (Tailscale ingress relays) and self-heals the
+# two known failure modes:
+#   1. Packet-filter desync: the node drops ingress relay traffic with
+#      "no rules matched". Fixed by `tailscale up` (re-applies the netmap).
+#   2. Orphaned website netns: recreating the tailscale container leaves the
+#      nginx container in a dead network namespace. Fixed by force-recreating
+#      the website service.
+#
+# The probe resolves the public relay IPs via public DNS and pins each probe
+# to one relay (--resolve), so a relay that still works cannot mask a relay
+# that is being dropped. ALL relays must pass.
+
 set -u
 
 STACK_DIR=/home/baba/threehands-website
-PUBLIC_HEALTH_URL=https://threehands-website.tail220731.ts.net/healthz
+PUBLIC_HOST=threehands-website.tail220731.ts.net
+PUBLIC_HEALTH_URL="https://${PUBLIC_HOST}/healthz"
+DNS_RESOLVER=1.1.1.1
 LOCK_FILE=/run/lock/threehands-website-watchdog.lock
-PROBE_COUNT=5
-REQUIRED_SUCCESSES=4
+PROBE_COUNT=4
+REQUIRED_SUCCESSES=3
 
 log() {
     printf '%s %s\n' "$(date --iso-8601=seconds)" "$*"
 }
 
+relay_ips() {
+    # Public funnel relay IPs; fall back to the system answer.
+    ips=$(dig +short A "$PUBLIC_HOST" @"$DNS_RESOLVER" 2>/dev/null | grep -E '^[0-9.]+$')
+    if [ -z "$ips" ]; then
+        ips=$(getent ahostsv4 "$PUBLIC_HOST" | awk '{print $1}' | sort -u)
+    fi
+    printf '%s\n' "$ips"
+}
+
 probe_once() {
-    response=$(curl --fail --silent --show-error --max-time 8 "$PUBLIC_HEALTH_URL" 2>/dev/null) || return 1
+    relay=$1
+    response=$(curl --fail --silent --show-error --max-time 8 \
+        --resolve "${PUBLIC_HOST}:443:${relay}" \
+        "$PUBLIC_HEALTH_URL" 2>/dev/null) || return 1
     [ "$response" = "ok" ]
 }
 
-probe_series() {
-    successes=0
-    attempt=1
+# Returns 0 only if EVERY relay reaches REQUIRED_SUCCESSES of PROBE_COUNT.
+probe_all_relays() {
+    all_ok=1
+    any_relay=0
 
-    while [ "$attempt" -le "$PROBE_COUNT" ]; do
-        if probe_once; then
-            successes=$((successes + 1))
+    for relay in $(relay_ips); do
+        any_relay=1
+        successes=0
+        attempt=1
+        while [ "$attempt" -le "$PROBE_COUNT" ]; do
+            if probe_once "$relay"; then
+                successes=$((successes + 1))
+            fi
+            if [ "$attempt" -lt "$PROBE_COUNT" ]; then
+                sleep 2
+            fi
+            attempt=$((attempt + 1))
+        done
+        log "relay ${relay}: ${successes}/${PROBE_COUNT} probes ok"
+        if [ "$successes" -lt "$REQUIRED_SUCCESSES" ]; then
+            all_ok=0
         fi
-
-        if [ "$attempt" -lt "$PROBE_COUNT" ]; then
-            sleep 2
-        fi
-        attempt=$((attempt + 1))
     done
 
-    log "public Funnel probes: ${successes}/${PROBE_COUNT} successful"
-    [ "$successes" -ge "$REQUIRED_SUCCESSES" ]
+    [ "$any_relay" -eq 1 ] && [ "$all_ok" -eq 1 ]
+}
+
+netns_shared() {
+    ns_ts=$(docker exec threehands-tailscale sh -c 'readlink /proc/self/ns/net' 2>/dev/null || true)
+    ns_web=$(docker exec threehands-website sh -c 'readlink /proc/self/ns/net' 2>/dev/null || true)
+    [ -n "$ns_ts" ] && [ "$ns_ts" = "$ns_web" ]
 }
 
 wait_for_health() {
@@ -59,8 +101,8 @@ if ! flock --nonblock 9; then
     exit 0
 fi
 
-if probe_series; then
-    log "public Funnel is healthy"
+if probe_all_relays; then
+    log "public Funnel is healthy on all relays"
     exit 0
 fi
 
@@ -71,9 +113,10 @@ if ! cd "$STACK_DIR"; then
     exit 1
 fi
 
-if ! docker compose restart tailscale; then
-    log "recovery failed: could not restart Tailscale"
-    exit 1
+# 1. Re-apply the netmap: fixes packet-filter desync (drops of ingress relays).
+if ! docker exec threehands-tailscale tailscale up --accept-dns=false >/dev/null 2>&1; then
+    log "recovery step 1 failed: tailscale up did not succeed; trying container restart"
+    docker compose restart tailscale >/dev/null 2>&1 || true
 fi
 
 if ! wait_for_health threehands-tailscale 45; then
@@ -81,9 +124,13 @@ if ! wait_for_health threehands-tailscale 45; then
     exit 1
 fi
 
-if ! docker compose up -d --force-recreate website; then
-    log "recovery failed: could not recreate Nginx"
-    exit 1
+# 2. Ensure the website container still shares the tailscale netns.
+if ! netns_shared; then
+    log "website netns diverged; recreating website container"
+    if ! docker compose up -d --force-recreate website; then
+        log "recovery failed: could not recreate Nginx"
+        exit 1
+    fi
 fi
 
 if ! wait_for_health threehands-website 30; then
@@ -94,7 +141,7 @@ fi
 log "local services recovered; allowing Funnel registration to settle"
 sleep 30
 
-if probe_series; then
+if probe_all_relays; then
     log "ordered recovery succeeded"
     exit 0
 fi
