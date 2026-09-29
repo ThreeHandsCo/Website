@@ -78,6 +78,24 @@ netns_shared() {
     [ -n "$ns_ts" ] && [ "$ns_ts" = "$ns_web" ]
 }
 
+container_egress_ok() {
+    docker run --rm alpine:3 sh -c "wget -q -O- -T 6 http://1.1.1.1 >/dev/null 2>&1"
+}
+
+host_egress_ok() {
+    curl --fail --silent --max-time 6 https://www.google.com/generate_204 >/dev/null 2>&1
+}
+
+# Last-resort escalation for the recurring "bridge NAT silently rots" failure:
+# container egress dead while the host network is fine. Nothing short of a
+# daemon restart reprograms the plumbing (Sep 5, Sep 29). Restarts every
+# container on the host; all of them carry restart policies.
+restart_docker_daemon() {
+    log "container egress dead while host network is fine; restarting docker daemon"
+    docker run --rm --privileged --pid=host --net=host alpine:3 \
+        sh -c "nsenter -t 1 -m -u -i -n -p systemctl restart docker" >/dev/null 2>&1
+}
+
 wait_for_health() {
     container=$1
     attempts=$2
@@ -111,6 +129,21 @@ log "public Funnel is degraded; beginning ordered recovery"
 if ! cd "$STACK_DIR"; then
     log "recovery failed: stack directory is unavailable"
     exit 1
+fi
+
+# 0. If container egress itself is dead (host network fine), only a docker
+#    daemon restart reprograms the bridge NAT. Do this BEFORE touching
+#    tailscale, or every later step runs without a network.
+if ! container_egress_ok && host_egress_ok; then
+    restart_docker_daemon
+    sleep 15
+    if ! container_egress_ok; then
+        log "recovery failed: container egress still dead after daemon restart"
+        exit 1
+    fi
+    log "container egress restored by daemon restart; waiting for stack to settle"
+    wait_for_health threehands-tailscale 60 || true
+    wait_for_health threehands-website 30 || true
 fi
 
 # 1. Re-apply the netmap: fixes packet-filter desync (drops of ingress relays).
