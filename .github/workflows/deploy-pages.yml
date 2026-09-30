@@ -44,6 +44,27 @@ jobs:
             --exclude 'README.md' \
             ./ /tmp/site/
 
+      # The site uses root-absolute paths (/assets/...) which only work on a
+      # domain root. The Pages fallback lives at threehandsco.github.io/Website/,
+      # so rewrite every root-absolute reference to carry the /Website prefix.
+      # Two patterns cover all occurrences: attribute quotes (="/) and
+      # paren-single-quote (url('/..., new URL('/...).
+      - name: Rewrite root-absolute paths for the /Website base
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('/tmp/site')
+          touched = 0
+          for p in root.rglob('*'):
+              if p.is_file() and p.suffix.lower() in ('.html', '.js', '.css', '.webmanifest', '.json', '.svg'):
+                  text = p.read_text(encoding='utf-8')
+                  rewritten = text.replace('="/', '="/Website/').replace("('/", "('/Website/")
+                  if rewritten != text:
+                      p.write_text(rewritten, encoding='utf-8')
+                      touched += 1
+          print(f'rewrote paths in {touched} files')
+          PY
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
