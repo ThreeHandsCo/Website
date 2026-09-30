@@ -1,0 +1,53 @@
+name: Deploy fallback origin
+
+# Publishes the site to GitHub Pages as an independent second origin
+# (www.threehands.dev). The primary origin is the home server via Tailscale
+# Funnel; the mask page fails over here when the primary is unreachable.
+# Both origins deploy from the same commit, so they cannot drift.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: fallback-origin-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://www.threehands.dev/
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Gather site files
+        run: |
+          mkdir -p /tmp/site
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.build' \
+            --exclude '.deployment' \
+            --exclude '.github' \
+            --exclude '__pycache__' \
+            --exclude 'itch-proxy.py' \
+            --exclude 'README.md' \
+            ./ /tmp/site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: /tmp/site
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
