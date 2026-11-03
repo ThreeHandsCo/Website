@@ -30,7 +30,7 @@ a { text-decoration:none; }
 }
 @media (max-width:600px) {
   .embed { grid-template-columns:38% minmax(0,1fr); gap:12px; min-height:100%; padding:12px; }
-  .thumb-frame { width:100%; height:auto; aspect-ratio:1.27; }
+  .thumb-frame { width:min(100%, calc((100vh - 24px) * 1.27)); height:auto; aspect-ratio:1.27; }
   .link-frame { width:100%; }
   .link { padding:10px 8px; font-size:10px; letter-spacing:.5px; }
 }
@@ -50,7 +50,6 @@ a { text-decoration:none; }
   const thumbFrame = document.querySelector('.thumb-frame');
   const meta = document.querySelector('.meta');
   const title = document.querySelector('.title');
-  const linkFrame = document.querySelector('.link-frame');
   if (!embed || !thumbFrame || !meta || !title) return;
 
   const MIN_FONT_SIZE = 7;
@@ -58,9 +57,9 @@ a { text-decoration:none; }
 
   function titleFits(size) {
     title.style.fontSize = `${size}px`;
-    // Strict: a 1px tolerance lets the bottom pixel row of a pixel font clip.
-    return title.scrollWidth <= title.clientWidth + 0.5
-      && title.scrollHeight <= title.clientHeight + 0.5;
+    // Strict: scroll sizes are rounded, so any tolerance lets a pixel row clip.
+    return title.scrollWidth <= title.clientWidth
+      && title.scrollHeight <= title.clientHeight;
   }
 
   function fitTitle() {
@@ -78,19 +77,25 @@ a { text-decoration:none; }
       }
     }
     title.style.fontSize = `${best}px`;
+    // The pixel font can swap in after the search (fallback metrics differ),
+    // or the box can change while measuring. Never leave an overflowing title.
+    let guard = 0;
+    while (best > MIN_FONT_SIZE && !titleFits(best) && guard++ < 48) {
+      best = Math.max(MIN_FONT_SIZE, best - 1);
+      title.style.fontSize = `${best}px`;
+    }
   }
 
   function syncEmbedLayout() {
     // The thumb column can be taller than the iframe (mobile breakpoint fires
-    // for scaled-down desktop iframes too). Clamp meta so thumb + gap + button
-    // always fit inside the embed box, or the button and title get clipped.
+    // for scaled-down desktop iframes too). Clamp meta to the space inside the
+    // embed padding. The meta owns the gap and the button, so subtracting them
+    // here would leave the title only one line tall and clip wrapped titles.
     const thumbH = thumbFrame.getBoundingClientRect().height;
     const embedH = embed.getBoundingClientRect().height;
     const embedStyle = getComputedStyle(embed);
     const pad = (parseFloat(embedStyle.paddingTop) || 0) + (parseFloat(embedStyle.paddingBottom) || 0);
-    const gap = (parseFloat(getComputedStyle(meta).rowGap) || 0);
-    const linkH = linkFrame ? linkFrame.getBoundingClientRect().height : 0;
-    const metaH = Math.min(thumbH, embedH - pad - gap - linkH);
+    const metaH = Math.min(thumbH, embedH - pad);
     if (thumbH > 0 && metaH > 0) meta.style.height = `${metaH}px`;
     fitTitle();
   }
@@ -101,6 +106,9 @@ a { text-decoration:none; }
     observer.observe(thumbFrame);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncEmbedLayout);
+  if (document.fonts && document.fonts.addEventListener) {
+    document.fonts.addEventListener('loadingdone', syncEmbedLayout);
+  }
   window.addEventListener('load', syncEmbedLayout, { once: true });
   syncEmbedLayout();
 })();
